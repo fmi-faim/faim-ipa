@@ -1,17 +1,30 @@
+from __future__ import annotations
+
 from logging import Logger
+from os import mkdir
 from os.path import exists, join
+from typing import TYPE_CHECKING
 
 import pandas as pd
-from records import WellRecord
-from records.DefaultRecord import DefaultRecord
+
+from ..records.DefaultRecord import DefaultRecord
+
+# from ..records.WellRecord import WellRecord
+
+if TYPE_CHECKING:
+    from ..records.WellRecord import WellRecord
 
 
 class OrganoidRecord(DefaultRecord):
-    def __init__(self, well: WellRecord, organoid_id: str):
+    def __init__(self, well: WellRecord, organoid_id: str, save_dir: str = "."):
         super().__init__(organoid_id)
         self.logger = Logger(f"Organoid {organoid_id}")
         self.organoid_id = self.record_id
         self.well = well
+
+        self.organoid_dir = join(save_dir, self.organoid_id)
+        if not exists(self.organoid_dir):
+            mkdir(self.organoid_dir)
 
         if self.well is not None:
             self.well.register_organoid(self)
@@ -43,3 +56,9 @@ class OrganoidRecord(DefaultRecord):
             summary[k] = self.measurements[k]
 
         return pd.DataFrame(summary)
+
+    def save(self, path: str = None, name="organoid_summary"):
+        if path is None:
+            return super().save(self.organoid_dir, name=name)
+        else:
+            return super().save(path, name=name)

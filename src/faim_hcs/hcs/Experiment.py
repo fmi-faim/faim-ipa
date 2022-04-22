@@ -3,23 +3,20 @@ from os import mkdir
 from os.path import basename, dirname, exists, join
 
 import pandas as pd
-from records import PlateRecord
+
+from ..records.PlateRecord import PlateRecord
 
 
 class Experiment:
-    def __init__(self, name: str = None, root_dir: str = None, save_path: str = None):
+    def __init__(self, name: str = None, root_dir: str = None, save_dir: str = None):
         self.logger = Logger(f"HCS Experiment {name}")
         self.name = name
 
         if root_dir is not None:
             assert exists(root_dir), f"{root_dir} does not exist."
         self.root_dir = root_dir
-        if self.root_dir[-1] != "/":
+        if self.root_dir is not None and self.root_dir[-1] != "/":
             self.root_dir = self.root_dir + "/"
-
-        if save_path is not None:
-            assert exists(save_path), f"{save_path} does not exist."
-        self.save_path = save_path
 
         self.plates = {}
         self.current_plate = None
@@ -27,6 +24,11 @@ class Experiment:
 
         self.iter_plates_only = False
         self.iter_wells_only = False
+        self.save_dir = save_dir
+        if self.save_dir is not None:
+            assert exists(save_dir), "Save directory does not exist."
+            if not exists(self.get_experiment_dir()):
+                mkdir(self.get_experiment_dir())
 
     def register_plate(self, plate: PlateRecord):
         self.plates[plate.plate_id] = plate
@@ -37,11 +39,15 @@ class Experiment:
         PlateRecord(self, plate_id=plate_id)
 
     def get_dataframe(self):
+        plates = [p.plate_id for p in self.plates.values()]
+        if len(plates) == 0:
+            plates = [None]
         return pd.DataFrame(
             {
                 "hcs_experiment": self.name,
                 "root_dir": self.root_dir,
-                "plate": [p.plate_id for p in self.plates.values()],
+                "save_dir": self.save_dir,
+                "plate": plates,
             }
         )
 
@@ -82,31 +88,34 @@ class Experiment:
         return df.merge(pd.concat(plate_raw_seg_files), on="plate", how="outer")
 
     def get_experiment_dir(self):
-        return join(self.save_path, self.name)
+        return join(self.save_dir, self.name)
 
     def save(self):
-        path_ = self.get_experiment_dir()
-        if not exists(path_):
-            mkdir(path_)
+        if self.save_dir is not None:
+            path_ = self.get_experiment_dir()
+            if not exists(path_):
+                mkdir(path_)
 
-        df = self.get_dataframe()
+            df = self.get_dataframe()
 
-        saved_plates = []
-        for plate in self.plates.values():
-            saved_plates.append(plate.save(path_))
+            saved_plates = []
+            for plate in self.plates.values():
+                saved_plates.append(plate.save())
 
-        df = df.merge(pd.concat(saved_plates), on="plate", how="outer")
+            if len(saved_plates) > 0:
+                df = df.merge(pd.concat(saved_plates), on="plate", how="outer")
 
-        df.to_csv(join(path_, "summary.csv"))
+            df.to_csv(join(path_, "summary.csv"))
 
     def load(self, path):
-        self.save_path = dirname(path)
+        self.save_dir = dirname(path)
         df = pd.read_csv(path)
         self.name = df.iloc[0]["hcs_experiment"]
         self.root_dir = df.iloc[0]["root_dir"]
+        self.save_dir = df.iloc[0]["save_dir"]
         self.plates = {}
         for plate_id in df.plate.unique():
-            pr = PlateRecord(self, plate_id)
+            pr = PlateRecord(self, plate_id, self.get_experiment_dir())
             pr.load(df.query(f"plate == '{plate_id}'"), None)
             self.plates[plate_id] = pr
 

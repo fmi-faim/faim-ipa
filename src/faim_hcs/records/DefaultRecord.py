@@ -1,7 +1,6 @@
 import json
 from logging import Logger
-from os import mkdir
-from os.path import exists, join
+from os.path import join
 
 import pandas as pd
 from skimage.io import imread
@@ -73,11 +72,8 @@ class DefaultRecord:
         raise NotImplementedError
 
     def save(self, path, name):
-        path_ = join(path, self.record_id)
-        if not exists(path_):
-            mkdir(path_)
 
-        location = join(path_, name + ".json")
+        location = join(path, name + ".json")
 
         obj_dict = {
             "record_id": self.record_id,
@@ -92,12 +88,17 @@ class DefaultRecord:
         return location
 
     def load(self, df, column):
-        assert len(df.index) == 1
-        with open(df[column].iloc[0]) as f:
-            obj_dict = json.load(f)
+        if len(df.index) > 0:
+            assert len(
+                df[column].unique()
+            ), "There should only be 1 record. " "Found {} records.".format(
+                len(df[column].unique())
+            )
+            with open(df[column].iloc[0]) as f:
+                obj_dict = json.load(f)
 
-        assert obj_dict["record_id"] == self.record_id
-        self.raw_files = obj_dict["raw_files"]
-        self.segmentations = obj_dict["segmentations"]
-        self.measurements = obj_dict["measurements"]
-        self.spacings = obj_dict["spacings"]
+            assert obj_dict["record_id"] == self.record_id
+            self.raw_files = obj_dict["raw_files"]
+            self.segmentations = obj_dict["segmentations"]
+            self.measurements = obj_dict["measurements"]
+            self.spacings = obj_dict["spacings"]
