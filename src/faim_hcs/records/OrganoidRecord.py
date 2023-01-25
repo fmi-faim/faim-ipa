@@ -9,8 +9,6 @@ import pandas as pd
 
 from ..records.DefaultRecord import DefaultRecord
 
-# from ..records.WellRecord import WellRecord
-
 if TYPE_CHECKING:
     from ..records.WellRecord import WellRecord
 
@@ -40,9 +38,6 @@ class OrganoidRecord(DefaultRecord):
 
     def _get_source_file_location(self, path):
         return join(self.well.plate.experiment.root_dir, path)
-
-    def get_organoid_dir(self):
-        return join(self.well.get_well_dir(), self.record_id)
 
     def build_overview(self):
         summary = {"organoid_id": [self.record_id]}
