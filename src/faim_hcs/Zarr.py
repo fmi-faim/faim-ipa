@@ -3,11 +3,22 @@ from os.path import join
 from pathlib import Path
 from typing import Union
 
+import numpy as np
 import pandas as pd
 import zarr
+from numpy._typing import ArrayLike
 from ome_zarr.io import parse_url
-from ome_zarr.writer import write_plate_metadata, write_well_metadata
+from ome_zarr.scale import Scaler
+from ome_zarr.writer import (
+    write_image,
+    write_multiscales_metadata,
+    write_plate_metadata,
+    write_well_metadata,
+)
 from zarr import Group
+
+from faim_hcs.MetaSeriesUtils import build_omero_channel_metadata
+from faim_hcs.UIntHistogram import UIntHistogram
 
 
 def _get_row_cols(layout: str) -> tuple[list[str], list[str]]:
@@ -127,3 +138,104 @@ def build_zarr_scaffold(
     _add_wells_to_plate(plate=plate, files=files)
 
     return plate
+
+
+def _add_image_metadata(
+    img_group: Group,
+    metaseries_ch_metadata: dict,
+    dtype: type,
+    histograms: list[UIntHistogram],
+):
+    attrs = img_group.attrs.asdict()
+
+    # Add omero metadata
+    attrs["omero"] = build_omero_channel_metadata(
+        metaseries_ch_metadata, dtype, histograms
+    )
+
+    # Add metaseries metadta
+    attrs["metaseries_metadata"] = {"channels": metaseries_ch_metadata}
+
+    # Save histograms and add paths to attributes
+    histogram_paths = {}
+    for ch, hist in zip(metaseries_ch_metadata, histograms):
+        ch_name = ch["_IllumSetting_"].replace(" ", "_")
+        hist.save(
+            join(img_group.store.path, img_group.path, f"{ch_name}_histogram.npz")
+        )
+        histogram_paths[ch_name] = f"{ch_name}_histogram.npz"
+
+    attrs["histograms"] = histogram_paths
+
+    img_group.attrs.put(attrs)
+
+
+def _compute_chunk_size_cyx(
+    img: ArrayLike, max_levels: int = 4, max_size: int = 2048
+) -> tuple[list[dict[str, list[int]]], int]:
+    """Compute chunk-size for zarr storage.
+
+    :param img: to be saved
+    :param max_levels: max resolution pyramid levels
+    :param max_size: chunk size maximum
+    :return: storage options, number of pyramid levels
+    """
+    storage_options = []
+    for i in range(max_levels + 1):
+        h = min(max_size, img.shape[1] // 2**i)
+        w = min(max_size, img.shape[2] // 2**i)
+        storage_options.append({"chunks": [1, h, w]})
+        if h <= 1024 and w <= 1024:
+            return storage_options, i
+    return storage_options, max_levels
+
+
+def _set_multiscale_metadata(group: Group, general_metadata: dict, axes: list[dict]):
+    datasets = group.attrs.asdict()["multiscales"][0]["datasets"]
+    scaling = np.array(
+        [
+            1,
+            general_metadata["spatial-calibration-x"],
+            general_metadata["spatial-calibration-x"],
+        ]
+    )
+
+    for ct in datasets:
+        rescaled = ct["coordinateTransformations"][0]["scale"] * scaling
+        ct["coordinateTransformations"][0]["scale"] = list(rescaled)
+
+    write_multiscales_metadata(group, datasets=datasets, axes=axes)
+
+
+def write_cyx_image_to_well(
+    img: ArrayLike,
+    histograms: list[UIntHistogram],
+    metaseries_ch_metadata: list[dict],
+    general_metadata: dict,
+    group: Group,
+):
+    if general_metadata["spatial-calibration-units"] == "um":
+        axes = [
+            {"name": "c", "type": "channel"},
+            {"name": "y", "type": "space", "unit": "micrometer"},
+            {"name": "x", "type": "space", "unit": "micrometer"},
+        ]
+    else:
+        NotImplementedError("Spatial unit unknown.")
+
+    storage_options, max_layer = _compute_chunk_size_cyx(img)
+
+    scaler = Scaler(max_layer=max_layer)
+
+    write_image(
+        img, group=group, axes=axes, storage_options=storage_options, scaler=scaler
+    )
+
+    _set_multiscale_metadata(group=group, general_metadata=general_metadata, axes=axes)
+
+    _add_image_metadata(
+        img_group=group,
+        metaseries_ch_metadata=metaseries_ch_metadata,
+        dtype=img.dtype,
+        histograms=histograms,
+    )

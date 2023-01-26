@@ -35,7 +35,7 @@ class UIntHistogram:
         """
         offset = int(data.min())
         bins = int(data.max()) + 2 - offset
-        freq = list(np.histogram(data, np.arange(offset, offset + bins))[0])
+        freq = np.histogram(data, np.arange(offset, offset + bins))[0].tolist()
         return offset, bins, freq
 
     def _aggregate_histograms(self, offset_data, bins, freq):
@@ -48,7 +48,9 @@ class UIntHistogram:
         :return:
         """
         assert isinstance(freq, list), "freq must be of type List."
-        assert isinstance(self.frequencies, list), "frequencies must be of type List."
+        assert isinstance(self.frequencies, list), (
+            "frequencies must be of " "type List."
+        )
         lower_shift = offset_data - self.offset
         upper_shift = self.offset + self.bins - (offset_data + bins)
 
@@ -141,11 +143,16 @@ class UIntHistogram:
 
         :param histogram: to merge with this
         """
-        self._aggregate_histograms(
-            offset_data=histogram.offset,
-            bins=histogram.bins,
-            freq=histogram.frequencies,
-        )
+        if self.frequencies is None:
+            self.frequencies = histogram.frequencies
+            self.bins = histogram.bins
+            self.offset = histogram.offset
+        else:
+            self._aggregate_histograms(
+                offset_data=histogram.offset,
+                bins=histogram.bins,
+                freq=histogram.frequencies,
+            )
 
     def update(self, data):
         """
