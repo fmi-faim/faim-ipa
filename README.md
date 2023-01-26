@@ -1,3 +1,3 @@
 # FAIM-HCS
 
-Package to organize high content screening experiments.
+Tools used at FMI-FAIM to handle HCS data.
