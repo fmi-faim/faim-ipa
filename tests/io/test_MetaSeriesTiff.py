@@ -17,7 +17,7 @@ class TestMetaSeriesTiff(unittest.TestCase):
             "MIP-2P-2sub",
             "2022-07-05",
             "1075",
-            "MIP-4P-4sub_C06_s1_w152C23B9A-EB4C-4DF6-8A7F-F4147A9E7DDE.tif",
+            "MIP-2P-2sub_C06_s1_w152C23B9A-EB4C-4DF6-8A7F-F4147A9E7DDE.tif",
         )
 
         img, metadata = load_metaseries_tiff(path=path)
