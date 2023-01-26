@@ -7,3 +7,4 @@ recursive-exclude * *.py[co]
 recursive-exclude tests *
 recursive-exclude scratchpad *
 recursive-exclude resources *
+recursive-exclude examples *
