@@ -17,7 +17,6 @@ from ome_zarr.writer import (
 )
 from zarr import Group
 
-from faim_hcs.MetaSeriesUtils import build_omero_channel_metadata
 from faim_hcs.UIntHistogram import UIntHistogram
 
 
@@ -142,24 +141,22 @@ def build_zarr_scaffold(
 
 def _add_image_metadata(
     img_group: Group,
-    metaseries_ch_metadata: dict,
+    ch_metadata: dict,
     dtype: type,
     histograms: list[UIntHistogram],
 ):
     attrs = img_group.attrs.asdict()
 
     # Add omero metadata
-    attrs["omero"] = build_omero_channel_metadata(
-        metaseries_ch_metadata, dtype, histograms
-    )
+    attrs["omero"] = build_omero_channel_metadata(ch_metadata, dtype, histograms)
 
     # Add metaseries metadta
-    attrs["metaseries_metadata"] = {"channels": metaseries_ch_metadata}
+    attrs["acquisition_metadata"] = {"channels": ch_metadata}
 
     # Save histograms and add paths to attributes
     histogram_paths = {}
-    for ch, hist in zip(metaseries_ch_metadata, histograms):
-        ch_name = ch["_IllumSetting_"].replace(" ", "_")
+    for ch, hist in zip(ch_metadata, histograms):
+        ch_name = ch["channel-name"].replace(" ", "_")
         hist.save(
             join(img_group.store.path, img_group.path, f"{ch_name}_histogram.npz")
         )
@@ -195,7 +192,7 @@ def _set_multiscale_metadata(group: Group, general_metadata: dict, axes: list[di
     scaling = np.array(
         [
             1,
-            general_metadata["spatial-calibration-x"],
+            general_metadata["spatial-calibration-y"],
             general_metadata["spatial-calibration-x"],
         ]
     )
@@ -210,7 +207,7 @@ def _set_multiscale_metadata(group: Group, general_metadata: dict, axes: list[di
 def write_cyx_image_to_well(
     img: ArrayLike,
     histograms: list[UIntHistogram],
-    metaseries_ch_metadata: list[dict],
+    ch_metadata: list[dict],
     general_metadata: dict,
     group: Group,
 ):
@@ -235,7 +232,45 @@ def write_cyx_image_to_well(
 
     _add_image_metadata(
         img_group=group,
-        metaseries_ch_metadata=metaseries_ch_metadata,
+        ch_metadata=ch_metadata,
         dtype=img.dtype,
         histograms=histograms,
     )
+
+
+def build_omero_channel_metadata(
+    ch_metadata: dict, dtype: type, histograms: list[UIntHistogram]
+):
+    """Build omero conform channel metadata to be stored in zarr attributes.
+
+    * Color is computed from the metaseries wavelength metadata.
+    * Label is the set to the metaseries _IllumSetting_ metadata.
+    * Intensity scaling is obtained from the data histogram [0.01,
+    0.99] quantiles.
+
+    :param ch_metadata: channel metadata from tiff-tags
+    :param dtype: data type
+    :param histograms: histograms of channels
+    :return: omero metadata dictionary
+    """
+    channels = []
+    for i, (ch, hist) in enumerate(zip(ch_metadata, histograms)):
+        channels.append(
+            {
+                "active": True,
+                "coefficient": 1,
+                "color": ch["display-color"],
+                "family": "linear",
+                "inverted": False,
+                "label": ch["channel-name"],
+                "wavelength_id": f"C{str(i+1).zfill(2)}",
+                "window": {
+                    "min": np.iinfo(dtype).min,
+                    "max": np.iinfo(dtype).max,
+                    "start": hist.quantile(0.01),
+                    "end": hist.quantile(0.99),
+                },
+            }
+        )
+
+    return {"channels": channels}

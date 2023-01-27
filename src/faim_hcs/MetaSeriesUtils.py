@@ -1,42 +1,208 @@
-import numpy as np
+from typing import Any, Callable, Optional
 
+import numpy as np
+import pandas as pd
+from numpy._typing import ArrayLike
+
+from faim_hcs.io.MetaSeriesTiff import load_metaseries_tiff
 from faim_hcs.UIntHistogram import UIntHistogram
 from faim_hcs.utils import rgb_to_hex, wavelength_to_rgb
 
 
-def build_omero_channel_metadata(
-    metaseries_ch_metadata: dict, dtype: type, histograms: list[UIntHistogram]
-):
-    """Build omero conform channel metadata to be stored in zarr attributes.
+def _build_ch_metadata(metaseries_ch_metadata: dict):
+    """Build channel metadata from metaseries metadata."""
 
-    * Color is computed from the metaseries wavelength metadata.
-    * Label is the set to the metaseries _IllumSetting_ metadata.
-    * Intensity scaling is obtained from the data histogram [0.01,
-    0.99] quantiles.
+    def get_wavelength_power(channel):
+        if channel["Lumencor Cyan Intensity"] > 0.0:
+            wl = "cyan"
+            power = channel["Lumencor Cyan Intensity"]
+            assert channel["Lumencor Green Intensity"] == 0.0
+            assert channel["Lumencor Red Intensity"] == 0.0
+            assert channel["Lumencor Violet Intensity"] == 0.0
+            assert channel["Lumencor Yellow Intensity"] == 0.0
+            return wl, power
+        if channel["Lumencor Green Intensity"] > 0.0:
+            wl = "green"
+            power = channel["Lumencor Green Intensity"]
+            assert channel["Lumencor Cyan Intensity"] == 0.0
+            assert channel["Lumencor Red Intensity"] == 0.0
+            assert channel["Lumencor Violet Intensity"] == 0.0
+            assert channel["Lumencor Yellow Intensity"] == 0.0
+            return wl, power
+        if channel["Lumencor Red Intensity"] > 0.0:
+            wl = "red"
+            power = channel["Lumencor Red Intensity"]
+            assert channel["Lumencor Cyan Intensity"] == 0.0
+            assert channel["Lumencor Green Intensity"] == 0.0
+            assert channel["Lumencor Violet Intensity"] == 0.0
+            assert channel["Lumencor Yellow Intensity"] == 0.0
+            return wl, power
+        if channel["Lumencor Violet Intensity"] > 0.0:
+            wl = "violet"
+            power = channel["Lumencor Violet Intensity"]
+            assert channel["Lumencor Cyan Intensity"] == 0.0
+            assert channel["Lumencor Green Intensity"] == 0.0
+            assert channel["Lumencor Red Intensity"] == 0.0
+            assert channel["Lumencor Yellow Intensity"] == 0.0
+            return wl, power
+        if channel["Lumencor Yellow Intensity"] > 0.0:
+            wl = "yellow"
+            power = channel["Lumencor Yellow Intensity"]
+            assert channel["Lumencor Cyan Intensity"] == 0.0
+            assert channel["Lumencor Green Intensity"] == 0.0
+            assert channel["Lumencor Red Intensity"] == 0.0
+            assert channel["Lumencor Violet Intensity"] == 0.0
+            return wl, power
+        return None, None
 
-    :param metaseries_ch_metadata: channel metadata from tiff-tags
-    :param dtype: data type
-    :param histograms: histograms of channels
-    :return: omero metadata dictionary
-    """
-    channels = []
-    for i, (ch, hist) in enumerate(zip(metaseries_ch_metadata, histograms)):
-        channels.append(
-            {
-                "active": True,
-                "coefficient": 1,
-                "color": rgb_to_hex(*wavelength_to_rgb(ch["wavelength"])),
-                "family": "linear",
-                "inverted": False,
-                "label": ch["_IllumSetting_"],
-                "wavelength_id": f"C{str(i).zfill(2)}",
-                "window": {
-                    "min": np.iinfo(dtype).min,
-                    "max": np.iinfo(dtype).max,
-                    "start": hist.quantile(0.01),
-                    "end": hist.quantile(0.99),
-                },
-            }
+    def get_exposure_time_unit(ch):
+        time, unit = ch["Exposure Time"].split(" ")
+        time = float(time)
+        return time, unit
+
+    wavelength, power = get_wavelength_power(metaseries_ch_metadata)
+    time, unit = get_exposure_time_unit(metaseries_ch_metadata)
+    display_color = rgb_to_hex(*wavelength_to_rgb(metaseries_ch_metadata["wavelength"]))
+    return {
+        "wavelength": wavelength,
+        "power": power,
+        "exposure-time": time,
+        "exposure-time-unit": unit,
+        "shading-correction": metaseries_ch_metadata["ShadingCorrection"] == "On",
+        "channel-name": metaseries_ch_metadata["_IllumSetting_"],
+        "objective-NA": metaseries_ch_metadata["_MagNA_"],
+        "objective": metaseries_ch_metadata["_MagSetting_"],
+        "display-color": display_color,
+    }
+
+
+def _get_molecular_devices_well_bbox_2D(
+    data: list[tuple[ArrayLike, dict]]
+) -> tuple[Optional[Any], Optional[Any], Optional[Any], Optional[Any]]:
+    """Compute well-shape based on stage position metadata."""
+    assert "stage-position-x" in data[0][1].keys(), "Missing metaseries metadata."
+    assert "stage-position-y" in data[0][1].keys(), "Missing metaseries metadata."
+    assert "spatial-calibration-x" in data[0][1].keys(), "Missing metaseries metadata."
+    assert "spatial-calibration-y" in data[0][1].keys(), "Missing metaseries metadata."
+
+    min_x, max_x, min_y, max_y = None, None, None, None
+    for d in data:
+        pos_x = d[1]["stage-position-x"]
+        pos_y = d[1]["stage-position-y"]
+        res_x = d[1]["spatial-calibration-x"]
+        res_y = d[1]["spatial-calibration-y"]
+
+        if min_x is None:
+            min_x = pos_x / res_x
+            max_x = min_x + d[0].shape[1]
+        elif min_x > (pos_x / res_x):
+            min_x = pos_x / res_x
+
+        if max_x < (pos_x / res_x) + d[0].shape[1]:
+            max_x = (pos_x / res_x) + d[0].shape[1]
+
+        if min_y is None:
+            min_y = pos_y / res_y
+            max_y = min_y + d[0].shape[0]
+        elif min_y > pos_y / res_y:
+            min_y = pos_y / res_y
+
+        if max_y < (pos_y / res_y) + d[0].shape[0]:
+            max_y = (pos_y / res_y) + d[0].shape[0]
+
+    return min_y, min_x, max_y, max_x
+
+
+def _montage_image_YX(data):
+    """Montage 2D fields based on stage position metadata."""
+
+    def sort_key(d):
+        label = d[1]["stage-label"]
+
+        label = label.split(":")
+
+        if len(label) == 1:
+            return label
+        else:
+            return int(label[1].replace("Site", ""))
+
+    data.sort(key=sort_key, reverse=True)
+
+    min_y, min_x, max_y, max_x = _get_molecular_devices_well_bbox_2D(data)
+
+    shape = (int(np.round(max_y - min_y)), int(np.round(max_x - min_x)))
+
+    img = np.zeros(shape, dtype=data[0][0].dtype)
+
+    for d in data:
+        pos_y = int(
+            np.round(d[1]["stage-position-y"] / d[1]["spatial-calibration-y"] - min_y)
+        )
+        pos_x = int(
+            np.round(d[1]["stage-position-x"] / d[1]["spatial-calibration-x"] - min_x)
         )
 
-    return {"channels": channels}
+        img[pos_y : pos_y + d[0].shape[0], pos_x : pos_x + d[0].shape[1]] = d[0]
+
+    return img
+
+
+def verify_integrity(field_metadata: list[dict]):
+    metadata = field_metadata[0]
+    for fm in field_metadata:
+        assert fm == metadata, "Metadata is not consistent accross fields."
+
+    return metadata
+
+
+def get_well_image_CYX(
+    well_files: pd.DataFrame, assemble_fn: Callable = _montage_image_YX
+) -> tuple[ArrayLike, list[UIntHistogram], list[dict], dict]:
+    """Assemble image data for the given well-files.
+
+    For each channel a single 2D image is computed. If the well has multiple
+    fields per channel the `assemble_fn` has to montage or stitch the fields
+    accordingly.
+
+    :param well_files: all files corresponding to the well
+    :param assemble_fn: creates a single image for each channel
+    :return: CYX image, channel-histograms, channel-metadata, general-metadata
+    """
+    channels = well_files["channel"].unique()
+    channels.sort()
+
+    channel_imgs = []
+    channel_histograms = []
+    channel_metadata = []
+    general_metadata = None
+    for ch in channels:
+        channel_files = well_files[well_files["channel"] == ch]
+
+        imgs = []
+        field_metadata = []
+        for f in channel_files["path"]:
+            img, ms_metadata = load_metaseries_tiff(f)
+            ch_metadata = _build_ch_metadata(ms_metadata)
+            imgs.append((img, ms_metadata))
+            field_metadata.append(ch_metadata)
+            if general_metadata is None:
+                general_metadata = {
+                    "spatial-calibration-x": ms_metadata["spatial-calibration-x"],
+                    "spatial-calibration-y": ms_metadata["spatial-calibration-y"],
+                    "spatial-calibration-units": ms_metadata[
+                        "spatial-calibration-units"
+                    ],
+                    "pixel-type": ms_metadata["PixelType"],
+                }
+
+        img = assemble_fn(imgs)
+        metadata = verify_integrity(field_metadata)
+
+        channel_imgs.append(img)
+        channel_histograms.append(UIntHistogram(img))
+
+        channel_metadata.append(metadata)
+
+    cyx = np.array(channel_imgs)
+
+    return cyx, channel_histograms, channel_metadata, general_metadata
