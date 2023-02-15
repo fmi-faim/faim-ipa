@@ -45,7 +45,17 @@ def parse_single_plane_multi_fields(acquisition_dir: Union[Path, str]) -> pd.Dat
     )
 
 
-def _list_image_files(root_dir: Path, data_re: re) -> list[str]:
+def parse_multi_field_stacks(acquisition_dir: Union[Path, str]) -> pd.DataFrame:
+    folder_pattern = r".*[/\\]ZStep_(?P<z>\d+).*"
+    filename_pattern = r"(?P<name>.*)_(?P<well>[A-Z]+\d{2})_(?P<field>s\d+)_(?P<channel>w[1-9]{1})(?!_thumb)(?P<md_id>.*)(?P<ext>.tif)"
+    return pd.DataFrame(
+        _list_dataset_files(
+            root_dir=acquisition_dir, root_re=re.compile(folder_pattern), filename_re=re.compile(filename_pattern)
+        )
+    )
+
+
+def _list_image_files(root_dir: Path, data_re: re.Pattern) -> list[str]:
     files = []
     for entry in os.scandir(root_dir):
         if entry.is_dir():
@@ -58,4 +68,19 @@ def _list_image_files(root_dir: Path, data_re: re) -> list[str]:
                 row["path"] = entry.path
                 files.append(row)
 
+    return files
+
+
+def _list_dataset_files(root_dir: Path, root_re: re.Pattern, filename_re: re.Pattern) -> list[str]:
+    files = []
+    for root, _, filenames in os.walk(root_dir):
+        m_root = root_re.fullmatch(root)
+        if m_root:
+            for f in filenames:
+                m_filename = filename_re.fullmatch(f)
+                if m_filename:
+                    row = m_root.groupdict()
+                    row |= m_filename.groupdict()
+                    row["path"] = str(Path(root) / f)
+                    files.append(row)
     return files
