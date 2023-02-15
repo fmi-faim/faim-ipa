@@ -147,6 +147,32 @@ def _montage_image_YX(data):
     return img
 
 
+def _pixel_pos(dim: str, data: dict):
+    return np.round(data[f"stage-position-{dim}"] / data[f"spatial-calibration-{dim}"])
+
+
+def _montage_grid_image_YX(data):
+    """Montage 2D fields into fixed grid, based on stage position metadata."""
+    min_y = min(_pixel_pos("y", d[1]) for d in data)
+    min_x = min(_pixel_pos("x", d[1]) for d in data)
+    max_y = max(_pixel_pos("y", d[1]) for d in data)
+    max_x = max(_pixel_pos("x", d[1]) for d in data)
+
+    assert all([d[0].shape for d in data])
+    step_y = data[0][0].shape[0]
+    step_x = data[0][0].shape[1]
+
+    # TODO make sure this is always enough; maybe round to integer multiples of step_{y|x}
+    img = np.zeros((int(max_y - min_y + step_y), int(max_x - min_x + step_x)), dtype=data[0][0].dtype)
+
+    for d in data:
+        pos_x = int(np.round((_pixel_pos("x", d[1]) - min_x) / step_x))
+        pos_y = int(np.round((_pixel_pos("y", d[1]) - min_y) / step_y))
+        img[pos_y * step_y:(pos_y + 1) * step_y, pos_x * step_x:(pos_x + 1) * step_x] = d[0]
+
+    return img
+
+
 def verify_integrity(field_metadata: list[dict]):
     metadata = field_metadata[0]
     for fm in field_metadata:
