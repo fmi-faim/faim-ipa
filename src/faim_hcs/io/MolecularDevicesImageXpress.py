@@ -37,26 +37,24 @@ def parse_single_plane_multi_fields(acquisition_dir: Union[Path, str]) -> pd.Dat
     :return: table of all acquired image data.
     """
 
-    data_pattern = r"(?P<name>.*)_(?P<well>[A-Z]+\d{2})_(?P<field>s\d+)_(?P<channel>w[1-9]{1})(?P<md_id>.*)(?P<ext>.tif)"
-    thumb_pattern = r"(?P<name>.*)_(?P<well>[A-Z]+\d{2})_(?P<field>s\d+)_(?P<channel>w[1-9]{1})(?P<md_id>_thumb.*)(?P<ext>.tif)"
+    data_pattern = r"(?P<name>.*)_(?P<well>[A-Z]+\d{2})_(?P<field>s\d+)_(?P<channel>w[1-9]{1})(?!_thumb)(?P<md_id>.*)(?P<ext>.tif)"
     data_re = re.compile(data_pattern)
-    thumb_re = re.compile(thumb_pattern)
 
     return pd.DataFrame(
-        _list_image_files(root_dir=acquisition_dir, thumb_re=thumb_re, data_re=data_re)
+        _list_image_files(root_dir=acquisition_dir, data_re=data_re)
     )
 
 
-def _list_image_files(root_dir: Path, thumb_re: re, data_re: re) -> list[str]:
+def _list_image_files(root_dir: Path, data_re: re) -> list[str]:
     files = []
     for entry in os.scandir(root_dir):
         if entry.is_dir():
-            files.extend(_list_image_files(entry, thumb_re, data_re))
+            files.extend(_list_image_files(entry, data_re))
 
         if entry.is_file():
-            if thumb_re.fullmatch(entry.name) is None:
-                # It is not a thumbnail
-                row = data_re.fullmatch(entry.name).groupdict()
+            match = data_re.fullmatch(entry.name)
+            if match:
+                row = match.groupdict()
                 row["path"] = entry.path
                 files.append(row)
 
