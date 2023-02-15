@@ -77,7 +77,7 @@ def _build_ch_metadata(metaseries_ch_metadata: dict):
 
 
 def _get_molecular_devices_well_bbox_2D(
-    data: list[tuple[ArrayLike, dict]]
+        data: list[tuple[ArrayLike, dict]]
 ) -> tuple[Optional[Any], Optional[Any], Optional[Any], Optional[Any]]:
     """Compute well-shape based on stage position metadata."""
     assert "stage-position-x" in data[0][1].keys(), "Missing metaseries metadata."
@@ -142,7 +142,7 @@ def _montage_image_YX(data):
             np.round(d[1]["stage-position-x"] / d[1]["spatial-calibration-x"] - min_x)
         )
 
-        img[pos_y : pos_y + d[0].shape[0], pos_x : pos_x + d[0].shape[1]] = d[0]
+        img[pos_y:pos_y + d[0].shape[0], pos_x:pos_x + d[0].shape[1]] = d[0]
 
     return img
 
@@ -176,13 +176,13 @@ def _montage_grid_image_YX(data):
 def verify_integrity(field_metadata: list[dict]):
     metadata = field_metadata[0]
     for fm in field_metadata:
-        assert fm == metadata, "Metadata is not consistent accross fields."
+        assert fm == metadata, "Metadata is not consistent across fields."
 
     return metadata
 
 
 def get_well_image_CYX(
-    well_files: pd.DataFrame, assemble_fn: Callable = _montage_image_YX
+        well_files: pd.DataFrame, assemble_fn: Callable = _montage_image_YX
 ) -> tuple[ArrayLike, list[UIntHistogram], list[dict], dict]:
     """Assemble image data for the given well-files.
 
