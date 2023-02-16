@@ -77,7 +77,7 @@ def _build_ch_metadata(metaseries_ch_metadata: dict):
 
 
 def _get_molecular_devices_well_bbox_2D(
-        data: list[tuple[ArrayLike, dict]]
+    data: list[tuple[ArrayLike, dict]]
 ) -> tuple[Optional[Any], Optional[Any], Optional[Any], Optional[Any]]:
     """Compute well-shape based on stage position metadata."""
     assert "stage-position-x" in data[0][1].keys(), "Missing metaseries metadata."
@@ -142,7 +142,7 @@ def _montage_image_YX(data):
             np.round(d[1]["stage-position-x"] / d[1]["spatial-calibration-x"] - min_x)
         )
 
-        img[pos_y:pos_y + d[0].shape[0], pos_x:pos_x + d[0].shape[1]] = d[0]
+        img[pos_y : pos_y + d[0].shape[0], pos_x : pos_x + d[0].shape[1]] = d[0]
 
     return img
 
@@ -162,13 +162,18 @@ def _montage_grid_image_YX(data):
     step_y = data[0][0].shape[0]
     step_x = data[0][0].shape[1]
 
-    shape = (int(np.round((max_y - min_y) / step_y + 1) * step_y), int(np.round((max_x - min_x) / step_x + 1) * step_x))
+    shape = (
+        int(np.round((max_y - min_y) / step_y + 1) * step_y),
+        int(np.round((max_x - min_x) / step_x + 1) * step_x),
+    )
     img = np.zeros(shape, dtype=data[0][0].dtype)
 
     for d in data:
         pos_x = int(np.round((_pixel_pos("x", d[1]) - min_x) / step_x))
         pos_y = int(np.round((_pixel_pos("y", d[1]) - min_y) / step_y))
-        img[pos_y * step_y:(pos_y + 1) * step_y, pos_x * step_x:(pos_x + 1) * step_x] = d[0]
+        img[
+            pos_y * step_y : (pos_y + 1) * step_y, pos_x * step_x : (pos_x + 1) * step_x
+        ] = d[0]
 
     return img
 
@@ -182,7 +187,7 @@ def verify_integrity(field_metadata: list[dict]):
 
 
 def get_well_image_ZCYX(
-        well_files: pd.DataFrame, assemble_fn: Callable = _montage_grid_image_YX
+    well_files: pd.DataFrame, assemble_fn: Callable = _montage_grid_image_YX
 ) -> tuple[ArrayLike, list[UIntHistogram], list[dict], dict]:
     """Assemble image data for the given well-files."""
     planes = well_files["z"].unique()
@@ -195,7 +200,9 @@ def get_well_image_ZCYX(
 
     for z in planes:
         plane_files = well_files[well_files["z"] == z]
-        img, ch_hists, ch_metas, meta = get_well_image_CYX(plane_files, assemble_fn=assemble_fn)
+        img, ch_hists, ch_metas, meta = get_well_image_CYX(
+            plane_files, assemble_fn=assemble_fn
+        )
         plane_imgs.append(img)
         if not channel_histograms:
             channel_histograms = ch_hists
@@ -212,7 +219,7 @@ def get_well_image_ZCYX(
 
 
 def get_well_image_CYX(
-        well_files: pd.DataFrame, assemble_fn: Callable = _montage_grid_image_YX
+    well_files: pd.DataFrame, assemble_fn: Callable = _montage_grid_image_YX
 ) -> tuple[ArrayLike, list[UIntHistogram], list[dict], dict]:
     """Assemble image data for the given well-files.
 
