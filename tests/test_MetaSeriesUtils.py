@@ -2,8 +2,8 @@ from pathlib import Path
 
 import pytest
 
-from faim_hcs.MetaSeriesUtils import get_well_image_CYX, _montage_grid_image_YX
 from faim_hcs.io.MolecularDevicesImageXpress import parse_single_plane_multi_fields
+from faim_hcs.MetaSeriesUtils import _montage_grid_image_YX, get_well_image_CYX
 
 ROOT_DIR = Path(__file__).parent
 

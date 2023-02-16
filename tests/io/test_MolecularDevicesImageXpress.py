@@ -3,8 +3,8 @@ from os.path import exists, join
 from pathlib import Path
 
 from faim_hcs.io.MolecularDevicesImageXpress import (
-    parse_single_plane_multi_fields,
     parse_multi_field_stacks,
+    parse_single_plane_multi_fields,
 )
 
 ROOT_DIR = Path(__file__).parent.parent
