@@ -31,6 +31,7 @@ class TestMetaSeriesTiff(unittest.TestCase):
         assert metadata["spatial-calibration-units"] == "um"
         assert metadata["stage-position-x"] == 68918.7
         assert metadata["stage-position-y"] == 23890.1
+        assert metadata["z-position"] == 10924.4
         assert metadata["PixelType"] == "uint16"
         assert metadata["_MagNA_"] == 0.75
         assert metadata["_MagSetting_"] == "20X Plan Apo Lambda"

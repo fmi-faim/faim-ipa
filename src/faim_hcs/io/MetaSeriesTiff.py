@@ -53,6 +53,7 @@ def load_metaseries_tiff(path: Path) -> tuple[ArrayLike, dict]:
             "stage-position-y": tiff.metaseries_metadata["PlaneInfo"][
                 "stage-position-y"
             ],
+            "z-position": tiff.metaseries_metadata["PlaneInfo"]["z-position"],
             "PixelType": str(data.dtype),
             "_MagNA_": tiff.metaseries_metadata["PlaneInfo"]["_MagNA_"],
             "_MagSetting_": tiff.metaseries_metadata["PlaneInfo"]["_MagSetting_"],
