@@ -181,6 +181,36 @@ def verify_integrity(field_metadata: list[dict]):
     return metadata
 
 
+def get_well_image_ZCYX(
+        well_files: pd.DataFrame, assemble_fn: Callable = _montage_grid_image_YX
+) -> tuple[ArrayLike, list[UIntHistogram], list[dict], dict]:
+    """Assemble image data for the given well-files."""
+    planes = well_files["z"].unique()
+    planes.sort()
+
+    plane_imgs = []
+    channel_histograms = None
+    channel_metadata = None
+    general_metadata = None
+
+    for z in planes:
+        plane_files = well_files[well_files["z"] == z]
+        img, ch_hists, ch_metas, meta = get_well_image_CYX(plane_files, assemble_fn=assemble_fn)
+        plane_imgs.append(img)
+        if not channel_histograms:
+            channel_histograms = ch_hists
+        else:
+            [hist1.combine(hist2) for hist1, hist2 in zip(channel_histograms, ch_hists)]
+        if not channel_metadata:
+            channel_metadata = ch_metas
+        if not general_metadata:
+            general_metadata = meta
+
+    zcyx = np.array(plane_imgs)
+
+    return zcyx, channel_histograms, channel_metadata, general_metadata
+
+
 def get_well_image_CYX(
         well_files: pd.DataFrame, assemble_fn: Callable = _montage_image_YX
 ) -> tuple[ArrayLike, list[UIntHistogram], list[dict], dict]:
