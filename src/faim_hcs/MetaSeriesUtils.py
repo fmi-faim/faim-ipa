@@ -162,8 +162,8 @@ def _montage_grid_image_YX(data):
     step_y = data[0][0].shape[0]
     step_x = data[0][0].shape[1]
 
-    # TODO make sure this is always enough; maybe round to integer multiples of step_{y|x}
-    img = np.zeros((int(max_y - min_y + step_y), int(max_x - min_x + step_x)), dtype=data[0][0].dtype)
+    shape = (int(np.round((max_y - min_y) / step_y + 1) * step_y), int(np.round((max_x - min_x) / step_x + 1) * step_x))
+    img = np.zeros(shape, dtype=data[0][0].dtype)
 
     for d in data:
         pos_x = int(np.round((_pixel_pos("x", d[1]) - min_x) / step_x))
@@ -212,7 +212,7 @@ def get_well_image_ZCYX(
 
 
 def get_well_image_CYX(
-        well_files: pd.DataFrame, assemble_fn: Callable = _montage_image_YX
+        well_files: pd.DataFrame, assemble_fn: Callable = _montage_grid_image_YX
 ) -> tuple[ArrayLike, list[UIntHistogram], list[dict], dict]:
     """Assemble image data for the given well-files.
 
