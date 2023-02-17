@@ -182,7 +182,7 @@ def _compute_chunk_size_cyx(
         h = min(max_size, img.shape[1] // 2**i)
         w = min(max_size, img.shape[2] // 2**i)
         storage_options.append({"chunks": [1, h, w]})
-        if h <= 1024 and w <= 1024:
+        if h <= max_size / 2 and w <= max_size / 2:
             return storage_options, i
     return storage_options, max_levels
 

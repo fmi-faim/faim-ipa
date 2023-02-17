@@ -76,6 +76,10 @@ def _build_ch_metadata(metaseries_ch_metadata: dict):
     }
 
 
+def _z_metadata(metaseries_ch_metadata: dict):
+    return {"z-position": metaseries_ch_metadata["z-position"]}
+
+
 def _get_molecular_devices_well_bbox_2D(
     data: list[tuple[ArrayLike, dict]]
 ) -> tuple[Optional[Any], Optional[Any], Optional[Any], Optional[Any]]:
@@ -191,19 +195,20 @@ def get_well_image_ZCYX(
 ) -> tuple[ArrayLike, list[UIntHistogram], list[dict], dict]:
     """Assemble image data for the given well-files."""
     planes = well_files["z"].unique()
-    planes.sort()
 
     plane_imgs = []
     channel_histograms = None
     channel_metadata = None
     general_metadata = None
+    z_positions = []
 
-    for z in planes:
+    for z in sorted(planes, key=int):
         plane_files = well_files[well_files["z"] == z]
         img, ch_hists, ch_metas, meta = get_well_image_CYX(
             plane_files, assemble_fn=assemble_fn
         )
         plane_imgs.append(img)
+        z_positions.append(meta["z-position"])
         if not channel_histograms:
             channel_histograms = ch_hists
         else:
@@ -214,6 +219,11 @@ def get_well_image_ZCYX(
             general_metadata = meta
 
     zcyx = np.array(plane_imgs)
+
+    # add z scaling (computed from slices) to general_metadata
+    if len(z_positions) > 1:
+        z_step = np.min(np.diff(z_positions))
+        general_metadata["z-scaling"] = z_step
 
     return zcyx, channel_histograms, channel_metadata, general_metadata
 
@@ -238,6 +248,7 @@ def get_well_image_CYX(
     channel_histograms = []
     channel_metadata = []
     general_metadata = None
+    zpos_metadata = []
     for ch in channels:
         channel_files = well_files[well_files["channel"] == ch]
 
@@ -246,6 +257,7 @@ def get_well_image_CYX(
         for f in channel_files["path"]:
             img, ms_metadata = load_metaseries_tiff(f)
             ch_metadata = _build_ch_metadata(ms_metadata)
+            zpos_metadata.append(_z_metadata(ms_metadata))
             imgs.append((img, ms_metadata))
             field_metadata.append(ch_metadata)
             if general_metadata is None:
@@ -267,5 +279,10 @@ def get_well_image_CYX(
         channel_metadata.append(metadata)
 
     cyx = np.array(channel_imgs)
+    # NB: z-position metadata can be inconsistent for MIPs
+    # z_position = verify_integrity(zpos_metadata)
+    z_position = zpos_metadata[0]
+
+    general_metadata.update(z_position)
 
     return cyx, channel_histograms, channel_metadata, general_metadata
