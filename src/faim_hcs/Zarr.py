@@ -187,21 +187,51 @@ def _compute_chunk_size_cyx(
     return storage_options, max_levels
 
 
+def _get_axis_scale(axis, meta):
+    if axis["name"] == "x":
+        return meta["spatial-calibration-x"]
+    if axis["name"] == "y":
+        return meta["spatial-calibration-y"]
+    if axis["name"] == "z":
+        return meta["z-scaling"]
+    return 1
+
+
 def _set_multiscale_metadata(group: Group, general_metadata: dict, axes: list[dict]):
     datasets = group.attrs.asdict()["multiscales"][0]["datasets"]
-    scaling = np.array(
-        [
-            1,
-            general_metadata["spatial-calibration-y"],
-            general_metadata["spatial-calibration-x"],
-        ]
-    )
+    scaling = np.array([_get_axis_scale(axis, general_metadata) for axis in axes])
 
     for ct in datasets:
         rescaled = ct["coordinateTransformations"][0]["scale"] * scaling
         ct["coordinateTransformations"][0]["scale"] = list(rescaled)
 
     write_multiscales_metadata(group, datasets=datasets, axes=axes)
+
+
+def write_image_to_well(
+    img: ArrayLike,
+    axes: list[dict],
+    histograms: list[UIntHistogram],
+    ch_metadata: list[dict],
+    general_metadata: dict,
+    group: Group,
+):
+    storage_options, max_layer = _compute_chunk_size_cyx(img)
+
+    scaler = Scaler(max_layer=max_layer)
+
+    write_image(
+        img, group=group, axes=axes, storage_options=storage_options, scaler=scaler
+    )
+
+    _set_multiscale_metadata(group=group, general_metadata=general_metadata, axes=axes)
+
+    _add_image_metadata(
+        img_group=group,
+        ch_metadata=ch_metadata,
+        dtype=img.dtype,
+        histograms=histograms,
+    )
 
 
 def write_cyx_image_to_well(
@@ -220,21 +250,40 @@ def write_cyx_image_to_well(
     else:
         NotImplementedError("Spatial unit unknown.")
 
-    storage_options, max_layer = _compute_chunk_size_cyx(img)
-
-    scaler = Scaler(max_layer=max_layer)
-
-    write_image(
-        img, group=group, axes=axes, storage_options=storage_options, scaler=scaler
+    write_image_to_well(
+        img=img,
+        axes=axes,
+        histograms=histograms,
+        ch_metadata=ch_metadata,
+        general_metadata=general_metadata,
+        group=group,
     )
 
-    _set_multiscale_metadata(group=group, general_metadata=general_metadata, axes=axes)
 
-    _add_image_metadata(
-        img_group=group,
-        ch_metadata=ch_metadata,
-        dtype=img.dtype,
+def write_zcyx_image_to_well(
+    img: ArrayLike,
+    histograms: list[UIntHistogram],
+    ch_metadata: list[dict],
+    general_metadata: dict,
+    group: Group,
+):
+    if general_metadata["spatial-calibration-units"] == "um":
+        axes = [
+            {"name": "z", "type": "space", "unit": "micrometer"},
+            {"name": "c", "type": "channel"},
+            {"name": "y", "type": "space", "unit": "micrometer"},
+            {"name": "x", "type": "space", "unit": "micrometer"},
+        ]
+    else:
+        NotImplementedError("Spatial unit unknown.")
+
+    write_image_to_well(
+        img=img,
+        axes=axes,
         histograms=histograms,
+        ch_metadata=ch_metadata,
+        general_metadata=general_metadata,
+        group=group,
     )
 
 
