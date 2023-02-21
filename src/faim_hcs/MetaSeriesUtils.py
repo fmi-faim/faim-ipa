@@ -205,7 +205,9 @@ def get_well_image_ZCYX(
     for z in sorted(planes, key=int):
         plane_files = well_files[well_files["z"] == z]
         img, ch_hists, ch_metas, meta = get_well_image_CYX(
-            plane_files, assemble_fn=assemble_fn
+            plane_files,
+            assemble_fn=assemble_fn,
+            include_z_position=True,
         )
         plane_imgs.append(img)
         z_positions.append(meta["z-position"])
@@ -229,7 +231,9 @@ def get_well_image_ZCYX(
 
 
 def get_well_image_CYX(
-    well_files: pd.DataFrame, assemble_fn: Callable = _montage_grid_image_YX
+    well_files: pd.DataFrame,
+    assemble_fn: Callable = _montage_grid_image_YX,
+    include_z_position: bool = False,
 ) -> tuple[ArrayLike, list[UIntHistogram], list[dict], dict]:
     """Assemble image data for the given well-files.
 
@@ -282,7 +286,7 @@ def get_well_image_CYX(
     # NB: z-position metadata can be inconsistent for MIPs
     # z_position = verify_integrity(zpos_metadata)
     z_position = zpos_metadata[0]
-
-    general_metadata.update(z_position)
+    if include_z_position:
+        general_metadata.update(z_position)
 
     return cyx, channel_histograms, channel_metadata, general_metadata

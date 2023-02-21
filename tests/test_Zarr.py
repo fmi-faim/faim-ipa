@@ -160,7 +160,6 @@ class TestZarr(unittest.TestCase):
             "spatial-calibration-units": "um",
             "spatial-calibration-x": 0.3417,
             "spatial-calibration-y": 0.3417,
-            "z-position": 10923.7,
         }
 
 
