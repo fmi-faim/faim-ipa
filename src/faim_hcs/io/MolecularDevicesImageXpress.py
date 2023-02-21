@@ -37,14 +37,9 @@ def parse_single_plane_multi_fields(acquisition_dir: Union[Path, str]) -> pd.Dat
     :return: table of all acquired image data.
     """
 
-    data_pattern = r"(?P<name>.*)_(?P<well>[A-Z]+\d{2})_(?P<field>s\d+)_(?P<channel>w[1-9]{1})(?!_thumb)(?P<md_id>.*)(?P<ext>.tif)"
-    data_re = re.compile(data_pattern)
-
-    return pd.DataFrame(_list_image_files(root_dir=acquisition_dir, data_re=data_re))
-
-
-def parse_multi_field_stacks(acquisition_dir: Union[Path, str]) -> pd.DataFrame:
-    folder_pattern = r".*[/\\]ZStep_(?P<z>\d+).*"
+    folder_pattern = (
+        r".*[\/\\](?P<date>\d{4}-\d{2}-\d{2})[\/\\](?P<acq_id>\d+)(?![\/\\]ZStep_.*)"
+    )
     filename_pattern = r"(?P<name>.*)_(?P<well>[A-Z]+\d{2})_(?P<field>s\d+)_(?P<channel>w[1-9]{1})(?!_thumb)(?P<md_id>.*)(?P<ext>.tif)"
     return pd.DataFrame(
         _list_dataset_files(
@@ -55,20 +50,16 @@ def parse_multi_field_stacks(acquisition_dir: Union[Path, str]) -> pd.DataFrame:
     )
 
 
-def _list_image_files(root_dir: Path, data_re: re.Pattern) -> list[str]:
-    files = []
-    for entry in os.scandir(root_dir):
-        if entry.is_dir():
-            files.extend(_list_image_files(entry, data_re))
-
-        if entry.is_file():
-            match = data_re.fullmatch(entry.name)
-            if match:
-                row = match.groupdict()
-                row["path"] = entry.path
-                files.append(row)
-
-    return files
+def parse_multi_field_stacks(acquisition_dir: Union[Path, str]) -> pd.DataFrame:
+    folder_pattern = r".*[\/\\](?P<date>\d{4}-\d{2}-\d{2})[\/\\](?P<acq_id>\d+)[\/\\]ZStep_(?P<z>\d+).*"
+    filename_pattern = r"(?P<name>.*)_(?P<well>[A-Z]+\d{2})_(?P<field>s\d+)_(?P<channel>w[1-9]{1})(?!_thumb)(?P<md_id>.*)(?P<ext>.tif)"
+    return pd.DataFrame(
+        _list_dataset_files(
+            root_dir=acquisition_dir,
+            root_re=re.compile(folder_pattern),
+            filename_re=re.compile(filename_pattern),
+        )
+    )
 
 
 def _list_dataset_files(

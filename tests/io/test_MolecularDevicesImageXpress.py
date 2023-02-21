@@ -35,8 +35,12 @@ class TestMolecularDevicesImageXpress(unittest.TestCase):
 
         assert len(files) == 640
         assert files["name"].unique() == ["Z-stack-plus-MIP-4P-4sub"]
-        assert all(files["well"].unique() == ["C05", "C06", "C07", "C08"])
-        assert all(files["field"].unique() == ["s1", "s2", "s3", "s4"])
+        unique_wells = files["well"].unique()
+        unique_wells.sort()
+        assert all(unique_wells == ["C05", "C06", "C07", "C08"])
+        unique_fields = files["field"].unique()
+        unique_fields.sort()
+        assert all(unique_fields == ["s1", "s2", "s3", "s4"])
 
         self.assertCountEqual(files["z"].unique(), [str(x) for x in range(1, 11)])
 
