@@ -1,4 +1,5 @@
 import os
+from enum import IntEnum
 from os.path import join
 from pathlib import Path
 from typing import Union
@@ -20,13 +21,20 @@ from zarr import Group
 from faim_hcs.UIntHistogram import UIntHistogram
 
 
-def _get_row_cols(layout: str) -> tuple[list[str], list[str]]:
+class PlateLayout(IntEnum):
+    """Plate layout, 96-well or 384-well."""
+
+    I96 = 96
+    I384 = 384
+
+
+def _get_row_cols(layout: PlateLayout) -> tuple[list[str], list[str]]:
     """Return rows and columns for requested layout."""
-    if layout == "96":
+    if layout == PlateLayout.I96:
         rows = ["A", "B", "C", "D", "E", "F", "G", "H"]
         cols = [str(i) for i in range(1, 13)]
         assert len(rows) * len(cols) == 96
-    elif layout == "384":
+    elif layout == PlateLayout.I384:
         rows = [
             "A",
             "B",

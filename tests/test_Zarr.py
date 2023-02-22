@@ -32,7 +32,7 @@ class TestZarr(unittest.TestCase):
         plate = build_zarr_scaffold(
             root_dir=self.zarr_root,
             files=self.files,
-            layout="96",
+            layout=96,
             order_name="test-order",
             barcode="test-barcode",
         )
@@ -49,7 +49,7 @@ class TestZarr(unittest.TestCase):
         plate = build_zarr_scaffold(
             root_dir=self.zarr_root,
             files=self.files,
-            layout="384",
+            layout=384,
             order_name="test-order",
             barcode="test-barcode",
         )
@@ -68,7 +68,7 @@ class TestZarr(unittest.TestCase):
             build_zarr_scaffold,
             root_dir=self.zarr_root,
             files=self.files,
-            layout="24",
+            layout=24,
             order_name="test-order",
             barcode="test-barcode",
         )
@@ -77,7 +77,7 @@ class TestZarr(unittest.TestCase):
         plate = build_zarr_scaffold(
             root_dir=self.zarr_root,
             files=self.files,
-            layout="96",
+            layout=96,
             order_name="test-order",
             barcode="test-barcode",
         )
