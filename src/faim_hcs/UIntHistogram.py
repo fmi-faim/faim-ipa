@@ -87,9 +87,10 @@ class UIntHistogram:
             self.offset = offset_data
             self.bins = len(self.frequencies) + 1
         elif (
-            offset_data >= self.offset
-            and offset_data <= (self.offset + self.bins - 2)
-            and offset_data + bins - 2 > (self.offset + self.bins - 2)
+            self.offset
+            <= offset_data
+            <= (self.offset + self.bins - 2)
+            < offset_data + bins - 2
         ):
             # New frequencies have additional upper ones.
             #     [old frequencies]
@@ -154,6 +155,8 @@ class UIntHistogram:
                 freq=histogram.frequencies,
             )
 
+        return self
+
     def update(self, data):
         """
         Update histogram by adding more data.
@@ -168,6 +171,8 @@ class UIntHistogram:
         else:
             offset_data, bins, freq = self._get_hist(data)
             self._aggregate_histograms(offset_data=offset_data, bins=bins, freq=freq)
+
+        return self
 
     def plot(self, width=1):
         """

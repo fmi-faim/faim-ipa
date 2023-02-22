@@ -214,7 +214,10 @@ def get_well_image_ZCYX(
         if not channel_histograms:
             channel_histograms = ch_hists
         else:
-            [hist1.combine(hist2) for hist1, hist2 in zip(channel_histograms, ch_hists)]
+            channel_histograms = [
+                hist1.combine(hist2)
+                for hist1, hist2 in zip(channel_histograms, ch_hists)
+            ]
         if not channel_metadata:
             channel_metadata = ch_metas
         if not general_metadata:
