@@ -46,3 +46,4 @@ class TestMetaSeriesTiff(unittest.TestCase):
         assert metadata["SiteX"] == 1
         assert metadata["SiteY"] == 1
         assert metadata["wavelength"] == 447
+        assert metadata["Z Projection Method"] == "Maximum"
