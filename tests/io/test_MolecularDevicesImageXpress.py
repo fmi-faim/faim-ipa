@@ -1,8 +1,13 @@
+# SPDX-FileCopyrightText: 2023 Friedrich Miescher Institute for Biomedical Research (FMI), Basel (Switzerland)
+#
+# SPDX-License-Identifier: BSD-3-Clause
+
 import unittest
 from os.path import exists, join
 from pathlib import Path
 
 from faim_hcs.io.MolecularDevicesImageXpress import (
+    parse_files,
     parse_multi_field_stacks,
     parse_single_plane_multi_fields,
 )
@@ -49,3 +54,40 @@ class TestMolecularDevicesImageXpress(unittest.TestCase):
         for item in files["path"]:
             assert exists(item)
             assert "thumb" not in item
+
+    def test_parse_files(self):
+        acquisition_dir = ROOT_DIR.parent / "tests" / "resources" / "Projection-Mix"
+
+        files = parse_files(acquisition_dir=acquisition_dir)
+
+        assert len(files) == (2 * 2 * (10 + 1)) + (2 * 2 * (10 + 1)) + (2 * 2 * 1) + (
+            2 * 2 * 1
+        )
+        assert files["name"].unique() == ["Projection-Mix"]
+        assert len(files[files["channel"] == "w1"]) == 2 * 2 * (10 + 1)
+        assert len(files[files["channel"] == "w2"]) == 2 * 2 * (10 + 1)
+        assert len(files[files["channel"] == "w3"]) == 2 * 2
+        assert len(files[files["channel"] == "w4"]) == 2 * 2
+
+        assert (
+            len(files[files["z"].isnull()]) == 2 * 2 * 3
+        )  # 2 well, 2 fields, 3 channels (1,2,3)
+        assert (
+            len(files[files["z"] == "1"]) == 2 * 2 * 3
+        )  # 2 well, 2 fields, 3 channels (1,2,4)
+        assert (
+            len(files[files["z"] == "10"]) == 2 * 2 * 2
+        )  # 2 well, 2 fields, 2 channels (1,2)
+
+        assert sorted(files[~files["z"].isnull()]["z"].unique(), key=int) == [
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6",
+            "7",
+            "8",
+            "9",
+            "10",
+        ]
