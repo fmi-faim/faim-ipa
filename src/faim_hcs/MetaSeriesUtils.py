@@ -246,6 +246,7 @@ def get_well_image_CYX(
 
     :param well_files: all files corresponding to the well
     :param assemble_fn: creates a single image for each channel
+    :param include_z_position: whether to include z-position metadata
     :return: CYX image, channel-histograms, channel-metadata, general-metadata
     """
     channels = well_files["channel"].unique()
