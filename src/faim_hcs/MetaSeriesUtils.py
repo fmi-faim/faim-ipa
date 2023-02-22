@@ -117,7 +117,7 @@ def _get_molecular_devices_well_bbox_2D(
     return min_y, min_x, max_y, max_x
 
 
-def _montage_image_YX(data):
+def montage_stage_pos_image_YX(data):
     """Montage 2D fields based on stage position metadata."""
 
     def sort_key(d):
@@ -155,7 +155,7 @@ def _pixel_pos(dim: str, data: dict):
     return np.round(data[f"stage-position-{dim}"] / data[f"spatial-calibration-{dim}"])
 
 
-def _montage_grid_image_YX(data):
+def montage_grid_image_YX(data):
     """Montage 2D fields into fixed grid, based on stage position metadata."""
     min_y = min(_pixel_pos("y", d[1]) for d in data)
     min_x = min(_pixel_pos("x", d[1]) for d in data)
@@ -191,7 +191,7 @@ def verify_integrity(field_metadata: list[dict]):
 
 
 def get_well_image_ZCYX(
-    well_files: pd.DataFrame, assemble_fn: Callable = _montage_grid_image_YX
+    well_files: pd.DataFrame, assemble_fn: Callable = montage_grid_image_YX
 ) -> tuple[ArrayLike, list[UIntHistogram], list[dict], dict]:
     """Assemble image data for the given well-files."""
     planes = well_files["z"].unique()
@@ -235,7 +235,7 @@ def get_well_image_ZCYX(
 
 def get_well_image_CYX(
     well_files: pd.DataFrame,
-    assemble_fn: Callable = _montage_grid_image_YX,
+    assemble_fn: Callable = montage_grid_image_YX,
     include_z_position: bool = False,
 ) -> tuple[ArrayLike, list[UIntHistogram], list[dict], dict]:
     """Assemble image data for the given well-files.
