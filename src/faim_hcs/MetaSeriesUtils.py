@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2023 Friedrich Miescher Institute for Biomedical Research (FMI), Basel (Switzerland)
+#
+# SPDX-License-Identifier: BSD-3-Clause
+
 from typing import Any, Callable, Optional
 
 import numpy as np
@@ -63,7 +67,7 @@ def _build_ch_metadata(metaseries_ch_metadata: dict):
     wavelength, power = get_wavelength_power(metaseries_ch_metadata)
     time, unit = get_exposure_time_unit(metaseries_ch_metadata)
     display_color = rgb_to_hex(*wavelength_to_rgb(metaseries_ch_metadata["wavelength"]))
-    return {
+    metadata = {
         "wavelength": wavelength,
         "power": power,
         "exposure-time": time,
@@ -74,6 +78,9 @@ def _build_ch_metadata(metaseries_ch_metadata: dict):
         "objective": metaseries_ch_metadata["_MagSetting_"],
         "display-color": display_color,
     }
+    if "Z Projection Method" in metaseries_ch_metadata:
+        metadata["Z Projection Method"] = metaseries_ch_metadata["Z Projection Method"]
+    return metadata
 
 
 def _z_metadata(metaseries_ch_metadata: dict):
@@ -226,8 +233,9 @@ def get_well_image_ZCYX(
     zcyx = np.array(plane_imgs)
 
     # add z scaling (computed from slices) to general_metadata
+    # TODO derive from Z Projection Step Size of MIP in parent folder
     if len(z_positions) > 1:
-        z_step = np.min(np.diff(z_positions))
+        z_step = np.average(np.diff(z_positions))
         general_metadata["z-scaling"] = z_step
 
     return zcyx, channel_histograms, channel_metadata, general_metadata
@@ -287,10 +295,10 @@ def get_well_image_CYX(
         channel_metadata.append(metadata)
 
     cyx = np.array(channel_imgs)
-    # NB: z-position metadata can be inconsistent for MIPs
-    # z_position = verify_integrity(zpos_metadata)
-    z_position = zpos_metadata[0]
     if include_z_position:
+        # NB: z-position metadata can be inconsistent for MIPs
+        # z_position = verify_integrity(zpos_metadata)
+        z_position = zpos_metadata[0]
         general_metadata.update(z_position)
 
     return cyx, channel_histograms, channel_metadata, general_metadata

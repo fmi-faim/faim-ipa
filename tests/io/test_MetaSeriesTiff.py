@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2023 Friedrich Miescher Institute for Biomedical Research (FMI), Basel (Switzerland)
+#
+# SPDX-License-Identifier: BSD-3-Clause
+
 import unittest
 from os.path import join
 from pathlib import Path
@@ -7,6 +11,8 @@ import numpy as np
 from faim_hcs.io.MetaSeriesTiff import load_metaseries_tiff
 
 ROOT_DIR = Path(__file__).parent.parent
+
+# TODO parameterize
 
 
 class TestMetaSeriesTiff(unittest.TestCase):
@@ -47,3 +53,4 @@ class TestMetaSeriesTiff(unittest.TestCase):
         assert metadata["SiteY"] == 1
         assert metadata["wavelength"] == 447
         assert metadata["Z Projection Method"] == "Maximum"
+        assert metadata["Z Projection Step Size"] == 5

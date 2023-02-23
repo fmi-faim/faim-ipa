@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2023 Friedrich Miescher Institute for Biomedical Research (FMI), Basel (Switzerland)
+#
+# SPDX-License-Identifier: BSD
+
 from pathlib import Path
 
 from numpy._typing import ArrayLike
@@ -62,6 +66,7 @@ def load_metaseries_tiff(path: Path) -> tuple[ArrayLike, dict]:
             "wavelength",
             "Z Step",  # optional
             "Z Projection Method",  # optional
+            "Z Projection Step Size",  # optional
         ]
         plane_info = tiff.metaseries_metadata["PlaneInfo"]
         metadata = {k: plane_info[k] for k in selected_keys if k in plane_info}

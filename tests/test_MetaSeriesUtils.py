@@ -1,8 +1,12 @@
+# SPDX-FileCopyrightText: 2023 Friedrich Miescher Institute for Biomedical Research (FMI), Basel (Switzerland)
+#
+# SPDX-License-Identifier: BSD-3-Clause
+
 from pathlib import Path
 
 import pytest
 
-from faim_hcs.io.MolecularDevicesImageXpress import parse_single_plane_multi_fields
+from faim_hcs.io.MolecularDevicesImageXpress import parse_files
 from faim_hcs.MetaSeriesUtils import (
     get_well_image_CYX,
     get_well_image_ZCYX,
@@ -14,31 +18,29 @@ ROOT_DIR = Path(__file__).parent
 
 
 @pytest.fixture
-def files2d():
-    return parse_single_plane_multi_fields(
-        ROOT_DIR.parent / "resources" / "MIP-2P-2sub"
-    )
+def files():
+    return parse_files(ROOT_DIR / "resources" / "Projection-Mix")
 
 
-@pytest.fixture
-def files3d():
-    files = parse_single_plane_multi_fields(
-        ROOT_DIR.parent / "resources" / "MIP-2P-2sub"
-    )
-    return files.assign(z=1)
-
-
-def test_get_well_image_CYX(files2d):
+def test_get_well_image_CYX(files):
+    files2d = files[(files["z"].isnull()) & (files["channel"].isin(["w1", "w2"]))]
     for well in files2d["well"].unique():
         img, hists, ch_metadata, metadata = get_well_image_CYX(
             files2d[files2d["well"] == well], assemble_fn=montage_stage_pos_image_YX
         )
-        assert img.shape == (2, 2048, 4096)
+        assert img.shape == (2, 512, 1024)
+        assert len(hists) == 2
+        assert "z-scaling" not in metadata
+        for ch_meta in ch_metadata:
+            assert "Z Projection Method" in ch_meta
 
 
-def test_get_well_image_ZCYX(files3d):
+def test_get_well_image_ZCYX(files):
+    files3d = files[(~files["z"].isnull()) & (files["channel"].isin(["w1", "w2"]))]
     for well in files3d["well"].unique():
         img, hists, ch_metadata, metadata = get_well_image_ZCYX(
             files3d[files3d["well"] == well], assemble_fn=montage_grid_image_YX
         )
-        assert img.shape == (1, 2, 2048, 4096)
+        assert img.shape == (10, 2, 512, 1024)
+        assert len(hists) == 2
+        assert "z-scaling" in metadata

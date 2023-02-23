@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2023 Friedrich Miescher Institute for Biomedical Research (FMI), Basel (Switzerland)
+#
+# SPDX-License-Identifier: BSD-3-Clause
+
 import os
 import shutil
 import tempfile
@@ -134,6 +138,7 @@ class TestZarr(unittest.TestCase):
         assert hists[0].min() == 107
         assert hists[1].min() == 126
         assert ch_meta[0] == {
+            "Z Projection Method": "Maximum",
             "channel-name": "DAPI",
             "display-color": "0034ff",
             "exposure-time": 20.0,
@@ -145,6 +150,7 @@ class TestZarr(unittest.TestCase):
             "wavelength": "violet",
         }
         assert ch_meta[1] == {
+            "Z Projection Method": "Maximum",
             "channel-name": "FITC",
             "display-color": "73ff00",
             "exposure-time": 250.0,
