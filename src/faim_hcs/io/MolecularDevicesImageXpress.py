@@ -134,6 +134,6 @@ def _list_dataset_files(
                 if m_filename:
                     row = m_root.groupdict()
                     row |= m_filename.groupdict()
-                    row["path"] = str(Path(root) / f)
+                    row["path"] = str(Path(root).joinpath(f))
                     files.append(row)
     return files
