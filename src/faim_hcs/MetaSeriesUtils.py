@@ -6,6 +6,7 @@ from typing import Any, Callable, Optional
 
 import numpy as np
 import pandas as pd
+import scipy
 from numpy._typing import ArrayLike
 
 from faim_hcs.io.MetaSeriesTiff import load_metaseries_tiff
@@ -233,9 +234,8 @@ def get_well_image_ZCYX(
     zcyx = np.array(plane_imgs)
 
     # add z scaling (computed from slices) to general_metadata
-    # TODO derive from Z Projection Step Size of MIP in parent folder
     if len(z_positions) > 1:
-        z_step = np.average(np.diff(z_positions))
+        z_step = scipy.stats.mode(np.diff(z_positions), keepdims=False, axis=None)[0]
         general_metadata["z-scaling"] = z_step
 
     return zcyx, channel_histograms, channel_metadata, general_metadata
