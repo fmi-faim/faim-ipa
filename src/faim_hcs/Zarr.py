@@ -62,7 +62,11 @@ def _get_row_cols(layout: PlateLayout) -> tuple[list[str], list[str]]:
 
 
 def _create_zarr_plate(
-    root_dir: Path, layout: str, files: pd.DataFrame, order_name: str, barcode: str
+    root_dir: Path,
+    layout: PlateLayout,
+    files: pd.DataFrame,
+    order_name: str,
+    barcode: str,
 ) -> Group:
     """Create plate layout according to ome-zarr NGFF.
 
