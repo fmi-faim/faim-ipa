@@ -79,7 +79,7 @@ def _build_ch_metadata(metaseries_ch_metadata: dict):
         "display-color": display_color,
     }
     if "Z Projection Method" in metaseries_ch_metadata:
-        metadata["Z Projection Method"] = metaseries_ch_metadata["Z Projection Method"]
+        metadata["z-projection-method"] = metaseries_ch_metadata["Z Projection Method"]
     return metadata
 
 
