@@ -75,7 +75,7 @@ def _build_ch_metadata(metaseries_ch_metadata: dict):
         "exposure-time-unit": unit,
         "shading-correction": metaseries_ch_metadata["ShadingCorrection"] == "On",
         "channel-name": metaseries_ch_metadata["_IllumSetting_"],
-        "objective-NA": metaseries_ch_metadata["_MagNA_"],
+        "objective-numerical-aperture": metaseries_ch_metadata["_MagNA_"],
         "objective": metaseries_ch_metadata["_MagSetting_"],
         "display-color": display_color,
     }
