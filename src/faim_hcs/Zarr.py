@@ -28,7 +28,7 @@ class PlateLayout(IntEnum):
     I384 = 384
 
 
-def _get_row_cols(layout: PlateLayout) -> tuple[list[str], list[str]]:
+def _get_row_cols(layout: Union[PlateLayout, int]) -> tuple[list[str], list[str]]:
     """Return rows and columns for requested layout."""
     if layout == PlateLayout.I96:
         rows = ["A", "B", "C", "D", "E", "F", "G", "H"]
@@ -120,7 +120,7 @@ def _add_wells_to_plate(plate: Group, files: pd.DataFrame) -> None:
 def build_zarr_scaffold(
     root_dir: Union[str, Path],
     files: pd.DataFrame,
-    layout: str = "96",
+    layout: Union[PlateLayout, int] = PlateLayout.I96,
     order_name: str = "order-name",
     barcode: str = "barcode",
 ) -> Group:
@@ -166,13 +166,12 @@ def _add_image_metadata(
     attrs["acquisition_metadata"] = {"channels": ch_metadata}
 
     # Save histograms and add paths to attributes
-    histogram_paths = {}
-    for ch, hist in zip(ch_metadata, histograms):
+    histogram_paths = []
+    for i, (ch, hist) in enumerate(zip(ch_metadata, histograms)):
         ch_name = ch["channel-name"].replace(" ", "_")
-        hist.save(
-            join(img_group.store.path, img_group.path, f"{ch_name}_histogram.npz")
-        )
-        histogram_paths[ch_name] = f"{ch_name}_histogram.npz"
+        hist_name = f"C{str(i).zfill(2)}_{ch_name}_histogram.npz"
+        hist.save(join(img_group.store.path, img_group.path, hist_name))
+        histogram_paths.append(hist_name)
 
     attrs["histograms"] = histogram_paths
 
