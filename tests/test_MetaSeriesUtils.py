@@ -4,6 +4,7 @@
 
 from pathlib import Path
 
+import numpy as np
 import pytest
 
 from faim_hcs.io.MolecularDevicesImageXpress import parse_files
@@ -33,6 +34,49 @@ def test_get_well_image_CYX(files):
         assert "z-scaling" not in metadata
         for ch_meta in ch_metadata:
             assert "z-projection-method" in ch_meta
+
+
+def test_get_well_image_CYX_well_E07(files):
+    files2d = files[(files["z"].isnull()) & (files["channel"].isin(["w1", "w2"]))]
+    cyx, hists, ch_meta, metadata = get_well_image_CYX(
+        well_files=files2d[files2d["well"] == "E07"]
+    )
+
+    assert cyx.shape == (2, 512, 1024)
+    assert cyx.dtype == np.uint16
+    assert len(hists) == 2
+    assert hists[0].min() == 114
+    assert hists[1].min() == 69
+    assert ch_meta[0] == {
+        "channel-name": "FITC_05",
+        "display-color": "73ff00",
+        "exposure-time": 15.0,
+        "exposure-time-unit": "ms",
+        "objective": "20X Plan Apo Lambda",
+        "objective-numerical-aperture": 0.75,
+        "power": 5.09804,
+        "shading-correction": False,
+        "wavelength": "cyan",
+        "z-projection-method": "Maximum",
+    }
+    assert ch_meta[1] == {
+        "channel-name": "FITC_05",
+        "display-color": "73ff00",
+        "exposure-time": 15.0,
+        "exposure-time-unit": "ms",
+        "objective": "20X Plan Apo Lambda",
+        "objective-numerical-aperture": 0.75,
+        "power": 5.09804,
+        "shading-correction": False,
+        "wavelength": "cyan",
+        "z-projection-method": "Best Focus",
+    }
+    assert metadata == {
+        "pixel-type": "uint16",
+        "spatial-calibration-units": "um",
+        "spatial-calibration-x": 1.3668,
+        "spatial-calibration-y": 1.3668,
+    }
 
 
 def test_get_well_image_ZCYX(files):
