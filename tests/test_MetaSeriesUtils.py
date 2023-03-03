@@ -14,7 +14,7 @@ from faim_hcs.MetaSeriesUtils import (
     montage_stage_pos_image_YX,
 )
 
-ROOT_DIR = Path(__file__).parent
+ROOT_DIR = Path(__file__).parent.parent
 
 
 @pytest.fixture
@@ -32,7 +32,7 @@ def test_get_well_image_CYX(files):
         assert len(hists) == 2
         assert "z-scaling" not in metadata
         for ch_meta in ch_metadata:
-            assert "Z Projection Method" in ch_meta
+            assert "z-projection-method" in ch_meta
 
 
 def test_get_well_image_ZCYX(files):
