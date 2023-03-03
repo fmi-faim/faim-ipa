@@ -231,34 +231,64 @@ class TestUIntHistogram(unittest.TestCase):
 
         hist = UIntHistogram()
         hist.update(data)
-        assert_equal(hist.quantile(0.0), np.quantile(data, 0.0))
-        assert_equal(hist.quantile(0.25), np.quantile(data, 0.25))
-        assert_equal(hist.quantile(0.5), np.quantile(data, 0.5))
-        assert_equal(hist.quantile(0.75), np.quantile(data, 0.75))
-        assert_equal(hist.quantile(1.0), np.quantile(data, 1.0))
+        assert_equal(
+            hist.quantile(0.0), np.quantile(data, 0.0, method="closest_observation")
+        )
+        assert_equal(
+            hist.quantile(0.25), np.quantile(data, 0.25, method="closest_observation")
+        )
+        assert_equal(
+            hist.quantile(0.5), np.quantile(data, 0.5, method="closest_observation")
+        )
+        assert_equal(
+            hist.quantile(0.75), np.quantile(data, 0.75, method="closest_observation")
+        )
+        assert_equal(
+            hist.quantile(1.0), np.quantile(data, 1.0, method="closest_observation")
+        )
 
         update_data = np.random.randint(9, 227, (100, 100))
 
         hist.update(update_data)
         assert_equal(
             hist.quantile(0.0),
-            np.quantile(np.concatenate([data.ravel(), update_data.ravel()]), 0.0),
+            np.quantile(
+                np.concatenate([data.ravel(), update_data.ravel()]),
+                0.0,
+                method="closest_observation",
+            ),
         )
         assert_equal(
             hist.quantile(0.25),
-            np.quantile(np.concatenate([data.ravel(), update_data.ravel()]), 0.25),
+            np.quantile(
+                np.concatenate([data.ravel(), update_data.ravel()]),
+                0.25,
+                method="closest_observation",
+            ),
         )
         assert_equal(
             hist.quantile(0.5),
-            np.quantile(np.concatenate([data.ravel(), update_data.ravel()]), 0.5),
+            np.quantile(
+                np.concatenate([data.ravel(), update_data.ravel()]),
+                0.5,
+                method="closest_observation",
+            ),
         )
         assert_equal(
             hist.quantile(0.75),
-            np.quantile(np.concatenate([data.ravel(), update_data.ravel()]), 0.75),
+            np.quantile(
+                np.concatenate([data.ravel(), update_data.ravel()]),
+                0.75,
+                method="closest_observation",
+            ),
         )
         assert_equal(
             hist.quantile(1.0),
-            np.quantile(np.concatenate([data.ravel(), update_data.ravel()]), 1.0),
+            np.quantile(
+                np.concatenate([data.ravel(), update_data.ravel()]),
+                1.0,
+                method="closest_observation",
+            ),
         )
 
     def test_min(self):
