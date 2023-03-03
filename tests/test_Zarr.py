@@ -2,16 +2,23 @@
 #
 # SPDX-License-Identifier: BSD-3-Clause
 
-import os
 import shutil
 import tempfile
 import unittest
 from os.path import exists, join
 from pathlib import Path
 
-from faim_hcs.io.MolecularDevicesImageXpress import parse_single_plane_multi_fields
-from faim_hcs.MetaSeriesUtils import get_well_image_CYX
-from faim_hcs.Zarr import PlateLayout, build_zarr_scaffold, write_cyx_image_to_well
+from faim_hcs.io.MolecularDevicesImageXpress import (
+    parse_multi_field_stacks,
+    parse_single_plane_multi_fields,
+)
+from faim_hcs.MetaSeriesUtils import get_well_image_CYX, get_well_image_CZYX
+from faim_hcs.Zarr import (
+    PlateLayout,
+    build_zarr_scaffold,
+    write_cyx_image_to_well,
+    write_czyx_image_to_well,
+)
 
 ROOT_DIR = Path(__file__).parent
 
@@ -24,8 +31,12 @@ class TestZarr(unittest.TestCase):
             join(ROOT_DIR.parent, "resources", "Projection-Mix")
         )
 
-        self.zarr_root = join(self.tmp_dir, "zarr-files")
-        os.mkdir(self.zarr_root)
+        self.files3d = parse_multi_field_stacks(
+            join(ROOT_DIR.parent, "resources", "Projection-Mix")
+        )
+
+        self.zarr_root = Path(self.tmp_dir, "zarr-files")
+        self.zarr_root.mkdir()
 
     def tearDown(self) -> None:
         shutil.rmtree(self.tmp_dir)
@@ -87,43 +98,45 @@ class TestZarr(unittest.TestCase):
         for well in self.files["well"].unique():
             well_files = self.files[self.files["well"] == well]
             img, hists, ch_metadata, metadata = get_well_image_CYX(
-                well_files=well_files, channels=["w1", "w2", "w3"]
+                well_files=well_files, channels=["w1", "w2", "w3", "w4"]
             )
 
-            well_group = plate[well[0]][str(int(well[1:]))][0]
-            write_cyx_image_to_well(img, hists, ch_metadata, metadata, well_group)
+            field = plate[well[0]][str(int(well[1:]))][0]
+            write_cyx_image_to_well(img, hists, ch_metadata, metadata, field)
 
         e07 = plate["E"]["7"]["0"].attrs.asdict()
-        assert exists(
-            join(
-                self.zarr_root,
-                "Projection-Mix.zarr",
-                "E",
-                "7",
-                "0",
-                "C00_FITC_05_histogram.npz",
-            )
-        )
-        assert exists(
-            join(
-                self.zarr_root,
-                "Projection-Mix.zarr",
-                "E",
-                "7",
-                "0",
-                "C01_FITC_05_histogram.npz",
-            )
-        )
-        assert exists(
-            join(
-                self.zarr_root,
-                "Projection-Mix.zarr",
-                "E",
-                "7",
-                "0",
-                "C02_FITC_05_histogram.npz",
-            )
-        )
+        assert (
+            self.zarr_root
+            / "Projection-Mix.zarr"
+            / "E"
+            / "7"
+            / "0"
+            / "C00_FITC_05_histogram.npz"
+        ).exists()
+        assert (
+            self.zarr_root
+            / "Projection-Mix.zarr"
+            / "E"
+            / "7"
+            / "0"
+            / "C01_FITC_05_histogram.npz"
+        ).exists()
+        assert (
+            self.zarr_root
+            / "Projection-Mix.zarr"
+            / "E"
+            / "7"
+            / "0"
+            / "C02_FITC_05_histogram.npz"
+        ).exists()
+        assert (
+            self.zarr_root
+            / "Projection-Mix.zarr"
+            / "E"
+            / "7"
+            / "0"
+            / "C03_empty_histogram.npz"
+        ).exists()
         assert "histograms" in e07.keys()
         assert "acquisition_metadata" in e07.keys()
         assert e07["multiscales"][0]["datasets"][0]["coordinateTransformations"][0][
@@ -131,41 +144,139 @@ class TestZarr(unittest.TestCase):
         ] == [1.0, 1.3668, 1.3668]
 
         e08 = plate["E"]["8"]["0"].attrs.asdict()
-        assert exists(
-            join(
-                self.zarr_root,
-                "Projection-Mix.zarr",
-                "E",
-                "8",
-                "0",
-                "C00_FITC_05_histogram.npz",
-            )
-        )
-        assert exists(
-            join(
-                self.zarr_root,
-                "Projection-Mix.zarr",
-                "E",
-                "8",
-                "0",
-                "C01_FITC_05_histogram.npz",
-            )
-        )
-        assert exists(
-            join(
-                self.zarr_root,
-                "Projection-Mix.zarr",
-                "E",
-                "8",
-                "0",
-                "C02_FITC_05_histogram.npz",
-            )
-        )
+        assert (
+            self.zarr_root
+            / "Projection-Mix.zarr"
+            / "E"
+            / "8"
+            / "0"
+            / "C00_FITC_05_histogram.npz"
+        ).exists()
+        assert (
+            self.zarr_root
+            / "Projection-Mix.zarr"
+            / "E"
+            / "8"
+            / "0"
+            / "C01_FITC_05_histogram.npz"
+        ).exists()
+        assert (
+            self.zarr_root
+            / "Projection-Mix.zarr"
+            / "E"
+            / "8"
+            / "0"
+            / "C02_FITC_05_histogram.npz"
+        ).exists()
+        assert (
+            self.zarr_root
+            / "Projection-Mix.zarr"
+            / "E"
+            / "8"
+            / "0"
+            / "C03_empty_histogram.npz"
+        ).exists()
         assert "histograms" in e08.keys()
         assert "acquisition_metadata" in e08.keys()
         assert e08["multiscales"][0]["datasets"][0]["coordinateTransformations"][0][
             "scale"
         ] == [1.0, 1.3668, 1.3668]
+
+    def test_write_czyx_image_to_well(self):
+        plate = build_zarr_scaffold(
+            root_dir=self.zarr_root,
+            files=self.files3d,
+            layout=96,
+            order_name="test-order",
+            barcode="test-barcode",
+        )
+
+        for well in self.files3d["well"].unique():
+            well_files = self.files3d[self.files3d["well"] == well]
+            img, hists, ch_metadata, metadata = get_well_image_CZYX(
+                well_files=well_files, channels=["w1", "w2", "w3", "w4"]
+            )
+
+            field = plate[well[0]][str(int(well[1:]))][0]
+            write_czyx_image_to_well(img, hists, ch_metadata, metadata, field)
+
+        e07 = plate["E"]["7"]["0"].attrs.asdict()
+        assert (
+            self.zarr_root
+            / "Projection-Mix.zarr"
+            / "E"
+            / "7"
+            / "0"
+            / "C00_FITC_05_histogram.npz"
+        ).exists()
+        assert (
+            self.zarr_root
+            / "Projection-Mix.zarr"
+            / "E"
+            / "7"
+            / "0"
+            / "C01_FITC_05_histogram.npz"
+        ).exists()
+        assert (
+            self.zarr_root
+            / "Projection-Mix.zarr"
+            / "E"
+            / "7"
+            / "0"
+            / "C02_empty_histogram.npz"
+        ).exists()
+        assert (
+            self.zarr_root
+            / "Projection-Mix.zarr"
+            / "E"
+            / "7"
+            / "0"
+            / "C03_FITC_05_histogram.npz"
+        ).exists()
+        assert "histograms" in e07.keys()
+        assert "acquisition_metadata" in e07.keys()
+        assert e07["multiscales"][0]["datasets"][0]["coordinateTransformations"][0][
+            "scale"
+        ] == [1.0, 5.04, 1.3668, 1.3668]
+
+        e08 = plate["E"]["8"]["0"].attrs.asdict()
+        assert (
+            self.zarr_root
+            / "Projection-Mix.zarr"
+            / "E"
+            / "8"
+            / "0"
+            / "C00_FITC_05_histogram.npz"
+        ).exists()
+        assert (
+            self.zarr_root
+            / "Projection-Mix.zarr"
+            / "E"
+            / "8"
+            / "0"
+            / "C01_FITC_05_histogram.npz"
+        ).exists()
+        assert (
+            self.zarr_root
+            / "Projection-Mix.zarr"
+            / "E"
+            / "8"
+            / "0"
+            / "C02_empty_histogram.npz"
+        ).exists()
+        assert (
+            self.zarr_root
+            / "Projection-Mix.zarr"
+            / "E"
+            / "8"
+            / "0"
+            / "C03_FITC_05_histogram.npz"
+        ).exists()
+        assert "histograms" in e08.keys()
+        assert "acquisition_metadata" in e08.keys()
+        assert e08["multiscales"][0]["datasets"][0]["coordinateTransformations"][0][
+            "scale"
+        ] == [1.0, 5.01, 1.3668, 1.3668]
 
 
 if __name__ == "__main__":
