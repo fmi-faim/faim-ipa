@@ -276,7 +276,7 @@ def write_cyx_image_to_well(
             {"name": "x", "type": "space", "unit": "micrometer"},
         ]
     else:
-        NotImplementedError("Spatial unit unknown.")
+        raise NotImplementedError("Spatial unit unknown.")
 
     write_image_to_well(
         img=img,
@@ -305,7 +305,7 @@ def write_czyx_image_to_well(
             {"name": "x", "type": "space", "unit": "micrometer"},
         ]
     else:
-        NotImplementedError("Spatial unit unknown.")
+        raise NotImplementedError("Spatial unit unknown.")
 
     write_image_to_well(
         img=img,

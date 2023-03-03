@@ -86,10 +86,12 @@ class TestZarr(unittest.TestCase):
 
         for well in self.files["well"].unique():
             well_files = self.files[self.files["well"] == well]
-            img, hists, ch_metadata, metadta = get_well_image_CYX(well_files=well_files)
+            img, hists, ch_metadata, metadata = get_well_image_CYX(
+                well_files=well_files, channels=["w1", "w2", "w3"]
+            )
 
             well_group = plate[well[0]][str(int(well[1:]))][0]
-            write_cyx_image_to_well(img, hists, ch_metadata, metadta, well_group)
+            write_cyx_image_to_well(img, hists, ch_metadata, metadata, well_group)
 
         e07 = plate["E"]["7"]["0"].attrs.asdict()
         assert exists(
