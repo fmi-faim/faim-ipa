@@ -179,7 +179,10 @@ def _add_image_metadata(
 
 
 def _compute_chunk_size_cyx(
-    img: ArrayLike, max_levels: int = 4, max_size: int = 2048
+    img: ArrayLike,
+    max_levels: int = 4,
+    max_size: int = 2048,
+    write_empty_chunks: bool = True,
 ) -> tuple[list[dict[str, list[int]]], int]:
     """Compute chunk-size for zarr storage.
 
@@ -189,10 +192,20 @@ def _compute_chunk_size_cyx(
     :return: storage options, number of pyramid levels
     """
     storage_options = []
+    chunks = [
+        1,
+    ] * img.ndim
     for i in range(max_levels + 1):
-        h = min(max_size, img.shape[1] // 2**i)
-        w = min(max_size, img.shape[2] // 2**i)
-        storage_options.append({"chunks": [1, h, w]})
+        h = min(max_size, img.shape[-2] // 2**i)
+        w = min(max_size, img.shape[-1] // 2**i)
+        chunks[-2] = h
+        chunks[-1] = w
+        storage_options.append(
+            {
+                "chunks": chunks,
+                "write_empty_chunks": write_empty_chunks,
+            }
+        )
         if h <= max_size / 2 and w <= max_size / 2:
             return storage_options, i
     return storage_options, max_levels
@@ -226,8 +239,11 @@ def write_image_to_well(
     ch_metadata: list[dict],
     general_metadata: dict,
     group: Group,
+    write_empty_chunks: bool = True,
 ):
-    storage_options, max_layer = _compute_chunk_size_cyx(img)
+    storage_options, max_layer = _compute_chunk_size_cyx(
+        img, write_empty_chunks=write_empty_chunks
+    )
 
     scaler = Scaler(max_layer=max_layer)
 
@@ -251,6 +267,7 @@ def write_cyx_image_to_well(
     ch_metadata: list[dict],
     general_metadata: dict,
     group: Group,
+    write_empty_chunks: bool = True,
 ):
     if general_metadata["spatial-calibration-units"] == "um":
         axes = [
@@ -268,20 +285,22 @@ def write_cyx_image_to_well(
         ch_metadata=ch_metadata,
         general_metadata=general_metadata,
         group=group,
+        write_empty_chunks=write_empty_chunks,
     )
 
 
-def write_zcyx_image_to_well(
+def write_czyx_image_to_well(
     img: ArrayLike,
     histograms: list[UIntHistogram],
     ch_metadata: list[dict],
     general_metadata: dict,
     group: Group,
+    write_empty_chunks: bool = True,
 ):
     if general_metadata["spatial-calibration-units"] == "um":
         axes = [
-            {"name": "z", "type": "space", "unit": "micrometer"},
             {"name": "c", "type": "channel"},
+            {"name": "z", "type": "space", "unit": "micrometer"},
             {"name": "y", "type": "space", "unit": "micrometer"},
             {"name": "x", "type": "space", "unit": "micrometer"},
         ]
@@ -295,6 +314,7 @@ def write_zcyx_image_to_well(
         ch_metadata=ch_metadata,
         general_metadata=general_metadata,
         group=group,
+        write_empty_chunks=write_empty_chunks,
     )
 
 

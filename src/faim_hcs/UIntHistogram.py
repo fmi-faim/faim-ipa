@@ -149,11 +149,12 @@ class UIntHistogram:
             self.bins = histogram.bins
             self.offset = histogram.offset
         else:
-            self._aggregate_histograms(
-                offset_data=histogram.offset,
-                bins=histogram.bins,
-                freq=histogram.frequencies,
-            )
+            if histogram.frequencies is not None:
+                self._aggregate_histograms(
+                    offset_data=histogram.offset,
+                    bins=histogram.bins,
+                    freq=histogram.frequencies,
+                )
 
         return self
 
@@ -197,6 +198,8 @@ class UIntHistogram:
         Get histogram mean.
         :return: float
         """
+        if self.frequencies is None:
+            return 0
         return np.sum(
             np.arange(self.offset, self.offset + self.bins - 1) * self.frequencies
         ) / np.sum(self.frequencies)
@@ -206,6 +209,8 @@ class UIntHistogram:
         Get histogram standard deviation.
         :return: float
         """
+        if self.frequencies is None:
+            return 0
         return np.sqrt(
             np.sum(
                 (np.arange(self.offset, self.offset + self.bins - 1) - self.mean()) ** 2
@@ -221,6 +226,8 @@ class UIntHistogram:
         :return: quantile
         """
         assert q >= 0 and q <= 1
+        if self.frequencies is None:
+            return 0
         return self.offset + np.argmax(
             np.cumsum(self.frequencies) / np.sum(self.frequencies) >= q
         )
@@ -230,6 +237,8 @@ class UIntHistogram:
         Get minimum.
         :return: uint
         """
+        if self.frequencies is None:
+            return 0
         return self.offset
 
     def max(self):
@@ -237,6 +246,8 @@ class UIntHistogram:
         Get maximum.
         :return: uint
         """
+        if self.frequencies is None:
+            return 0
         return self.offset + self.bins - 2
 
     def save(self, path):

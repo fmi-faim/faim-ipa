@@ -10,7 +10,7 @@ import pytest
 from faim_hcs.io.MolecularDevicesImageXpress import parse_files
 from faim_hcs.MetaSeriesUtils import (
     get_well_image_CYX,
-    get_well_image_ZCYX,
+    get_well_image_CZYX,
     montage_grid_image_YX,
     montage_stage_pos_image_YX,
 )
@@ -82,7 +82,7 @@ def test_get_well_image_CYX_well_E07(files):
 def test_get_well_image_ZCYX(files):
     files3d = files[(~files["z"].isnull()) & (files["channel"].isin(["w1", "w2"]))]
     for well in files3d["well"].unique():
-        img, hists, ch_metadata, metadata = get_well_image_ZCYX(
+        img, hists, ch_metadata, metadata = get_well_image_CZYX(
             files3d[files3d["well"] == well], assemble_fn=montage_grid_image_YX
         )
         assert img.shape == (10, 2, 512, 1024)

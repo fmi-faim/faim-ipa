@@ -1,12 +1,11 @@
 # SPDX-FileCopyrightText: 2023 Friedrich Miescher Institute for Biomedical Research (FMI), Basel (Switzerland)
 #
 # SPDX-License-Identifier: BSD-3-Clause
-
+from decimal import Decimal
 from typing import Any, Callable, Optional
 
 import numpy as np
 import pandas as pd
-import scipy
 from numpy._typing import ArrayLike
 
 from faim_hcs.io.MetaSeriesTiff import load_metaseries_tiff
@@ -198,8 +197,10 @@ def verify_integrity(field_metadata: list[dict]):
     return metadata
 
 
-def get_well_image_ZCYX(
-    well_files: pd.DataFrame, assemble_fn: Callable = montage_grid_image_YX
+def get_well_image_CZYX(
+    well_files: pd.DataFrame,
+    channels: list[str],
+    assemble_fn: Callable = montage_grid_image_YX,
 ) -> tuple[ArrayLike, list[UIntHistogram], list[dict], dict]:
     """Assemble image data for the given well-files."""
     planes = well_files["z"].unique()
@@ -214,6 +215,7 @@ def get_well_image_ZCYX(
         plane_files = well_files[well_files["z"] == z]
         img, ch_hists, ch_metas, meta = get_well_image_CYX(
             plane_files,
+            channels=channels,
             assemble_fn=assemble_fn,
             include_z_position=True,
         )
@@ -231,18 +233,21 @@ def get_well_image_ZCYX(
         if not general_metadata:
             general_metadata = meta
 
-    zcyx = np.array(plane_imgs)
+    czyx = np.moveaxis(np.array(plane_imgs), 0, 1)
 
     # add z scaling (computed from slices) to general_metadata
     if len(z_positions) > 1:
-        z_step = scipy.stats.mode(np.diff(z_positions), keepdims=False, axis=None)[0]
+        # Hack: get z-position precision
+        precision = -Decimal(str(z_positions[0])).as_tuple().exponent
+        z_step = np.round(np.mean(np.diff(z_positions)), decimals=precision)
         general_metadata["z-scaling"] = z_step
 
-    return zcyx, channel_histograms, channel_metadata, general_metadata
+    return czyx, channel_histograms, channel_metadata, general_metadata
 
 
 def get_well_image_CYX(
     well_files: pd.DataFrame,
+    channels: list[str],
     assemble_fn: Callable = montage_grid_image_YX,
     include_z_position: bool = False,
 ) -> tuple[ArrayLike, list[UIntHistogram], list[dict], dict]:
@@ -253,52 +258,68 @@ def get_well_image_CYX(
     accordingly.
 
     :param well_files: all files corresponding to the well
+    :param channels: list of required channels
     :param assemble_fn: creates a single image for each channel
     :param include_z_position: whether to include z-position metadata
     :return: CYX image, channel-histograms, channel-metadata, general-metadata
     """
-    channels = well_files["channel"].unique()
-    channels.sort()
-
-    channel_imgs = []
-    channel_histograms = []
-    channel_metadata = []
+    channel_imgs = {}
+    channel_histograms = {}
+    channel_metadata = {}
     general_metadata = None
     zpos_metadata = []
     for ch in channels:
         channel_files = well_files[well_files["channel"] == ch]
 
-        imgs = []
-        field_metadata = []
-        for f in channel_files["path"]:
-            img, ms_metadata = load_metaseries_tiff(f)
-            ch_metadata = _build_ch_metadata(ms_metadata)
-            zpos_metadata.append(_z_metadata(ms_metadata))
-            imgs.append((img, ms_metadata))
-            field_metadata.append(ch_metadata)
-            if general_metadata is None:
-                general_metadata = {
-                    "spatial-calibration-x": ms_metadata["spatial-calibration-x"],
-                    "spatial-calibration-y": ms_metadata["spatial-calibration-y"],
-                    "spatial-calibration-units": ms_metadata[
-                        "spatial-calibration-units"
-                    ],
-                    "pixel-type": ms_metadata["PixelType"],
+        if len(channel_files) > 0:
+            imgs = []
+            field_metadata = []
+            for f in channel_files["path"]:
+                img, ms_metadata = load_metaseries_tiff(f)
+                ch_metadata = _build_ch_metadata(ms_metadata)
+                zpos_metadata.append(_z_metadata(ms_metadata))
+                imgs.append((img, ms_metadata))
+                field_metadata.append(ch_metadata)
+                if general_metadata is None:
+                    general_metadata = {
+                        "spatial-calibration-x": ms_metadata["spatial-calibration-x"],
+                        "spatial-calibration-y": ms_metadata["spatial-calibration-y"],
+                        "spatial-calibration-units": ms_metadata[
+                            "spatial-calibration-units"
+                        ],
+                        "pixel-type": ms_metadata["PixelType"],
+                    }
+
+            img = assemble_fn(imgs)
+            metadata = verify_integrity(field_metadata)
+
+            channel_imgs[ch] = img
+            channel_histograms[ch] = UIntHistogram(img)
+
+            channel_metadata[ch] = metadata
+
+    cyx = np.zeros((len(channels), *img.shape), dtype=img.dtype)
+
+    channel_hists = []
+    channel_meta = []
+    for i, ch in enumerate(channels):
+        if ch in channel_imgs.keys():
+            cyx[i] = channel_imgs[ch]
+            channel_hists.append(channel_histograms[ch])
+            channel_meta.append(channel_metadata[ch])
+        else:
+            channel_hists.append(UIntHistogram())
+            channel_meta.append(
+                {
+                    "channel-name": "empty",
+                    "display-color": 0,
                 }
+            )
 
-        img = assemble_fn(imgs)
-        metadata = verify_integrity(field_metadata)
-
-        channel_imgs.append(img)
-        channel_histograms.append(UIntHistogram(img))
-
-        channel_metadata.append(metadata)
-
-    cyx = np.array(channel_imgs)
     if include_z_position:
         # NB: z-position metadata can be inconsistent for MIPs
         # z_position = verify_integrity(zpos_metadata)
         z_position = zpos_metadata[0]
         general_metadata.update(z_position)
 
-    return cyx, channel_histograms, channel_metadata, general_metadata
+    return cyx, channel_hists, channel_meta, general_metadata
