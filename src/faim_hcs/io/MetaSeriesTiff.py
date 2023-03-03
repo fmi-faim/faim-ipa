@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: 2023 Friedrich Miescher Institute for Biomedical Research (FMI), Basel (Switzerland)
 #
-# SPDX-License-Identifier: BSD
+# SPDX-License-Identifier: BSD-3-Clause
 
 from pathlib import Path
 

@@ -237,7 +237,7 @@ class TestZarr(unittest.TestCase):
         assert "acquisition_metadata" in e07.keys()
         assert e07["multiscales"][0]["datasets"][0]["coordinateTransformations"][0][
             "scale"
-        ] == [1.0, 5.04, 1.3668, 1.3668]
+        ] == [1.0, 5.02, 1.3668, 1.3668]
 
         e08 = plate["E"]["8"]["0"].attrs.asdict()
         assert (
@@ -276,7 +276,7 @@ class TestZarr(unittest.TestCase):
         assert "acquisition_metadata" in e08.keys()
         assert e08["multiscales"][0]["datasets"][0]["coordinateTransformations"][0][
             "scale"
-        ] == [1.0, 5.01, 1.3668, 1.3668]
+        ] == [1.0, 5.0, 1.3668, 1.3668]
 
 
 if __name__ == "__main__":

@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: BSD-3-Clause
 from decimal import Decimal
-from typing import Any, Callable, Optional
+from typing import Any, Callable, Optional, Union
 
 import numpy as np
 import pandas as pd
@@ -197,6 +197,51 @@ def verify_integrity(field_metadata: list[dict]):
     return metadata
 
 
+def build_stack(imgs: list):
+    # Build zero-stack
+    stack = None
+    for img in imgs:
+        if img is not None:
+            shape = img.shape
+            stack = np.zeros((len(imgs), *shape), dtype=img.dtype)
+            break
+
+    # Fill in existing data
+    for i, img in enumerate(imgs):
+        if img is not None:
+            stack[i] = img
+
+    return stack
+
+
+def compute_z_sampling(ch_z_positions: list[list[Union[None, float]]]):
+    z_samplings = []
+    for z_positions in ch_z_positions:
+        if z_positions is not None and None not in z_positions:
+            precision = -Decimal(str(z_positions[0])).as_tuple().exponent
+            z_step = np.round(np.mean(np.diff(z_positions)), decimals=precision)
+            z_samplings.append(z_step)
+
+    return np.mean(z_samplings)
+
+
+def roll_single_plane(stacks, ch_z_positions):
+    min_z, max_z = [], []
+    for z_positions in ch_z_positions:
+        if z_positions is not None and None not in z_positions:
+            min_z.append(np.min(z_positions))
+            max_z.append(np.max(z_positions))
+
+    min_z, max_z = np.mean(min_z), np.mean(max_z)
+
+    for i, z_positions in enumerate(ch_z_positions):
+        if z_positions is not None and None in z_positions:
+            # Single planes are always acquired in first z-step
+            step_size = (max_z - min_z) / len(z_positions)
+            shift_z = int((z_positions[0] - min_z) // step_size)
+            stacks[i] = np.roll(stacks[i], shift_z, axis=0)
+
+
 def get_well_image_CZYX(
     well_files: pd.DataFrame,
     channels: list[str],
@@ -205,44 +250,68 @@ def get_well_image_CZYX(
     """Assemble image data for the given well-files."""
     planes = well_files["z"].unique()
 
-    plane_imgs = []
-    channel_histograms = None
-    channel_metadata = None
-    general_metadata = None
+    stacks = []
+    channel_histograms = []
+    channel_metadata = []
+    px_metadata = None
     z_positions = []
 
-    for z in sorted(planes, key=int):
-        plane_files = well_files[well_files["z"] == z]
-        img, ch_hists, ch_metas, meta = get_well_image_CYX(
-            plane_files,
-            channels=channels,
-            assemble_fn=assemble_fn,
-            include_z_position=True,
-        )
-        plane_imgs.append(img)
-        z_positions.append(meta["z-position"])
-        if not channel_histograms:
-            channel_histograms = ch_hists
+    for ch in channels:
+        channel_files = well_files[well_files["channel"] == ch]
+        if len(channel_files) > 0:
+            plane_imgs = []
+            z_plane_positions = []
+            ch_metadata = None
+            for z in sorted(planes, key=int):
+                plane_files = channel_files[channel_files["z"] == z]
+
+                if len(plane_files) > 0:
+                    px_metadata, img, ch_meta, z_position = get_img_YX(
+                        assemble_fn=assemble_fn, files=plane_files
+                    )
+
+                    if ch_metadata is None:
+                        ch_metadata = ch_meta
+
+                    plane_imgs.append(img)
+                    z_plane_positions.append(z_position)
+                else:
+                    plane_imgs.append(None)
+                    z_plane_positions.append(None)
+
+            zyx = build_stack(plane_imgs)
+            stacks.append(zyx)
+            channel_histograms.append(UIntHistogram(stacks[-1]))
+            channel_metadata.append(ch_metadata)
+            z_positions.append(z_plane_positions)
         else:
-            channel_histograms = [
-                hist1.combine(hist2)
-                for hist1, hist2 in zip(channel_histograms, ch_hists)
-            ]
-        if not channel_metadata:
-            channel_metadata = ch_metas
-        if not general_metadata:
-            general_metadata = meta
+            stacks.append(None)
+            channel_histograms.append(UIntHistogram())
+            channel_metadata.append(
+                {
+                    "channel-name": "empty",
+                    "display-color": 0,
+                }
+            )
+            z_positions.append(None)
 
-    czyx = np.moveaxis(np.array(plane_imgs), 0, 1)
+    z_sampling = compute_z_sampling(z_positions)
+    px_metadata["z-scaling"] = z_sampling
 
-    # add z scaling (computed from slices) to general_metadata
-    if len(z_positions) > 1:
-        # Hack: get z-position precision
-        precision = -Decimal(str(z_positions[0])).as_tuple().exponent
-        z_step = np.round(np.mean(np.diff(z_positions)), decimals=precision)
-        general_metadata["z-scaling"] = z_step
+    roll_single_plane(stacks, z_positions)
 
-    return czyx, channel_histograms, channel_metadata, general_metadata
+    czyx = build_stack(stacks)
+
+    for i in range(len(channel_histograms)):
+        if channel_histograms[i] is None:
+            channel_histograms[i] = UIntHistogram()
+            assert channel_metadata[i] is None
+            channel_metadata[i] = {
+                "channel-name": "empty",
+                "display-color": 0,
+            }
+
+    return czyx, channel_histograms, channel_metadata, px_metadata
 
 
 def get_well_image_CYX(
@@ -266,37 +335,19 @@ def get_well_image_CYX(
     channel_imgs = {}
     channel_histograms = {}
     channel_metadata = {}
-    general_metadata = None
-    zpos_metadata = []
+    px_metadata = None
     for ch in channels:
         channel_files = well_files[well_files["channel"] == ch]
 
         if len(channel_files) > 0:
-            imgs = []
-            field_metadata = []
-            for f in channel_files["path"]:
-                img, ms_metadata = load_metaseries_tiff(f)
-                ch_metadata = _build_ch_metadata(ms_metadata)
-                zpos_metadata.append(_z_metadata(ms_metadata))
-                imgs.append((img, ms_metadata))
-                field_metadata.append(ch_metadata)
-                if general_metadata is None:
-                    general_metadata = {
-                        "spatial-calibration-x": ms_metadata["spatial-calibration-x"],
-                        "spatial-calibration-y": ms_metadata["spatial-calibration-y"],
-                        "spatial-calibration-units": ms_metadata[
-                            "spatial-calibration-units"
-                        ],
-                        "pixel-type": ms_metadata["PixelType"],
-                    }
-
-            img = assemble_fn(imgs)
-            metadata = verify_integrity(field_metadata)
+            px_metadata, img, ch_metadata, z_position = get_img_YX(
+                assemble_fn, channel_files
+            )
 
             channel_imgs[ch] = img
             channel_histograms[ch] = UIntHistogram(img)
 
-            channel_metadata[ch] = metadata
+            channel_metadata[ch] = ch_metadata
 
     cyx = np.zeros((len(channels), *img.shape), dtype=img.dtype)
 
@@ -316,10 +367,28 @@ def get_well_image_CYX(
                 }
             )
 
-    if include_z_position:
-        # NB: z-position metadata can be inconsistent for MIPs
-        # z_position = verify_integrity(zpos_metadata)
-        z_position = zpos_metadata[0]
-        general_metadata.update(z_position)
+    return cyx, channel_hists, channel_meta, px_metadata
 
-    return cyx, channel_hists, channel_meta, general_metadata
+
+def get_img_YX(assemble_fn, files):
+    imgs = []
+    field_metadata = []
+    z_positions = []
+    general_metadata = None
+    for f in sorted(files["path"]):
+        img, ms_metadata = load_metaseries_tiff(f)
+        ch_metadata = _build_ch_metadata(ms_metadata)
+        z_positions.append(_z_metadata(ms_metadata))
+        imgs.append((img, ms_metadata))
+        field_metadata.append(ch_metadata)
+        if general_metadata is None:
+            general_metadata = {
+                "spatial-calibration-x": ms_metadata["spatial-calibration-x"],
+                "spatial-calibration-y": ms_metadata["spatial-calibration-y"],
+                "spatial-calibration-units": ms_metadata["spatial-calibration-units"],
+                "pixel-type": ms_metadata["PixelType"],
+            }
+    img = assemble_fn(imgs)
+    metadata = verify_integrity(field_metadata)
+    zs = [z["z-position"] for z in z_positions]
+    return general_metadata, img, metadata, np.mean(zs)
