@@ -1,6 +1,3 @@
-# SPDX-FileCopyrightText: 2023 Friedrich Miescher Institute for Biomedical Research (FMI), Basel (Switzerland)
-#
-# SPDX-License-Identifier: BSD-3-Clause
 from decimal import Decimal
 from typing import Any, Callable, Optional, Union
 

@@ -1,7 +1,3 @@
-# SPDX-FileCopyrightText: 2023 Friedrich Miescher Institute for Biomedical Research (FMI), Basel (Switzerland)
-#
-# SPDX-License-Identifier: BSD-3-Clause
-
 """Methods to parse image files acquired with a MolecularDevices ImageXpress system."""
 
 import os
