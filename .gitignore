@@ -85,3 +85,9 @@ venv/
 
 # zarr storage
 *.zarr
+
+# mobie example project
+mobie-example-project/
+
+# scratchpad
+scratchpad/
