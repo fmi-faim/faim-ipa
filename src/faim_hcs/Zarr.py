@@ -63,6 +63,7 @@ def _get_row_cols(layout: Union[PlateLayout, int]) -> tuple[list[str], list[str]
 
 def _create_zarr_plate(
     root_dir: Path,
+    name: str,
     layout: PlateLayout,
     files: pd.DataFrame,
     order_name: str,
@@ -81,7 +82,7 @@ def _create_zarr_plate(
     """
     rows, cols = _get_row_cols(layout=layout)
 
-    plate_path = join(root_dir, files["name"].unique()[0] + ".zarr")
+    plate_path = join(root_dir, name + ".zarr")
     os.makedirs(plate_path, exist_ok=False)
 
     store = parse_url(plate_path, mode="w").store
@@ -92,7 +93,7 @@ def _create_zarr_plate(
         columns=cols,
         rows=rows,
         wells=[f"{w[0]}/{str(int(w[1:]))}" for w in files["well"].unique()],
-        name=files["name"].unique()[0],
+        name=name,
         field_count=1,
     )
 
@@ -120,6 +121,7 @@ def _add_wells_to_plate(plate: Group, files: pd.DataFrame) -> None:
 def build_zarr_scaffold(
     root_dir: Union[str, Path],
     files: pd.DataFrame,
+    name: str = None,
     layout: Union[PlateLayout, int] = PlateLayout.I96,
     order_name: str = "order-name",
     barcode: str = "barcode",
@@ -130,6 +132,7 @@ def build_zarr_scaffold(
 
     :param root_dir: where the zarr is stored
     :param files: table of image files
+    :param name: Name of the plate-zarr. By default taken from metadata.
     :param layout: plate layout
     :param order_name: plate order name
     :param barcode: plate barcode
@@ -137,9 +140,12 @@ def build_zarr_scaffold(
     """
     names = files["name"].unique()
     assert len(names) == 1, "Files do belong to more than one plate."
+    if name is None:
+        name = files["name"].unique()[0]
 
     plate = _create_zarr_plate(
         root_dir=root_dir,
+        name=name,
         layout=layout,
         files=files,
         order_name=order_name,
@@ -335,6 +341,12 @@ def build_omero_channel_metadata(
     """
     channels = []
     for i, (ch, hist) in enumerate(zip(ch_metadata, histograms)):
+        label = ch["channel-name"]
+        if "z-projection-method" in ch.keys():
+            proj_method = ch["z-projection-method"]
+            proj_method = proj_method.replace(" ", "-")
+            label = f"{proj_method}-Projection_{label}"
+
         channels.append(
             {
                 "active": True,
@@ -342,7 +354,7 @@ def build_omero_channel_metadata(
                 "color": ch["display-color"],
                 "family": "linear",
                 "inverted": False,
-                "label": ch["channel-name"],
+                "label": label,
                 "wavelength_id": f"C{str(i+1).zfill(2)}",
                 "window": {
                     "min": np.iinfo(dtype).min,
