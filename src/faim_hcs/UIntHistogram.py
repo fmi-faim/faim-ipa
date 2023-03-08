@@ -255,7 +255,7 @@ class UIntHistogram:
 
     @staticmethod
     def load(path):
-        storage = np.load(path)
+        storage = np.load(path, allow_pickle=True)
         hist = UIntHistogram()
         hist.frequencies = storage["frequencies"].tolist()
         hist.offset = storage["offset"]
