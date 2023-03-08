@@ -290,7 +290,7 @@ def get_well_image_CZYX(
             channel_metadata.append(
                 {
                     "channel-name": "empty",
-                    "display-color": 0,
+                    "display-color": "000000",
                 }
             )
             z_positions.append(None)
@@ -308,7 +308,7 @@ def get_well_image_CZYX(
             assert channel_metadata[i] is None
             channel_metadata[i] = {
                 "channel-name": "empty",
-                "display-color": 0,
+                "display-color": "000000",
             }
 
     return czyx, channel_histograms, channel_metadata, px_metadata
@@ -363,7 +363,7 @@ def get_well_image_CYX(
             channel_meta.append(
                 {
                     "channel-name": "empty",
-                    "display-color": 0,
+                    "display-color": "000000",
                 }
             )
 
