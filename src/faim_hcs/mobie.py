@@ -74,6 +74,7 @@ def add_wells_to_project(
                     key = key + label_suffix
 
                 name = f"{group_name}_{key}"
+                name = name.replace(" ", "_")
                 view = get_default_view(
                     source_type="image",
                     source_name=name,
@@ -127,9 +128,10 @@ def _add_channel_plate_overviews(dataset_folder, plate_hists, sources, view_name
         "uiSelectionGroup": "bookmarks",
     }
     for ch in sources.keys():
+        name = ch.replace(" ", "_")
         view = get_grid_view(
             dataset_folder=dataset_folder,
-            name=ch,
+            name=name,
             sources=[[src] for src in sources[ch]],
             menu_name="Channels",
             positions=[to_position(src[:3]) for src in sources[ch]],
@@ -141,7 +143,7 @@ def _add_channel_plate_overviews(dataset_folder, plate_hists, sources, view_name
             plate_hists[ch].quantile(0.99),
         ]
         add_view_to_dataset(
-            dataset_folder=dataset_folder, view_name=ch, view=view, overwrite=True
+            dataset_folder=dataset_folder, view_name=name, view=view, overwrite=True
         )
 
         default["sourceDisplays"].extend(view["sourceDisplays"])
