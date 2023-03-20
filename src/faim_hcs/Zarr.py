@@ -208,7 +208,7 @@ def _compute_chunk_size_cyx(
         chunks[-1] = w
         storage_options.append(
             {
-                "chunks": chunks,
+                "chunks": chunks.copy(),
                 "write_empty_chunks": write_empty_chunks,
             }
         )
