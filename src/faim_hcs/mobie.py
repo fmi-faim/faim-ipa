@@ -9,7 +9,8 @@ from mobie.metadata import (
     add_source_to_dataset,
     add_view_to_dataset,
     get_default_view,
-    get_grid_view,
+    get_image_display,
+    get_merged_grid_source_transform,
 )
 from tqdm.auto import tqdm
 
@@ -53,6 +54,7 @@ def add_wells_to_project(
 
     sources = {}
     plate_hists = {}
+    plate_colors = {}
 
     # Add wells as individual sources
     wells = []
@@ -107,6 +109,9 @@ def add_wells_to_project(
                 else:
                     plate_hists[key].combine(hists[k])
 
+                if key not in plate_colors.keys():
+                    plate_colors[key] = hex_to_rgba(ch["color"])
+
     _add_well_regions(
         dataset_folder=dataset_folder,
         wells=wells,
@@ -115,39 +120,42 @@ def add_wells_to_project(
     _add_channel_plate_overviews(
         dataset_folder=dataset_folder,
         plate_hists=plate_hists,
+        plate_colors=plate_colors,
         sources=sources,
         view_name=view_name,
     )
 
 
-def _add_channel_plate_overviews(dataset_folder, plate_hists, sources, view_name):
+def _add_channel_plate_overviews(
+    dataset_folder, plate_hists, plate_colors, sources, view_name
+):
     default = {
         "isExclusive": True,
         "sourceDisplays": [],
         "sourceTransforms": [],
         "uiSelectionGroup": "bookmarks",
     }
-    for ch in sources.keys():
+    for i, ch in enumerate(sources.keys()):
         name = ch.replace(" ", "_")
-        view = get_grid_view(
-            dataset_folder=dataset_folder,
-            name=name,
-            sources=[[src] for src in sources[ch]],
-            menu_name="Channels",
-            positions=[to_position(src[:3]) for src in sources[ch]],
-            use_transformed_grid=False,
+        default["sourceDisplays"].append(
+            get_image_display(
+                name=f"Plate_{name}",
+                sources=[f"merged_view_plate_{name}"],
+                color=plate_colors[ch],
+                contrastLimits=[
+                    plate_hists[ch].quantile(0.01),
+                    plate_hists[ch].quantile(0.99),
+                ],
+                visible=i == 0,
+            )
         )
-        view["isExclusive"] = False
-        view["sourceDisplays"][0]["imageDisplay"]["contrastLimits"] = [
-            plate_hists[ch].quantile(0.01),
-            plate_hists[ch].quantile(0.99),
-        ]
-        add_view_to_dataset(
-            dataset_folder=dataset_folder, view_name=name, view=view, overwrite=True
+        default["sourceTransforms"].append(
+            get_merged_grid_source_transform(
+                sources=[src for src in sources[ch]],
+                merged_source_name=f"merged_view_plate_{name}",
+                positions=[to_position(src[:3]) for src in sources[ch]],
+            )
         )
-
-        default["sourceDisplays"].extend(view["sourceDisplays"])
-        default["sourceTransforms"].extend(view["sourceTransforms"])
 
     default["sourceDisplays"].append(
         {
@@ -158,7 +166,7 @@ def _add_channel_plate_overviews(dataset_folder, plate_hists, sources, view_name
                 "sources": _get_well_sources_per_channel(sources),
                 "tableSource": "wells",
                 "visible": True,
-                "showAsBoundaries": True,
+                "showAsBoundaries": False,
             }
         }
     )
