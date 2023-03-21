@@ -20,7 +20,7 @@ A collection of functions we use at [FAIM](https://www.fmi.ch/platforms/platform
         * `objective`: Objective description
         * `objective-numerical-aperture`
         * `power`: Illumination power used for this channel
-        * `shading-correction`: Set to On if a shading correction was applied automatically.
+        * `shading-correction`: Set to `On` if a shading correction was applied automatically.
         * `wavelength`: Name of the wavelength as provided by the microscope.
     * `histograms`: A list of relative paths to the histograms of each channel.
 
