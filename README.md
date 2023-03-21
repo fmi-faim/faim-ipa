@@ -3,7 +3,7 @@ A collection of functions we use at [FAIM](https://www.fmi.ch/platforms/platform
 
 ## Functionality
 * Convert Molecular Devices ImageXpress acquisitions to ome-zarr.
-* Create [MoBIE - Projects](https://mobie.github.io/) for created ome-zarr plates.
+* Create [MoBIE projects](https://mobie.github.io/) for created ome-zarr plates.
 
 ## Extra Metadata in OME-Zarr
 `{plate_name}/.zattrs`:
