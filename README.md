@@ -25,7 +25,7 @@ A collection of functions we use at [FAIM](https://www.fmi.ch/platforms/platform
     * `histograms`: A list of relative paths to the histograms of each channel.
 
 ## Histograms
-We use a custom [`UIntHistogram`](src/UIntHistogram.py) class to generate and save histograms of the individual wells.
+We use a custom [`UIntHistogram`](src/faim_hcs/UIntHistogram.py) class to generate and save histograms of the individual wells.
 The histograms can be aggregated with the `combine()` method, which allows us to quickly compute `mean()`, `std()`, `quantile()`, `min()` and `max()` over the whole plate or any subset of wells.
 
 ## Installation
