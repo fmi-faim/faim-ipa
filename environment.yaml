@@ -1,0 +1,7 @@
+name: prefect-faim-hcs
+dependencies:
+  - python==3.9
+  - conda-forge::mobie_utils==0.4.2
+  - pip
+  - pip:
+    - git+https://github.com/fmi-faim/faim-hcs@v0.2.2
