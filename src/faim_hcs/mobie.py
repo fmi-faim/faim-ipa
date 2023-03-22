@@ -124,6 +124,15 @@ def add_labels_view(
     label_name: str = "default",
     view_name: str = "default_labels",
 ):
+    """Add merged grid segmentation view for labels of all well in zarr
+
+    :param plate: Zarr group representing an HCS plate
+    :param dataset_folder: Dataset folder of the MoBIE project
+    :param well_group: Path to subgroup within each well, e.g. '0' or '0/projections'
+    :param channel: Channel in the well image to be added as segmentation view
+    :param label_name: Name of the label subgroup in the Zarr file
+    :param view_name: View of the MoBIE dataset, will be updated in place
+    """
     # add sources for each label image
     sources = []
     for i, row in enumerate(tqdm(list(plate.group_keys()))):
