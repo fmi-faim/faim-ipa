@@ -299,6 +299,10 @@ class TestZarr(unittest.TestCase):
         write_labels_to_group(
             labels=labels, labels_name=labels_name, parent_group=field
         )
+        original_multiscales = plate["E/7/0"].attrs.asdict()["multiscales"]
+        labels_multiscales = plate["E/7/0/labels/my_segmentation/"].attrs.asdict()[
+            "multiscales"
+        ]
         assert (
             self.zarr_root
             / "Projection-Mix.zarr"
@@ -308,6 +312,13 @@ class TestZarr(unittest.TestCase):
             / "labels"
             / "my_segmentation"
         ).exists()
+        assert len(original_multiscales) == len(labels_multiscales)
+        assert original_multiscales[0]["axes"] == labels_multiscales[0]["axes"]
+        assert original_multiscales[0]["datasets"] == labels_multiscales[0]["datasets"]
+        assert (
+            plate["E/7/0/0"][0, :, :, :].shape
+            == plate["E/7/0/labels/my_segmentation/0"][0, :, :, :].shape
+        )
 
 
 if __name__ == "__main__":
