@@ -8,9 +8,10 @@ from mobie.metadata import (
     add_regions_to_dataset,
     add_source_to_dataset,
     add_view_to_dataset,
-    get_default_view,
     get_image_display,
     get_merged_grid_source_transform,
+    get_segmentation_display,
+    read_dataset_metadata,
 )
 from tqdm.auto import tqdm
 
@@ -77,17 +78,6 @@ def add_wells_to_project(
 
                 name = f"{group_name}_{key}"
                 name = name.replace(" ", "_")
-                view = get_default_view(
-                    source_type="image",
-                    source_name=name,
-                    menu_name="Wells",
-                    color=hex_to_rgba(ch["color"]),
-                    contrastLimits=[hists[k].quantile(0.01), hists[k].quantile(0.99)],
-                    opacity=1.0,
-                    sources=[
-                        name,
-                    ],
-                )
 
                 add_source_to_dataset(
                     dataset_folder=dataset_folder,
@@ -96,7 +86,7 @@ def add_wells_to_project(
                     image_metadata_path=path,
                     file_format="ome.zarr",
                     channel=k,
-                    view=view,
+                    view={},  # do not create default view for source
                 )
 
                 if key not in sources.keys():
@@ -123,6 +113,70 @@ def add_wells_to_project(
         plate_colors=plate_colors,
         sources=sources,
         view_name=view_name,
+    )
+
+
+def add_labels_view(
+    plate: zarr.Group,
+    dataset_folder: str,
+    well_group: str = "0",
+    channel: int = 0,
+    label_name: str = "default",
+    view_name: str = "default_labels",
+):
+    """Add merged grid segmentation view for labels of all well in zarr
+
+    :param plate: Zarr group representing an HCS plate
+    :param dataset_folder: Dataset folder of the MoBIE project
+    :param well_group: Path to subgroup within each well, e.g. '0' or '0/projections'
+    :param channel: Channel in the well image to be added as segmentation view
+    :param label_name: Name of the label subgroup in the Zarr file
+    :param view_name: View of the MoBIE dataset, will be updated in place
+    """
+    # add sources for each label image
+    sources = []
+    for i, row in enumerate(tqdm(list(plate.group_keys()))):
+        for j, col in enumerate(tqdm(list(plate[row].group_keys()), leave=False)):
+            path = join(plate.store.path, row, col, well_group, "labels", label_name)
+            group_name = f"{row}{col.zfill(2)}"
+            name = f"{group_name}_{label_name}"
+            name = name.replace(" ", "_")
+            add_source_to_dataset(
+                dataset_folder=dataset_folder,
+                source_type="segmentation",
+                source_name=name,
+                image_metadata_path=path,
+                file_format="ome.zarr",
+                channel=channel,
+                view={},  # do not create default view for source
+            )
+            sources.append(name)
+
+    # get view 'view_name' from dataset
+    dataset_metadata = read_dataset_metadata(dataset_folder=dataset_folder)
+    view = dataset_metadata["views"][view_name]
+
+    # get_merged_grid_source_transform for list of sources
+    view["sourceTransforms"].append(
+        get_merged_grid_source_transform(
+            sources=sources,
+            merged_source_name=f"merged_view_plate_{view_name}",
+            positions=[to_position(src[:3]) for src in sources],
+        )
+    )
+
+    # get_segmentation_display for grid source and append to sourceDisplays
+    view["sourceDisplays"].append(
+        get_segmentation_display(
+            name=f"Segmentation_{view_name}", sources=[f"merged_view_plate_{view_name}"]
+        )
+    )
+
+    # update view in original dataset
+    add_view_to_dataset(
+        dataset_folder=dataset_folder,
+        view_name=view_name,
+        view=view,
     )
 
 

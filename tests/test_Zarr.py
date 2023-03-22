@@ -18,6 +18,7 @@ from faim_hcs.Zarr import (
     build_zarr_scaffold,
     write_cyx_image_to_well,
     write_czyx_image_to_well,
+    write_labels_to_group,
 )
 
 ROOT_DIR = Path(__file__).parent
@@ -277,6 +278,47 @@ class TestZarr(unittest.TestCase):
         assert e08["multiscales"][0]["datasets"][0]["coordinateTransformations"][0][
             "scale"
         ] == [1.0, 5.0, 1.3668, 1.3668]
+
+    def test_write_labels(self):
+        plate = build_zarr_scaffold(
+            root_dir=self.zarr_root,
+            files=self.files3d,
+            layout=96,
+            order_name="test-order",
+            barcode="test-barcode",
+        )
+        well_files = self.files3d[self.files3d["well"] == "E07"]
+        img, hists, ch_metadata, metadata = get_well_image_CZYX(
+            well_files=well_files, channels=["w1", "w2", "w3", "w4"]
+        )
+        field = plate["E"]["7"][0]
+        write_czyx_image_to_well(img, hists, ch_metadata, metadata, field)
+        threshold = 100
+        labels = img > threshold
+        labels_name = "my_segmentation"
+        write_labels_to_group(
+            labels=labels, labels_name=labels_name, parent_group=field
+        )
+        original_multiscales = plate["E/7/0"].attrs.asdict()["multiscales"]
+        labels_multiscales = plate["E/7/0/labels/my_segmentation/"].attrs.asdict()[
+            "multiscales"
+        ]
+        assert (
+            self.zarr_root
+            / "Projection-Mix.zarr"
+            / "E"
+            / "7"
+            / "0"
+            / "labels"
+            / "my_segmentation"
+        ).exists()
+        assert len(original_multiscales) == len(labels_multiscales)
+        assert original_multiscales[0]["axes"] == labels_multiscales[0]["axes"]
+        assert original_multiscales[0]["datasets"] == labels_multiscales[0]["datasets"]
+        assert (
+            plate["E/7/0/0"][0, :, :, :].shape
+            == plate["E/7/0/labels/my_segmentation/0"][0, :, :, :].shape
+        )
 
 
 if __name__ == "__main__":

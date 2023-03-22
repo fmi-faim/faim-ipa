@@ -238,12 +238,9 @@ def _set_multiscale_metadata(group: Group, general_metadata: dict, axes: list[di
     write_multiscales_metadata(group, datasets=datasets, axes=axes)
 
 
-def write_image_to_well(
+def write_image_to_group(
     img: ArrayLike,
     axes: list[dict],
-    histograms: list[UIntHistogram],
-    ch_metadata: list[dict],
-    general_metadata: dict,
     group: Group,
     write_empty_chunks: bool = True,
 ):
@@ -255,6 +252,23 @@ def write_image_to_well(
 
     write_image(
         img, group=group, axes=axes, storage_options=storage_options, scaler=scaler
+    )
+
+
+def write_image_and_metadata(
+    img: ArrayLike,
+    axes: list[dict],
+    histograms: list[UIntHistogram],
+    ch_metadata: list[dict],
+    general_metadata: dict,
+    group: Group,
+    write_empty_chunks: bool = True,
+):
+    write_image_to_group(
+        img=img,
+        axes=axes,
+        group=group,
+        write_empty_chunks=write_empty_chunks,
     )
 
     _set_multiscale_metadata(group=group, general_metadata=general_metadata, axes=axes)
@@ -284,7 +298,7 @@ def write_cyx_image_to_well(
     else:
         raise NotImplementedError("Spatial unit unknown.")
 
-    write_image_to_well(
+    write_image_and_metadata(
         img=img,
         axes=axes,
         histograms=histograms,
@@ -313,7 +327,7 @@ def write_czyx_image_to_well(
     else:
         raise NotImplementedError("Spatial unit unknown.")
 
-    write_image_to_well(
+    write_image_and_metadata(
         img=img,
         axes=axes,
         histograms=histograms,
@@ -355,7 +369,7 @@ def build_omero_channel_metadata(
                 "family": "linear",
                 "inverted": False,
                 "label": label,
-                "wavelength_id": f"C{str(i+1).zfill(2)}",
+                "wavelength_id": f"C{str(i + 1).zfill(2)}",
                 "window": {
                     "min": np.iinfo(dtype).min,
                     "max": np.iinfo(dtype).max,
@@ -366,3 +380,37 @@ def build_omero_channel_metadata(
         )
 
     return {"channels": channels}
+
+
+def _copy_multiscales_metadata(parent_group, subgroup):
+    datasets = parent_group.attrs.asdict()["multiscales"][0]["datasets"]
+    axes = parent_group.attrs.asdict()["multiscales"][0]["axes"]
+    write_multiscales_metadata(subgroup, datasets=datasets, axes=axes)
+
+
+def write_labels_to_group(
+    labels,
+    labels_name,
+    parent_group: Group,
+    write_empty_chunks: bool = True,
+):
+    try:
+        subgroup = parent_group[f"labels/{labels_name}"]
+    except KeyError:
+        subgroup = parent_group.create_group(
+            f"labels/{labels_name}"
+        )  # only create group once
+
+    axes = parent_group.attrs.asdict()["multiscales"][0]["axes"]
+    assert len(axes) == len(
+        labels.shape
+    ), f"Group axes don't match label image dimensions: {len(axes)} <> {len(labels.shape)}."
+
+    write_image_to_group(
+        img=labels,
+        axes=axes,
+        group=subgroup,
+        write_empty_chunks=write_empty_chunks,
+    )
+
+    _copy_multiscales_metadata(parent_group, subgroup)
