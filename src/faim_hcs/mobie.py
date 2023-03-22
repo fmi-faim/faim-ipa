@@ -8,7 +8,6 @@ from mobie.metadata import (
     add_regions_to_dataset,
     add_source_to_dataset,
     add_view_to_dataset,
-    get_default_view,
     get_image_display,
     get_merged_grid_source_transform,
 )
@@ -77,17 +76,6 @@ def add_wells_to_project(
 
                 name = f"{group_name}_{key}"
                 name = name.replace(" ", "_")
-                view = get_default_view(
-                    source_type="image",
-                    source_name=name,
-                    menu_name="Wells",
-                    color=hex_to_rgba(ch["color"]),
-                    contrastLimits=[hists[k].quantile(0.01), hists[k].quantile(0.99)],
-                    opacity=1.0,
-                    sources=[
-                        name,
-                    ],
-                )
 
                 add_source_to_dataset(
                     dataset_folder=dataset_folder,
@@ -96,7 +84,7 @@ def add_wells_to_project(
                     image_metadata_path=path,
                     file_format="ome.zarr",
                     channel=k,
-                    view=view,
+                    view={},  # do not create default view for source
                 )
 
                 if key not in sources.keys():
