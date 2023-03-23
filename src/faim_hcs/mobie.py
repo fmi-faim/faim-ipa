@@ -160,7 +160,7 @@ def add_labels_view(
     view["sourceTransforms"].append(
         get_merged_grid_source_transform(
             sources=sources,
-            merged_source_name=f"merged_view_plate_{view_name}",
+            merged_source_name=f"merged_segmentation_view_{view_name}",
             positions=[to_position(src[:3]) for src in sources],
         )
     )
@@ -168,7 +168,9 @@ def add_labels_view(
     # get_segmentation_display for grid source and append to sourceDisplays
     view["sourceDisplays"].append(
         get_segmentation_display(
-            name=f"Segmentation_{view_name}", sources=[f"merged_view_plate_{view_name}"]
+            name=f"Segmentation_{view_name}",
+            sources=[f"merged_segmentation_view_{view_name}"],
+            visible=False,
         )
     )
 
