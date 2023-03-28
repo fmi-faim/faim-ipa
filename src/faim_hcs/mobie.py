@@ -126,6 +126,7 @@ def add_labels_view(
     channel: int = 0,
     label_name: str = "default",
     view_name: str = "default_labels",
+    extra_properties: tuple[str] = ("area",),
 ):
     """Add merged grid segmentation view for labels of all wells in zarr
 
@@ -135,6 +136,7 @@ def add_labels_view(
     :param channel: Channel in the well image to be added as segmentation view
     :param label_name: Name of the label subgroup in the Zarr file
     :param view_name: View of the MoBIE dataset, will be updated in place
+    :param extra_properties: Property names to be added to regionprops measurement table
     """
     # add sources for each label image
     sources = []
@@ -153,7 +155,7 @@ def add_labels_view(
             spacing = datasets[0]["coordinateTransformations"][0]["scale"]
             props = regionprops_table(
                 label_img[np.newaxis, :],
-                properties=("label", "centroid", "area", "bbox"),
+                properties=("label", "centroid", "bbox") + extra_properties,
                 spacing=spacing,
             )
 
