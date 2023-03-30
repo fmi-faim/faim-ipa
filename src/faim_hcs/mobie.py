@@ -1,7 +1,9 @@
+import os
 import string
 from copy import copy
 from os.path import join
 
+import numpy as np
 import pandas as pd
 import zarr
 from mobie.metadata import (
@@ -13,6 +15,7 @@ from mobie.metadata import (
     get_segmentation_display,
     read_dataset_metadata,
 )
+from skimage.measure import regionprops_table
 from tqdm.auto import tqdm
 
 from faim_hcs.UIntHistogram import UIntHistogram
@@ -123,8 +126,9 @@ def add_labels_view(
     channel: int = 0,
     label_name: str = "default",
     view_name: str = "default_labels",
+    extra_properties: tuple[str] = ("area",),
 ):
-    """Add merged grid segmentation view for labels of all well in zarr
+    """Add merged grid segmentation view for labels of all wells in zarr
 
     :param plate: Zarr group representing an HCS plate
     :param dataset_folder: Dataset folder of the MoBIE project
@@ -132,15 +136,53 @@ def add_labels_view(
     :param channel: Channel in the well image to be added as segmentation view
     :param label_name: Name of the label subgroup in the Zarr file
     :param view_name: View of the MoBIE dataset, will be updated in place
+    :param extra_properties: Property names to be added to regionprops measurement table
     """
     # add sources for each label image
     sources = []
-    for i, row in enumerate(tqdm(list(plate.group_keys()))):
-        for j, col in enumerate(tqdm(list(plate[row].group_keys()), leave=False)):
+    for row in tqdm(list(plate.group_keys())):
+        for col in tqdm(list(plate[row].group_keys()), leave=False):
             path = join(plate.store.path, row, col, well_group, "labels", label_name)
             group_name = f"{row}{col.zfill(2)}"
             name = f"{group_name}_{label_name}"
             name = name.replace(" ", "_")
+
+            # measure regionsprops
+            label_img = plate[row][col][well_group]["labels"][label_name][0][channel]
+            datasets = plate[row][col][well_group]["labels"][label_name].attrs.asdict()[
+                "multiscales"
+            ][0]["datasets"]
+            spacing = datasets[0]["coordinateTransformations"][0]["scale"]
+            props = regionprops_table(
+                label_img[np.newaxis, :],
+                properties=("label", "centroid", "bbox") + extra_properties,
+                spacing=spacing,
+            )
+
+            # write default.tsv to dataset_folder/tables/name
+            # TODO reconcile once saving table data inside zarr is possible
+            table_folder = join(dataset_folder, "tables", name)
+            os.makedirs(table_folder, exist_ok=True)
+
+            table_path = join(table_folder, "default.tsv")
+            table = pd.DataFrame(props)
+            # TODO remove this renaming once (and if) MoBIE fully supports other table formats in MoBIE projects
+            table = table.rename(
+                columns={
+                    "label": "label_id",
+                    "centroid-0": "anchor_z",
+                    "centroid-1": "anchor_y",
+                    "centroid-2": "anchor_x",
+                    "bbox-0": "bb_min_z",
+                    "bbox-1": "bb_min_y",
+                    "bbox-2": "bb_min_x",
+                    "bbox-3": "bb_max_z",
+                    "bbox-4": "bb_max_y",
+                    "bbox-5": "bb_max_x",
+                }
+            )
+            table.to_csv(table_path, sep="\t", index=False)
+
             add_source_to_dataset(
                 dataset_folder=dataset_folder,
                 source_type="segmentation",
@@ -148,6 +190,7 @@ def add_labels_view(
                 image_metadata_path=path,
                 file_format="ome.zarr",
                 channel=channel,
+                table_folder=table_folder,
                 view={},  # do not create default view for source
             )
             sources.append(name)
