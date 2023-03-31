@@ -62,8 +62,8 @@ def add_wells_to_project(
 
     # Add wells as individual sources
     wells = []
-    for i, row in enumerate(tqdm(list(plate.group_keys()))):
-        for j, col in enumerate(tqdm(list(plate[row].group_keys()), leave=False)):
+    for row in tqdm(list(plate.group_keys())):
+        for col in tqdm(list(plate[row].group_keys()), leave=False):
             attrs = plate[row][col][well_group].attrs.asdict()
             wells.append(row + col.zfill(2))
             path = join(plate.store.path, row, col, well_group)
