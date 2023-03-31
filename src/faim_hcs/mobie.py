@@ -147,7 +147,7 @@ def add_labels_view(
             name = f"{group_name}_{label_name}"
             name = name.replace(" ", "_")
 
-            # measure regionsprops
+            # measure regionprops
             label_img = plate[row][col][well_group]["labels"][label_name][0][channel]
             datasets = plate[row][col][well_group]["labels"][label_name].attrs.asdict()[
                 "multiscales"
@@ -155,7 +155,7 @@ def add_labels_view(
             spacing = datasets[0]["coordinateTransformations"][0]["scale"]
             props = regionprops_table(
                 label_img[np.newaxis, :],
-                properties=("label", "centroid", "bbox") + extra_properties,
+                properties=("label", "centroid") + extra_properties,
                 spacing=spacing,
             )
 
@@ -173,12 +173,6 @@ def add_labels_view(
                     "centroid-0": "anchor_z",
                     "centroid-1": "anchor_y",
                     "centroid-2": "anchor_x",
-                    "bbox-0": "bb_min_z",
-                    "bbox-1": "bb_min_y",
-                    "bbox-2": "bb_min_x",
-                    "bbox-3": "bb_max_z",
-                    "bbox-4": "bb_max_y",
-                    "bbox-5": "bb_max_x",
                 }
             )
             table.to_csv(table_path, sep="\t", index=False)
