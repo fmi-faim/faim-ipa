@@ -15,6 +15,7 @@ from mobie.metadata import (
     get_segmentation_display,
     read_dataset_metadata,
 )
+from mobie.tables import read_table
 from skimage.measure import regionprops_table
 from tqdm.auto import tqdm
 
@@ -140,6 +141,7 @@ def add_labels_view(
     """
     # add sources for each label image
     sources = []
+    n_objects = []
     for row in tqdm(list(plate.group_keys())):
         for col in tqdm(list(plate[row].group_keys()), leave=False):
             path = join(plate.store.path, row, col, well_group, "labels", label_name)
@@ -176,6 +178,7 @@ def add_labels_view(
                 }
             )
             table.to_csv(table_path, sep="\t", index=False)
+            n_objects.append(len(table.index))
 
             add_source_to_dataset(
                 dataset_folder=dataset_folder,
@@ -217,6 +220,12 @@ def add_labels_view(
         view_name=view_name,
         view=view,
     )
+
+    # update wells table
+    wells_table_path = join(dataset_folder, "tables", "wells", "default.tsv")
+    wells_table = read_table(wells_table_path)
+    wells_table[f"n_objects_{label_name}"] = n_objects
+    wells_table.to_csv(wells_table_path, sep="\t", index=False)
 
 
 def _add_channel_plate_overviews(
