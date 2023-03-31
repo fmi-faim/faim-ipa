@@ -168,15 +168,6 @@ def add_labels_view(
 
             table_path = join(table_folder, "default.tsv")
             table = pd.DataFrame(props)
-            # TODO remove this renaming once (and if) MoBIE fully supports other table formats in MoBIE projects
-            table = table.rename(
-                columns={
-                    "label": "label_id",
-                    "centroid-0": "anchor_z",
-                    "centroid-1": "anchor_y",
-                    "centroid-2": "anchor_x",
-                }
-            )
             table.to_csv(table_path, sep="\t", index=False)
             n_objects.append(len(table.index))
 
