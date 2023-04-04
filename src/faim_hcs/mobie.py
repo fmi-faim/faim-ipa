@@ -15,6 +15,7 @@ from mobie.metadata import (
     get_segmentation_display,
     read_dataset_metadata,
 )
+from mobie.tables import read_table
 from skimage.measure import regionprops_table
 from tqdm.auto import tqdm
 
@@ -62,8 +63,8 @@ def add_wells_to_project(
 
     # Add wells as individual sources
     wells = []
-    for i, row in enumerate(tqdm(list(plate.group_keys()))):
-        for j, col in enumerate(tqdm(list(plate[row].group_keys()), leave=False)):
+    for row in tqdm(list(plate.group_keys())):
+        for col in tqdm(list(plate[row].group_keys()), leave=False):
             attrs = plate[row][col][well_group].attrs.asdict()
             wells.append(row + col.zfill(2))
             path = join(plate.store.path, row, col, well_group)
@@ -140,6 +141,7 @@ def add_labels_view(
     """
     # add sources for each label image
     sources = []
+    n_objects = []
     for row in tqdm(list(plate.group_keys())):
         for col in tqdm(list(plate[row].group_keys()), leave=False):
             path = join(plate.store.path, row, col, well_group, "labels", label_name)
@@ -147,7 +149,7 @@ def add_labels_view(
             name = f"{group_name}_{label_name}"
             name = name.replace(" ", "_")
 
-            # measure regionsprops
+            # measure regionprops
             label_img = plate[row][col][well_group]["labels"][label_name][0][channel]
             datasets = plate[row][col][well_group]["labels"][label_name].attrs.asdict()[
                 "multiscales"
@@ -155,7 +157,7 @@ def add_labels_view(
             spacing = datasets[0]["coordinateTransformations"][0]["scale"]
             props = regionprops_table(
                 label_img[np.newaxis, :],
-                properties=("label", "centroid", "bbox") + extra_properties,
+                properties=("label", "centroid") + extra_properties,
                 spacing=spacing,
             )
 
@@ -166,22 +168,8 @@ def add_labels_view(
 
             table_path = join(table_folder, "default.tsv")
             table = pd.DataFrame(props)
-            # TODO remove this renaming once (and if) MoBIE fully supports other table formats in MoBIE projects
-            table = table.rename(
-                columns={
-                    "label": "label_id",
-                    "centroid-0": "anchor_z",
-                    "centroid-1": "anchor_y",
-                    "centroid-2": "anchor_x",
-                    "bbox-0": "bb_min_z",
-                    "bbox-1": "bb_min_y",
-                    "bbox-2": "bb_min_x",
-                    "bbox-3": "bb_max_z",
-                    "bbox-4": "bb_max_y",
-                    "bbox-5": "bb_max_x",
-                }
-            )
             table.to_csv(table_path, sep="\t", index=False)
+            n_objects.append(len(table.index))
 
             add_source_to_dataset(
                 dataset_folder=dataset_folder,
@@ -222,6 +210,56 @@ def add_labels_view(
         dataset_folder=dataset_folder,
         view_name=view_name,
         view=view,
+    )
+
+    # update wells table
+    wells_table_path = join(dataset_folder, "tables", "wells", "default.tsv")
+    wells_table = read_table(wells_table_path)
+    wells_table[f"n_objects_{label_name}"] = n_objects
+    wells_table.to_csv(wells_table_path, sep="\t", index=False)
+
+
+def compute_aggregate_table_values(
+    dataset_folder,
+    table_suffix,
+    aggregation_dict=None,
+):
+    """Aggregate all tables with given suffix, and write summarized values to wells table.
+
+    :param dataset_folder: location of the MoBIE dataset to be modified
+    :param table_suffix: common suffix of all tables to be included (e.g. 'my_seg' for 'A01_my_seg' etc.)
+    :param aggregation_dict: mapping of column names to (one or multiple) aggregation methods
+    """
+    if aggregation_dict is None:
+        aggregation_dict = {"area": ["mean", "min", "max"]}
+
+    # read wells table and get list of wells (region_id)
+    wells_table_path = join(dataset_folder, "tables", "wells", "default.tsv")
+    wells_table = read_table(wells_table_path)
+    wells = wells_table["region_id"]
+
+    # read and concatenate each table from segmentations
+    tables = []
+    for well in wells:
+        well_table = read_table(
+            join(dataset_folder, "tables", f"{well}_{table_suffix}", "default.tsv")
+        )
+        well_table["region_id"] = well
+        tables.append(well_table)
+    joined_table = pd.concat(tables)
+
+    # aggregate given columns with given functions
+    summary = joined_table.groupby("region_id").aggregate(aggregation_dict)
+
+    # flatten table index
+    summary.columns = ["_".join(headers) for headers in summary.columns.to_flat_index()]
+    # add suffix to column names
+    summary.columns = [f"{header}_{table_suffix}" for header in summary.columns]
+    print(summary)
+
+    # join with original wells table
+    wells_table.join(summary, on="region_id").to_csv(
+        wells_table_path, sep="\t", index=False
     )
 
 
