@@ -182,6 +182,7 @@ def add_labels_view(
             channel=channel,
             table_folder=table_folder,
             view={},  # do not create default view for source
+            suppress_warnings=True,
         )
         sources.append(name)
 
