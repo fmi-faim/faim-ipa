@@ -40,6 +40,11 @@ def to_position(well_name):
     return [c, r]
 
 
+def path_to_well(path: str):
+    row, col = path.split("/")
+    return f"{row}{col.zfill(2)}"
+
+
 def add_wells_to_project(
     plate: zarr.Group,
     dataset_folder: str,
@@ -63,48 +68,46 @@ def add_wells_to_project(
 
     # Add wells as individual sources
     wells = []
-    for row in tqdm(list(plate.group_keys())):
-        for col in tqdm(list(plate[row].group_keys()), leave=False):
-            attrs = plate[row][col][well_group].attrs.asdict()
-            wells.append(row + col.zfill(2))
-            path = join(plate.store.path, row, col, well_group)
+    for well in tqdm(plate.attrs["plate"]["wells"]):
+        attrs = plate[well["path"]][well_group].attrs.asdict()
+        group_name = path_to_well(well["path"])
+        wells.append(group_name)
+        path = join(plate.store.path, well["path"], well_group)
 
-            hists = [
-                UIntHistogram.load(join(path, h_path)) for h_path in attrs["histograms"]
-            ]
+        hists = [
+            UIntHistogram.load(join(path, h_path)) for h_path in attrs["histograms"]
+        ]
 
-            group_name = f"{row}{col.zfill(2)}"
+        for k, ch in enumerate(attrs["omero"]["channels"]):
+            key = f"{ch['wavelength_id']}_{ch['label']}"
+            if ch["label"] == "empty":
+                key = key + label_suffix
 
-            for k, ch in enumerate(attrs["omero"]["channels"]):
-                key = f"{ch['wavelength_id']}_{ch['label']}"
-                if ch["label"] == "empty":
-                    key = key + label_suffix
+            name = f"{group_name}_{key}"
+            name = name.replace(" ", "_")
 
-                name = f"{group_name}_{key}"
-                name = name.replace(" ", "_")
+            add_source_to_dataset(
+                dataset_folder=dataset_folder,
+                source_type="image",
+                source_name=name,
+                image_metadata_path=path,
+                file_format="ome.zarr",
+                channel=k,
+                view={},  # do not create default view for source
+            )
 
-                add_source_to_dataset(
-                    dataset_folder=dataset_folder,
-                    source_type="image",
-                    source_name=name,
-                    image_metadata_path=path,
-                    file_format="ome.zarr",
-                    channel=k,
-                    view={},  # do not create default view for source
-                )
+            if key not in sources.keys():
+                sources[key] = [name]
+            else:
+                sources[key].append(name)
 
-                if key not in sources.keys():
-                    sources[key] = [name]
-                else:
-                    sources[key].append(name)
+            if key not in plate_hists.keys():
+                plate_hists[key] = copy(hists[k])
+            else:
+                plate_hists[key].combine(hists[k])
 
-                if key not in plate_hists.keys():
-                    plate_hists[key] = copy(hists[k])
-                else:
-                    plate_hists[key].combine(hists[k])
-
-                if key not in plate_colors.keys():
-                    plate_colors[key] = hex_to_rgba(ch["color"])
+            if key not in plate_colors.keys():
+                plate_colors[key] = hex_to_rgba(ch["color"])
 
     _add_well_regions(
         dataset_folder=dataset_folder,
@@ -142,46 +145,45 @@ def add_labels_view(
     # add sources for each label image
     sources = []
     n_objects = []
-    for row in tqdm(list(plate.group_keys())):
-        for col in tqdm(list(plate[row].group_keys()), leave=False):
-            path = join(plate.store.path, row, col, well_group, "labels", label_name)
-            group_name = f"{row}{col.zfill(2)}"
-            name = f"{group_name}_{label_name}"
-            name = name.replace(" ", "_")
+    for well in tqdm(plate.attrs["plate"]["wells"]):
+        path = join(plate.store.path, well["path"], well_group, "labels", label_name)
+        group_name = path_to_well(well["path"])
+        name = f"{group_name}_{label_name}"
+        name = name.replace(" ", "_")
 
-            # measure regionprops
-            label_img = plate[row][col][well_group]["labels"][label_name][0][channel]
-            datasets = plate[row][col][well_group]["labels"][label_name].attrs.asdict()[
-                "multiscales"
-            ][0]["datasets"]
-            spacing = datasets[0]["coordinateTransformations"][0]["scale"]
-            props = regionprops_table(
-                label_img[np.newaxis, :],
-                properties=("label", "centroid") + extra_properties,
-                spacing=spacing,
-            )
+        # measure regionprops
+        label_img = plate[well["path"]][well_group]["labels"][label_name][0][channel]
+        datasets = plate[well["path"]][well_group]["labels"][label_name].attrs.asdict()[
+            "multiscales"
+        ][0]["datasets"]
+        spacing = datasets[0]["coordinateTransformations"][0]["scale"]
+        props = regionprops_table(
+            label_img[np.newaxis, :],
+            properties=("label", "centroid") + extra_properties,
+            spacing=spacing,
+        )
 
-            # write default.tsv to dataset_folder/tables/name
-            # TODO reconcile once saving table data inside zarr is possible
-            table_folder = join(dataset_folder, "tables", name)
-            os.makedirs(table_folder, exist_ok=True)
+        # write default.tsv to dataset_folder/tables/name
+        # TODO reconcile once saving table data inside zarr is possible
+        table_folder = join(dataset_folder, "tables", name)
+        os.makedirs(table_folder, exist_ok=True)
 
-            table_path = join(table_folder, "default.tsv")
-            table = pd.DataFrame(props)
-            table.to_csv(table_path, sep="\t", index=False)
-            n_objects.append(len(table.index))
+        table_path = join(table_folder, "default.tsv")
+        table = pd.DataFrame(props)
+        table.to_csv(table_path, sep="\t", index=False)
+        n_objects.append(len(table.index))
 
-            add_source_to_dataset(
-                dataset_folder=dataset_folder,
-                source_type="segmentation",
-                source_name=name,
-                image_metadata_path=path,
-                file_format="ome.zarr",
-                channel=channel,
-                table_folder=table_folder,
-                view={},  # do not create default view for source
-            )
-            sources.append(name)
+        add_source_to_dataset(
+            dataset_folder=dataset_folder,
+            source_type="segmentation",
+            source_name=name,
+            image_metadata_path=path,
+            file_format="ome.zarr",
+            channel=channel,
+            table_folder=table_folder,
+            view={},  # do not create default view for source
+        )
+        sources.append(name)
 
     # get view 'view_name' from dataset
     dataset_metadata = read_dataset_metadata(dataset_folder=dataset_folder)
