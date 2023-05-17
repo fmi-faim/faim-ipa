@@ -202,7 +202,7 @@ def add_labels_view(
     # get_segmentation_display for grid source and append to sourceDisplays
     view["sourceDisplays"].append(
         get_segmentation_display(
-            name=f"Segmentation_{view_name}",
+            name=label_name,
             sources=[f"merged_segmentation_view_{view_name}"],
             visible=False,
         )
