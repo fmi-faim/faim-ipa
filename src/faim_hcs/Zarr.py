@@ -393,12 +393,14 @@ def write_labels_to_group(
     labels_name,
     parent_group: Group,
     write_empty_chunks: bool = True,
+    overwrite: bool = False,
 ):
     try:
         subgroup = parent_group[f"labels/{labels_name}"]
     except KeyError:
         subgroup = parent_group.create_group(
-            f"labels/{labels_name}"
+            f"labels/{labels_name}",
+            overwrite=overwrite,
         )  # only create group once
 
     axes = parent_group.attrs.asdict()["multiscales"][0]["axes"]
