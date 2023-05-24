@@ -13,6 +13,7 @@ from faim_hcs.MetaSeriesUtils import (
     get_well_image_CZYX,
     montage_grid_image_YX,
     montage_stage_pos_image_YX,
+    _stage_label,
 )
 
 ROOT_DIR = Path(__file__).parent.parent
@@ -92,3 +93,15 @@ def test_get_well_image_ZCYX(files):
         assert img.shape == (2, 10, 512, 1024)
         assert len(hists) == 2
         assert "z-scaling" in metadata
+
+
+test_stage_labels = [
+    ({"stage-label": 'E07 : Site 1'}, "Site 1"),
+    ({"stage-label": 'E07 : Site 2'}, "Site 2"),
+    ({"stage-labels": 'E07 : Site 2'}, ""),
+    ({}, ""),
+]
+@pytest.mark.parametrize("data,expected", test_stage_labels)
+def test_stage_label_parser(data, expected):
+    assert _stage_label(data) == expected
+

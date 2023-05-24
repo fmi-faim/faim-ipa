@@ -159,8 +159,22 @@ def _pixel_pos(dim: str, data: dict):
     return np.round(data[f"stage-position-{dim}"] / data[f"spatial-calibration-{dim}"])
 
 
+def _stage_label(data: dict):
+    """Get the FOV string for a given FOV dict"""
+    try:
+        return data["stage-label"].split(":")[-1][1:]
+    # Return an empty string if the metadata does not contain stage-label
+    except KeyError:
+        return ""
+
+
 def montage_grid_image_YX(data):
-    """Montage 2D fields into fixed grid, based on stage position metadata."""
+    """Montage 2D fields into fixed grid, based on stage position metadata.
+    
+    :param data: list of tuples of (image, metadata)
+    :return: img (stitched 2D np array), fov_df (dataframe with region of 
+             interest information for the fields of view)
+    """
     min_y = min(_pixel_pos("y", d[1]) for d in data)
     min_x = min(_pixel_pos("x", d[1]) for d in data)
     max_y = max(_pixel_pos("y", d[1]) for d in data)
@@ -175,6 +189,7 @@ def montage_grid_image_YX(data):
         int(np.round((max_x - min_x) / step_x + 1) * step_x),
     )
     img = np.zeros(shape, dtype=data[0][0].dtype)
+    fov_rois = []
 
     for d in data:
         pos_x = int(np.round((_pixel_pos("x", d[1]) - min_x) / step_x))
@@ -182,8 +197,54 @@ def montage_grid_image_YX(data):
         img[
             pos_y * step_y : (pos_y + 1) * step_y, pos_x * step_x : (pos_x + 1) * step_x
         ] = d[0]
+        # Create the ROI table for the sites in physical units
+        fov_rois.append((
+            _stage_label(d[1]), 
+            pos_y * step_y * d[1]['spatial-calibration-y'], 
+            pos_x * step_x * d[1]['spatial-calibration-x'], 
+            0.0, # Hard-coded z starting position
+            step_y * d[1]['spatial-calibration-y'], 
+            step_x * d[1]['spatial-calibration-x'],
+            1.0, # Hard-coded z length (for 2D planes), to be overwritten if 
+                 # the 2D planes are assembled into a 3D stack
+            ))
+    
+    roi_tables = {}
+    roi_table = pd.DataFrame(fov_rois, columns=[
+        "FieldIndex", 
+        "x_micrometer", 
+        "y_micrometer", 
+        "z_micrometer", 
+        "len_x_micrometer", 
+        "len_y_micrometer", 
+        "len_z_micrometer"
+        ]).set_index("FieldIndex")
+    roi_tables["FOV_ROI_table"] = roi_table
 
-    return img
+    # Generate a well ROI table
+    well_roi = [
+        "well_1", 
+        0.0, 
+        0.0, 
+        0.0, 
+        shape[1] * d[1]['spatial-calibration-x'], 
+        shape[0] * d[1]['spatial-calibration-y'], 
+        1.0
+        ]
+    well_roi_table = pd.DataFrame(well_roi).T
+    well_roi_table.columns=[
+        "FieldIndex", 
+        "x_micrometer", 
+        "y_micrometer", 
+        "z_micrometer", 
+        "len_x_micrometer", 
+        "len_y_micrometer", 
+        "len_z_micrometer"
+        ]
+    well_roi_table.set_index("FieldIndex", inplace=True)
+    roi_tables["well_ROI_table"] = well_roi_table
+
+    return img, roi_tables
 
 
 def verify_integrity(field_metadata: list[dict]):
@@ -263,7 +324,7 @@ def get_well_image_CZYX(
                 plane_files = channel_files[channel_files["z"] == z]
 
                 if len(plane_files) > 0:
-                    px_metadata, img, ch_meta, z_position = get_img_YX(
+                    px_metadata, img, ch_meta, z_position, roi_tables = get_img_YX(
                         assemble_fn=assemble_fn, files=plane_files
                     )
 
@@ -327,17 +388,19 @@ def get_well_image_CYX(
     :param channels: list of required channels
     :param assemble_fn: creates a single image for each channel
     :param include_z_position: whether to include z-position metadata
-    :return: CYX image, channel-histograms, channel-metadata, general-metadata
+    :return: CYX image, channel-histograms, channel-metadata, general-metadata, 
+                roi-tables dictionary
     """
     channel_imgs = {}
     channel_histograms = {}
     channel_metadata = {}
     px_metadata = None
+    roi_tables = {}
     for ch in channels:
         channel_files = well_files[well_files["channel"] == ch]
 
         if len(channel_files) > 0:
-            px_metadata, img, ch_metadata, z_position = get_img_YX(
+            px_metadata, img, ch_metadata, z_position, roi_tables = get_img_YX(
                 assemble_fn, channel_files
             )
 
@@ -364,7 +427,7 @@ def get_well_image_CYX(
                 }
             )
 
-    return cyx, channel_hists, channel_meta, px_metadata
+    return cyx, channel_hists, channel_meta, px_metadata, roi_tables
 
 
 def get_img_YX(assemble_fn, files):
@@ -385,7 +448,7 @@ def get_img_YX(assemble_fn, files):
                 "spatial-calibration-units": ms_metadata["spatial-calibration-units"],
                 "pixel-type": ms_metadata["PixelType"],
             }
-    img = assemble_fn(imgs)
+    img, roi_tables = assemble_fn(imgs)
     metadata = verify_integrity(field_metadata)
     zs = [z["z-position"] for z in z_positions]
-    return general_metadata, img, metadata, np.mean(zs)
+    return general_metadata, img, metadata, np.mean(zs), roi_tables
