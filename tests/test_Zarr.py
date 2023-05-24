@@ -98,7 +98,7 @@ class TestZarr(unittest.TestCase):
 
         for well in self.files["well"].unique():
             well_files = self.files[self.files["well"] == well]
-            img, hists, ch_metadata, metadata = get_well_image_CYX(
+            img, hists, ch_metadata, metadata, roi_tables = get_well_image_CYX(
                 well_files=well_files, channels=["w1", "w2", "w3", "w4"]
             )
 
@@ -194,7 +194,7 @@ class TestZarr(unittest.TestCase):
 
         for well in self.files3d["well"].unique():
             well_files = self.files3d[self.files3d["well"] == well]
-            img, hists, ch_metadata, metadata = get_well_image_CZYX(
+            img, hists, ch_metadata, metadata, roi_tables = get_well_image_CZYX(
                 well_files=well_files, channels=["w1", "w2", "w3", "w4"]
             )
 
@@ -288,7 +288,7 @@ class TestZarr(unittest.TestCase):
             barcode="test-barcode",
         )
         well_files = self.files3d[self.files3d["well"] == "E07"]
-        img, hists, ch_metadata, metadata = get_well_image_CZYX(
+        img, hists, ch_metadata, metadata, roi_tables = get_well_image_CZYX(
             well_files=well_files, channels=["w1", "w2", "w3", "w4"]
         )
         field = plate["E"]["7"][0]
