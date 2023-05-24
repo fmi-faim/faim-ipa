@@ -4,6 +4,8 @@ from os.path import join
 from pathlib import Path
 from typing import Union
 
+import anndata as ad
+from anndata.experimental import write_elem
 import numpy as np
 import pandas as pd
 import zarr
@@ -307,6 +309,35 @@ def write_cyx_image_to_well(
         group=group,
         write_empty_chunks=write_empty_chunks,
     )
+
+
+def write_roi_table(
+    roi_table: pd.DataFrame,
+    table_name: str,
+    group: Group,
+):
+    """Writes a roi table to an OME-Zarr image. If no table folder exists, it is created."""
+    group_tables = group.require_group("tables/")
+
+    # These columns are required by the Fractal ROI spec
+    positional_columns = [
+        "x_micrometer",
+        "y_micrometer",
+        "z_micrometer",
+        "len_x_micrometer",
+        "len_y_micrometer",
+        "len_z_micrometer",
+    ]
+
+    # Assign dtype explicitly, to avoid
+    # >> UserWarning: X converted to numpy array with dtype float64
+    # when creating AnnData object
+    df_roi = roi_table.loc[:, positional_columns].astype(np.float32)
+
+    adata = ad.AnnData(X=df_roi)
+    adata.obs_names = roi_table.index
+    adata.var_names = list(map(str, roi_table.columns))
+    write_elem(group_tables, table_name, adata)
 
 
 def write_czyx_image_to_well(
