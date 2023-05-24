@@ -27,7 +27,7 @@ def files():
 def test_get_well_image_CYX(files):
     files2d = files[(files["z"].isnull()) & (files["channel"].isin(["w1", "w2"]))]
     for well in files2d["well"].unique():
-        img, hists, ch_metadata, metadata = get_well_image_CYX(
+        img, hists, ch_metadata, metadata, roi_tables = get_well_image_CYX(
             files2d[files2d["well"] == well],
             channels=["w1", "w2"],
             assemble_fn=montage_stage_pos_image_YX,
@@ -37,11 +37,13 @@ def test_get_well_image_CYX(files):
         assert "z-scaling" not in metadata
         for ch_meta in ch_metadata:
             assert "z-projection-method" in ch_meta
+        # TODO: Make some checks on roi_tables (from monaging with actual 
+        # positions => different coordiantes)
 
 
 def test_get_well_image_CYX_well_E07(files):
     files2d = files[(files["z"].isnull()) & (files["channel"].isin(["w1", "w2"]))]
-    cyx, hists, ch_meta, metadata = get_well_image_CYX(
+    cyx, hists, ch_meta, metadata, roi_tables = get_well_image_CYX(
         well_files=files2d[files2d["well"] == "E07"], channels=["w1", "w2"]
     )
 
@@ -85,7 +87,7 @@ def test_get_well_image_CYX_well_E07(files):
 def test_get_well_image_ZCYX(files):
     files3d = files[(~files["z"].isnull()) & (files["channel"].isin(["w1", "w2"]))]
     for well in files3d["well"].unique():
-        img, hists, ch_metadata, metadata = get_well_image_CZYX(
+        img, hists, ch_metadata, metadata, roi_tables = get_well_image_CZYX(
             files3d[files3d["well"] == well],
             channels=["w1", "w2"],
             assemble_fn=montage_grid_image_YX,
@@ -93,6 +95,7 @@ def test_get_well_image_ZCYX(files):
         assert img.shape == (2, 10, 512, 1024)
         assert len(hists) == 2
         assert "z-scaling" in metadata
+        # TODO: Make some checks on roi_tables
 
 
 test_stage_labels = [

@@ -142,6 +142,8 @@ def montage_stage_pos_image_YX(data):
 
     img = np.zeros(shape, dtype=data[0][0].dtype)
 
+    fov_rois = []
+
     for d in data:
         pos_y = int(
             np.round(d[1]["stage-position-y"] / d[1]["spatial-calibration-y"] - min_y)
@@ -152,7 +154,29 @@ def montage_stage_pos_image_YX(data):
 
         img[pos_y : pos_y + d[0].shape[0], pos_x : pos_x + d[0].shape[1]] = d[0]
 
-    return img
+        # Create the FOV ROI table for the site in physical units
+        fov_rois.append((
+            _stage_label(d[1]), 
+            pos_y * d[1]['spatial-calibration-y'], 
+            pos_x * d[1]['spatial-calibration-x'], 
+            0.0, # Hard-coded z starting position
+            d[0].shape[0] * d[1]['spatial-calibration-y'], 
+            d[0].shape[1] * d[1]['spatial-calibration-x'],
+            1.0, # Hard-coded z length (for 2D planes), to be overwritten if 
+                 # the 2D planes are assembled into a 3D stack
+            ))
+        
+    # Generate the ROI tables
+    roi_tables = {}
+    roi_tables["FOV_ROI_table"] = create_fov_ROI_table(fov_rois)
+    roi_tables["well_ROI_table"] = create_well_ROI_table(
+        shape[1], 
+        shape[0], 
+        d[1]['spatial-calibration-x'], 
+        d[1]['spatial-calibration-y']
+    )
+
+    return img, roi_tables
 
 
 def _pixel_pos(dim: str, data: dict):
@@ -211,6 +235,44 @@ def montage_grid_image_YX(data):
     
     # Generate the ROI tables
     roi_tables = {}
+    roi_tables["FOV_ROI_table"] = create_fov_ROI_table(fov_rois)
+    roi_tables["well_ROI_table"] = create_well_ROI_table(
+        shape[1], 
+        shape[0], 
+        d[1]['spatial-calibration-x'], 
+        d[1]['spatial-calibration-y']
+    )
+
+    return img, roi_tables
+
+
+def create_well_ROI_table(shape_x, shape_y, pixel_size_x, pixel_size_y):
+    columns = [
+        "FieldIndex", 
+        "x_micrometer", 
+        "y_micrometer", 
+        "z_micrometer", 
+        "len_x_micrometer", 
+        "len_y_micrometer", 
+        "len_z_micrometer"
+        ]
+    
+    well_roi = [
+        "well_1", 
+        0.0, 
+        0.0, 
+        0.0, 
+        shape_x * pixel_size_x, 
+        shape_y * pixel_size_y, 
+        1.0
+    ]
+    well_roi_table = pd.DataFrame(well_roi).T
+    well_roi_table.columns=columns
+    well_roi_table.set_index("FieldIndex", inplace=True)
+    return well_roi_table
+
+
+def create_fov_ROI_table(fov_rois):
     columns = [
         "FieldIndex", 
         "x_micrometer", 
@@ -222,24 +284,7 @@ def montage_grid_image_YX(data):
         ]
 
     roi_table = pd.DataFrame(fov_rois, columns=columns).set_index("FieldIndex")
-    roi_tables["FOV_ROI_table"] = roi_table
-
-    # Generate a well ROI table
-    well_roi = [
-        "well_1", 
-        0.0, 
-        0.0, 
-        0.0, 
-        shape[1] * d[1]['spatial-calibration-x'], 
-        shape[0] * d[1]['spatial-calibration-y'], 
-        1.0
-        ]
-    well_roi_table = pd.DataFrame(well_roi).T
-    well_roi_table.columns=columns
-    well_roi_table.set_index("FieldIndex", inplace=True)
-    roi_tables["well_ROI_table"] = well_roi_table
-
-    return img, roi_tables
+    return roi_table
 
 
 def verify_integrity(field_metadata: list[dict]):
@@ -364,7 +409,7 @@ def get_well_image_CZYX(
                 "display-color": "000000",
             }
 
-    return czyx, channel_histograms, channel_metadata, px_metadata
+    return czyx, channel_histograms, channel_metadata, px_metadata, roi_tables
 
 
 def get_well_image_CYX(
