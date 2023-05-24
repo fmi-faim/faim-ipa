@@ -197,7 +197,7 @@ def montage_grid_image_YX(data):
         img[
             pos_y * step_y : (pos_y + 1) * step_y, pos_x * step_x : (pos_x + 1) * step_x
         ] = d[0]
-        # Create the ROI table for the sites in physical units
+        # Create the FOV ROI table for the site in physical units
         fov_rois.append((
             _stage_label(d[1]), 
             pos_y * step_y * d[1]['spatial-calibration-y'], 
@@ -209,8 +209,9 @@ def montage_grid_image_YX(data):
                  # the 2D planes are assembled into a 3D stack
             ))
     
+    # Generate the ROI tables
     roi_tables = {}
-    roi_table = pd.DataFrame(fov_rois, columns=[
+    columns = [
         "FieldIndex", 
         "x_micrometer", 
         "y_micrometer", 
@@ -218,7 +219,9 @@ def montage_grid_image_YX(data):
         "len_x_micrometer", 
         "len_y_micrometer", 
         "len_z_micrometer"
-        ]).set_index("FieldIndex")
+        ]
+
+    roi_table = pd.DataFrame(fov_rois, columns=columns).set_index("FieldIndex")
     roi_tables["FOV_ROI_table"] = roi_table
 
     # Generate a well ROI table
@@ -232,15 +235,7 @@ def montage_grid_image_YX(data):
         1.0
         ]
     well_roi_table = pd.DataFrame(well_roi).T
-    well_roi_table.columns=[
-        "FieldIndex", 
-        "x_micrometer", 
-        "y_micrometer", 
-        "z_micrometer", 
-        "len_x_micrometer", 
-        "len_y_micrometer", 
-        "len_z_micrometer"
-        ]
+    well_roi_table.columns=columns
     well_roi_table.set_index("FieldIndex", inplace=True)
     roi_tables["well_ROI_table"] = well_roi_table
 
