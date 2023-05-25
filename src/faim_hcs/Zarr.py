@@ -377,7 +377,7 @@ def build_omero_channel_metadata(
     * Color is computed from the metaseries wavelength metadata.
     * Label is the set to the metaseries _IllumSetting_ metadata.
     * Intensity scaling is obtained from the data histogram [0.01,
-    0.99] quantiles.
+    0.999] quantiles.
 
     :param ch_metadata: channel metadata from tiff-tags
     :param dtype: data type
@@ -392,6 +392,12 @@ def build_omero_channel_metadata(
             proj_method = proj_method.replace(" ", "-")
             label = f"{proj_method}-Projection_{label}"
 
+        start = hist.quantile(0.01)
+        end = hist.quantile(0.999)
+        # Avoid rescaling from 0 to 0 (leads to napari display errors)
+        if start == end:
+            end = end + 1
+
         channels.append(
             {
                 "active": True,
@@ -404,8 +410,8 @@ def build_omero_channel_metadata(
                 "window": {
                     "min": np.iinfo(dtype).min,
                     "max": np.iinfo(dtype).max,
-                    "start": hist.quantile(0.01),
-                    "end": hist.quantile(0.99),
+                    "start": start,
+                    "end": end,
                 },
             }
         )
