@@ -251,6 +251,9 @@ def write_image_to_group(
     )
 
     scaler = Scaler(max_layer=max_layer)
+    
+    for i in range(len(storage_options)):
+        storage_options[i]["dimension_separator"] = "/"
 
     write_image(
         img, group=group, axes=axes, storage_options=storage_options, scaler=scaler
