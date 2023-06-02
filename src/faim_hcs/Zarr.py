@@ -341,6 +341,16 @@ def write_roi_table(
     adata.obs_names = roi_table.index
     adata.var_names = list(map(str, roi_table.columns))
     write_elem(group_tables, table_name, adata)
+    update_table_metadata(group_tables, table_name)
+
+
+def update_table_metadata(group_tables, table_name):
+    if "tables" not in group_tables.attrs:
+        group_tables.attrs["tables"] = [table_name]
+    elif table_name not in group_tables.attrs["tables"]:
+        group_tables.attrs["tables"] = group_tables.attrs["tables"] + [
+            table_name
+        ]
 
 
 def write_czyx_image_to_well(
