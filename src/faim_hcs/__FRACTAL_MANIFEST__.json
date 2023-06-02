@@ -1,0 +1,30 @@
+{
+    "manifest_version": 1,
+    "task_list": [
+      {
+        "name": "Create OME-Zarr MD",
+        "executable": "fractal/fractal_create_ome_zarr_md.py",
+        "input_type": "image",
+        "output_type": "zarr",
+        "default_args": {
+          "mode": "all"
+        },
+        "meta": {
+          "cpus_per_task": 1,
+          "mem": 4000,
+      }
+      },
+      {
+        "name": "Convert MD to OME-Zarr",
+        "executable": "fractal/fractal_md_to_ome_zarr.py",
+        "input_type": "zarr",
+        "output_type": "zarr",
+        "default_args": {},
+        "meta": {
+          "cpus_per_task": 1,
+          "mem": 4000,
+          "parallelization_level": "image"
+      }
+      }
+    ]
+  }

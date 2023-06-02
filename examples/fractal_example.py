@@ -1,7 +1,7 @@
 # Fractal example scripts
 
-from faim_hcs.fractal_create_ome_zarr_md import create_ome_zarr_md
-from faim_hcs.fractal_md_to_ome_zarr import md_to_ome_zarr
+from faim_hcs.fractal.fractal_create_ome_zarr_md import create_ome_zarr_md
+from faim_hcs.fractal.fractal_md_to_ome_zarr import md_to_ome_zarr
 
 input_paths = ["/Users/joel/Dropbox/Joel/FMI/Code/faim-hcs/resources/Projection-Mix"]
 output_path = "/Users/joel/Dropbox/Joel/FMI/Code/faim-hcs/examples/zarr-files"

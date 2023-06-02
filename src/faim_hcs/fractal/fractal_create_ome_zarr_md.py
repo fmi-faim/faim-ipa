@@ -1,10 +1,13 @@
 # OME-Zarr creation from MD Image Express
-from typing import Any, Dict, Sequence
+from typing import Any, Dict, Sequence, Optional
 
 from faim_hcs.io.MolecularDevicesImageXpress import parse_files
 from faim_hcs.Zarr import build_zarr_scaffold
 from os.path import join, exists
 import shutil
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def create_ome_zarr_md(
@@ -17,13 +20,27 @@ def create_ome_zarr_md(
     order_name: str = "example-order",
     barcode: str = "example-barcode",
     overwrite: bool = True,
+    num_levels = 5,
 ) -> Dict[str, Any]:
     """
-    TBD
-    # Mode can be 3 values: "z-steps" (only parse the 3D data), 
-    "top-level" (only parse the 2D data), "all" (parse both)
+    Create OME-Zarr plate from MD Image Xpress files.
 
+    :param input_paths: List of paths to the input files (Fractal managed)
+    :param output_path: Path to the output file (Fractal managed)
+    :param metadata: Metadata dictionary (Fractal managed)
+    :param zarr_name: Name of the zarr plate file that will be created
+    :param mode: Mode can be 3 values: "z-steps" (only parse the 3D data),
+                 "top-level" (only parse the 2D data), "all" (parse both)
+    :param order_name: Name of the order
+    :param barcode: Barcode of the plate
+    :param overwrite: Whether to overwrite the zarr file if it already exists
+    :param num_levels: Number of levels to generate in the zarr file
+    :return: Metadata dictionary
     """
+    # FIXME: Find a way to figure out here how many levels will be generated
+    # (to be able to put it into the num_levels metadata)
+    # Currently, we're asking the user or setting it to 5, even if there are 
+    # a different number of pyramids then created
     if len(input_paths) > 1:
         raise NotImplementedError(
             "MD Create OME-Zarr task is not implemented to handle multiple input paths"
@@ -61,10 +78,6 @@ def create_ome_zarr_md(
         well_paths.append(curr_well)
         image_paths.append(curr_well + "0/")
 
-    # FIXME: Find a way to figure out here how many levels will be generated
-    # (to be able to put it into the num_levels metadata)
-    num_levels = 1
-
     metadata_update = dict(
         plate=[plate_name],
         well=well_paths,
@@ -78,4 +91,24 @@ def create_ome_zarr_md(
     return metadata_update
 
 
-# TODO: Add main function to run this as a fractal task
+if __name__ == "__main__":
+    from pydantic import BaseModel
+    from pydantic import Extra
+    from fractal_tasks_core._utils import run_fractal_task
+
+    class TaskArguments(BaseModel, extra=Extra.forbid):
+        input_paths: Sequence[str]
+        output_path: str
+        metadata: Dict[str, Any]
+        zarr_name: Optional[str]
+        mode: Optional[str]
+        order_name: Optional[str]
+        barcode: Optional[str]
+        overwrite: Optional[bool]
+        num_levels: Optional[int]
+
+    run_fractal_task(
+        task_function=create_ome_zarr_md,
+        TaskArgsModel=TaskArguments,
+        logger_name=logger.name,
+    )

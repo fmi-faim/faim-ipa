@@ -15,6 +15,9 @@ from faim_hcs.MetaSeriesUtils import (
 )
 
 import zarr
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def md_to_ome_zarr(
@@ -25,10 +28,14 @@ def md_to_ome_zarr(
     metadata: Dict[str, Any],
 ) -> Dict[str, Any]:
     """
-    TBD
-    # Mode can be 3 values: "z-steps" (only parse the 3D data),
-    "top-level" (only parse the 2D data), "all" (parse both)
+    Converts the image data from the MD image Xpress into OME-Zarr
 
+    :param input_paths: List of paths to the input files (Fractal managed)
+    :param output_path: Path to the output file (Fractal managed)
+    :param component: Component name, e.g. "plate_name.zarr/B/03/0"
+                      (Fractal managed)
+    :param metadata: Metadata dictionary (Fractal managed)
+    :return: Metadata dictionary (no updated metadata => empty dict)
     """
     channels = metadata["channels"]
     well = component.split("/")[1] + component.split("/")[2].zfill(2)
@@ -106,6 +113,23 @@ def md_to_ome_zarr(
     # Write all ROI tables
     for roi_table in roi_tables:
         write_roi_table(roi_tables[roi_table], roi_table, field)
+    
+    return {}
 
 
-# TODO: Add main function to run it as a Fractal task
+if __name__ == "__main__":
+    from pydantic import BaseModel
+    from pydantic import Extra
+    from fractal_tasks_core._utils import run_fractal_task
+
+    class TaskArguments(BaseModel, extra=Extra.forbid):
+        input_paths: Sequence[str]
+        output_path: str
+        component: str
+        metadata: Dict[str, Any]
+
+    run_fractal_task(
+        task_function=md_to_ome_zarr,
+        TaskArgsModel=TaskArguments,
+        logger_name=logger.name,
+    )
