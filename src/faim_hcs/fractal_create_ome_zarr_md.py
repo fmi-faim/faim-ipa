@@ -1,9 +1,5 @@
 # OME-Zarr creation from MD Image Express
-from typing import Any
-from typing import Dict
-from typing import List
-from typing import Optional
-from typing import Sequence
+from typing import Any, Dict, Sequence
 
 from faim_hcs.io.MolecularDevicesImageXpress import parse_files
 from faim_hcs.Zarr import build_zarr_scaffold
@@ -20,18 +16,19 @@ def create_ome_zarr_md(
     mode: str = "all",
     order_name: str = "example-order",
     barcode: str = "example-barcode",
-    overwrite: bool = True
+    overwrite: bool = True,
 ) -> Dict[str, Any]:
     """
     TBD
-    # Mode can be 3 values: "z-steps" (only parse the 3D data), "top-level" (only parse the 2D data), "all" (parse both)
+    # Mode can be 3 values: "z-steps" (only parse the 3D data), 
+    "top-level" (only parse the 2D data), "all" (parse both)
 
     """
     if len(input_paths) > 1:
         raise NotImplementedError(
             "MD Create OME-Zarr task is not implemented to handle multiple input paths"
         )
-    order_name = (order_name, )
+    order_name = (order_name,)
 
     valid_modes = ("z-steps", "top-level", "all")
     if mode not in valid_modes:
@@ -47,24 +44,24 @@ def create_ome_zarr_md(
 
     # Build empty zarr plate scaffold.
     build_zarr_scaffold(
-        root_dir=output_path, 
-        name=zarr_name, 
-        files=files, 
-        layout=96, 
-        order_name=order_name, 
-        barcode=barcode
+        root_dir=output_path,
+        name=zarr_name,
+        files=files,
+        layout=96,
+        order_name=order_name,
+        barcode=barcode,
     )
 
     # Create the metadata dictionary
     plate_name = zarr_name + ".zarr"
     well_paths = []
     image_paths = []
-    for well in sorted(files['well'].unique()):
+    for well in sorted(files["well"].unique()):
         curr_well = plate_name + "/" + well[0] + "/" + str(int(well[1:])) + "/"
         well_paths.append(curr_well)
         image_paths.append(curr_well + "0/")
-    
-    # FIXME: Find a way to figure out here how many levels will be generated 
+
+    # FIXME: Find a way to figure out here how many levels will be generated
     # (to be able to put it into the num_levels metadata)
     num_levels = 1
 
@@ -74,32 +71,11 @@ def create_ome_zarr_md(
         image=image_paths,
         num_levels=num_levels,
         coarsening_xy=2,
+        channels=files["channel"].unique().tolist(),
+        mode=mode,
         original_paths=input_paths[:],
     )
     return metadata_update
 
 
-input_paths = ["../../resources/Projection-Mix/"]
-output_path = "../../examples/zarr-files"
-
-order_name = "example-order"
-barcode = "example-barcode"
-overwrite = True
-# Mode can be 3 values: "z-steps" (only parse the 3D data), "top-level" (only parse the 2D data), "all" (parse both)
-# mode = "z-steps"
-# mode = "top-level"
-mode = "all"
-
-output_name = "TaskTest"
-
-metatada_update = create_ome_zarr_md(
-    input_paths=input_paths,
-    output_path=output_path,
-    metadata={},
-    zarr_name=output_name,
-    mode=mode,
-    order_name=order_name,
-    barcode=barcode,
-    overwrite=overwrite
-)
-print(metatada_update)
+# TODO: Add main function to run this as a fractal task
