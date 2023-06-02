@@ -12,11 +12,11 @@ order_name = ("example-order",)
 barcode = "example-barcode"
 overwrite = True
 # Mode can be 3 values: "z-steps" (only parse the 3D data), "top-level" (only parse the 2D data), "all" (parse both)
-mode = "z-steps"
-mode = "top-level"
+# mode = "z-steps"
+# mode = "top-level"
 mode = "all"
 
-# output_name = "Projection-Mix"
+output_name = "Projection-Mix"
 # is_2D = False
 
 if len(input_paths) > 1:
