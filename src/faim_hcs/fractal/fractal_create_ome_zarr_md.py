@@ -40,7 +40,8 @@ def create_ome_zarr_md(
     # FIXME: Find a way to figure out here how many levels will be generated
     # (to be able to put it into the num_levels metadata)
     # Currently, we're asking the user or setting it to 5, even if there are 
-    # a different number of pyramids then created
+    # a different number of pyramids then created. The calculation of levels 
+    # is only done during the actual conversion though, so that's tricky.
     if len(input_paths) > 1:
         raise NotImplementedError(
             "MD Create OME-Zarr task is not implemented to handle multiple input paths"
