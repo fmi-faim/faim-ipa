@@ -23,7 +23,7 @@ To create a new Fractal task, one needs to create a linux executable (e.g. a Pyt
 
 To make the task installable by a Fractal server, there needs to be a `__FRACTAL_MANIFEST__.json` file in the src/faim_hcs folder. This file contains a list of all available tasks, their default parameters as well as the relative path to the executable.
 
-The manifest needs to be included when a package is built. 
+The manifest needs to be included when a package is built.
 
 For local creation of a Python whl, it means that the setup.cfg contains the following:
 ```

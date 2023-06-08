@@ -5,10 +5,10 @@ from pathlib import Path
 from typing import Union
 
 import anndata as ad
-from anndata.experimental import write_elem
 import numpy as np
 import pandas as pd
 import zarr
+from anndata.experimental import write_elem
 from numpy._typing import ArrayLike
 from ome_zarr.io import parse_url
 from ome_zarr.scale import Scaler
@@ -251,7 +251,7 @@ def write_image_to_group(
     )
 
     scaler = Scaler(max_layer=max_layer)
-    
+
     for i in range(len(storage_options)):
         storage_options[i]["dimension_separator"] = "/"
 
@@ -348,9 +348,7 @@ def update_table_metadata(group_tables, table_name):
     if "tables" not in group_tables.attrs:
         group_tables.attrs["tables"] = [table_name]
     elif table_name not in group_tables.attrs["tables"]:
-        group_tables.attrs["tables"] = group_tables.attrs["tables"] + [
-            table_name
-        ]
+        group_tables.attrs["tables"] = group_tables.attrs["tables"] + [table_name]
 
 
 def write_czyx_image_to_well(

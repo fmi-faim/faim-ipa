@@ -1,21 +1,22 @@
 # Convert a well of MD Image Xpress data to OME-Zarr
-from typing import Any, Dict, Sequence
+import logging
 from pathlib import Path
+from typing import Any, Dict
+from collections.abc import Sequence
+
+import zarr
 
 from faim_hcs.io.MolecularDevicesImageXpress import parse_files
-from faim_hcs.Zarr import (
-    write_czyx_image_to_well,
-    write_cyx_image_to_well,
-    write_roi_table,
-)
 from faim_hcs.MetaSeriesUtils import (
     get_well_image_CYX,
     get_well_image_CZYX,
     montage_grid_image_YX,
 )
-
-import zarr
-import logging
+from faim_hcs.Zarr import (
+    write_cyx_image_to_well,
+    write_czyx_image_to_well,
+    write_roi_table,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -25,8 +26,8 @@ def md_to_ome_zarr(
     input_paths: Sequence[str],
     output_path: str,
     component: str,
-    metadata: Dict[str, Any],
-) -> Dict[str, Any]:
+    metadata: dict[str, Any],
+) -> dict[str, Any]:
     """
     Converts the image data from the MD image Xpress into OME-Zarr
 
@@ -113,20 +114,19 @@ def md_to_ome_zarr(
     # Write all ROI tables
     for roi_table in roi_tables:
         write_roi_table(roi_tables[roi_table], roi_table, field)
-    
+
     return {}
 
 
 if __name__ == "__main__":
-    from pydantic import BaseModel
-    from pydantic import Extra
     from fractal_tasks_core._utils import run_fractal_task
+    from pydantic import BaseModel, Extra
 
     class TaskArguments(BaseModel, extra=Extra.forbid):
         input_paths: Sequence[str]
         output_path: str
         component: str
-        metadata: Dict[str, Any]
+        metadata: dict[str, Any]
 
     run_fractal_task(
         task_function=md_to_ome_zarr,

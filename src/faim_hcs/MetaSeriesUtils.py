@@ -155,25 +155,24 @@ def montage_stage_pos_image_YX(data):
         img[pos_y : pos_y + d[0].shape[0], pos_x : pos_x + d[0].shape[1]] = d[0]
 
         # Create the FOV ROI table for the site in physical units
-        fov_rois.append((
-            _stage_label(d[1]), 
-            pos_y * d[1]['spatial-calibration-y'], 
-            pos_x * d[1]['spatial-calibration-x'], 
-            0.0, # Hard-coded z starting position
-            d[0].shape[0] * d[1]['spatial-calibration-y'], 
-            d[0].shape[1] * d[1]['spatial-calibration-x'],
-            1.0, # Hard-coded z length (for 2D planes), to be overwritten if 
-                 # the 2D planes are assembled into a 3D stack
-            ))
-        
+        fov_rois.append(
+            (
+                _stage_label(d[1]),
+                pos_y * d[1]["spatial-calibration-y"],
+                pos_x * d[1]["spatial-calibration-x"],
+                0.0,  # Hard-coded z starting position
+                d[0].shape[0] * d[1]["spatial-calibration-y"],
+                d[0].shape[1] * d[1]["spatial-calibration-x"],
+                1.0,  # Hard-coded z length (for 2D planes), to be overwritten if
+                # the 2D planes are assembled into a 3D stack
+            )
+        )
+
     # Generate the ROI tables
     roi_tables = {}
     roi_tables["FOV_ROI_table"] = create_fov_ROI_table(fov_rois)
     roi_tables["well_ROI_table"] = create_well_ROI_table(
-        shape[1], 
-        shape[0], 
-        d[1]['spatial-calibration-x'], 
-        d[1]['spatial-calibration-y']
+        shape[1], shape[0], d[1]["spatial-calibration-x"], d[1]["spatial-calibration-y"]
     )
 
     return img, roi_tables
@@ -194,9 +193,9 @@ def _stage_label(data: dict):
 
 def montage_grid_image_YX(data):
     """Montage 2D fields into fixed grid, based on stage position metadata.
-    
+
     :param data: list of tuples of (image, metadata)
-    :return: img (stitched 2D np array), fov_df (dataframe with region of 
+    :return: img (stitched 2D np array), fov_df (dataframe with region of
              interest information for the fields of view)
     """
     min_y = min(_pixel_pos("y", d[1]) for d in data)
@@ -222,25 +221,24 @@ def montage_grid_image_YX(data):
             pos_y * step_y : (pos_y + 1) * step_y, pos_x * step_x : (pos_x + 1) * step_x
         ] = d[0]
         # Create the FOV ROI table for the site in physical units
-        fov_rois.append((
-            _stage_label(d[1]), 
-            pos_y * step_y * d[1]['spatial-calibration-y'], 
-            pos_x * step_x * d[1]['spatial-calibration-x'], 
-            0.0, # Hard-coded z starting position
-            step_y * d[1]['spatial-calibration-y'], 
-            step_x * d[1]['spatial-calibration-x'],
-            1.0, # Hard-coded z length (for 2D planes), to be overwritten if 
-                 # the 2D planes are assembled into a 3D stack
-            ))
-    
+        fov_rois.append(
+            (
+                _stage_label(d[1]),
+                pos_y * step_y * d[1]["spatial-calibration-y"],
+                pos_x * step_x * d[1]["spatial-calibration-x"],
+                0.0,  # Hard-coded z starting position
+                step_y * d[1]["spatial-calibration-y"],
+                step_x * d[1]["spatial-calibration-x"],
+                1.0,  # Hard-coded z length (for 2D planes), to be overwritten if
+                # the 2D planes are assembled into a 3D stack
+            )
+        )
+
     # Generate the ROI tables
     roi_tables = {}
     roi_tables["FOV_ROI_table"] = create_fov_ROI_table(fov_rois)
     roi_tables["well_ROI_table"] = create_well_ROI_table(
-        shape[1], 
-        shape[0], 
-        d[1]['spatial-calibration-x'], 
-        d[1]['spatial-calibration-y']
+        shape[1], shape[0], d[1]["spatial-calibration-x"], d[1]["spatial-calibration-y"]
     )
 
     return img, roi_tables
@@ -248,40 +246,40 @@ def montage_grid_image_YX(data):
 
 def create_well_ROI_table(shape_x, shape_y, pixel_size_x, pixel_size_y):
     columns = [
-        "FieldIndex", 
-        "x_micrometer", 
-        "y_micrometer", 
-        "z_micrometer", 
-        "len_x_micrometer", 
-        "len_y_micrometer", 
-        "len_z_micrometer"
-        ]
-    
+        "FieldIndex",
+        "x_micrometer",
+        "y_micrometer",
+        "z_micrometer",
+        "len_x_micrometer",
+        "len_y_micrometer",
+        "len_z_micrometer",
+    ]
+
     well_roi = [
-        "well_1", 
-        0.0, 
-        0.0, 
-        0.0, 
-        shape_x * pixel_size_x, 
-        shape_y * pixel_size_y, 
-        1.0
+        "well_1",
+        0.0,
+        0.0,
+        0.0,
+        shape_x * pixel_size_x,
+        shape_y * pixel_size_y,
+        1.0,
     ]
     well_roi_table = pd.DataFrame(well_roi).T
-    well_roi_table.columns=columns
+    well_roi_table.columns = columns
     well_roi_table.set_index("FieldIndex", inplace=True)
     return well_roi_table
 
 
 def create_fov_ROI_table(fov_rois):
     columns = [
-        "FieldIndex", 
-        "x_micrometer", 
-        "y_micrometer", 
-        "z_micrometer", 
-        "len_x_micrometer", 
-        "len_y_micrometer", 
-        "len_z_micrometer"
-        ]
+        "FieldIndex",
+        "x_micrometer",
+        "y_micrometer",
+        "z_micrometer",
+        "len_x_micrometer",
+        "len_y_micrometer",
+        "len_z_micrometer",
+    ]
 
     roi_table = pd.DataFrame(fov_rois, columns=columns).set_index("FieldIndex")
     return roi_table
@@ -378,12 +376,13 @@ def get_well_image_CZYX(
                 else:
                     plane_imgs.append(None)
                     z_plane_positions.append(None)
-            
-            # Set the correct z-length for the ROIs by picking the largest 
+
+            # Set the correct z-length for the ROIs by picking the largest
             # Z length of the available channels
             for roi_table in roi_tables.values():
-                new_z_diff = max(x for x in z_plane_positions if x is not None) \
-                             - min(x for x in z_plane_positions if x is not None)
+                new_z_diff = max(x for x in z_plane_positions if x is not None) - min(
+                    x for x in z_plane_positions if x is not None
+                )
                 max_z_len = max(max_z_len, new_z_diff)
                 roi_table["len_z_micrometer"] = max_z_len
 
@@ -438,7 +437,7 @@ def get_well_image_CYX(
     :param channels: list of required channels
     :param assemble_fn: creates a single image for each channel
     :param include_z_position: whether to include z-position metadata
-    :return: CYX image, channel-histograms, channel-metadata, general-metadata, 
+    :return: CYX image, channel-histograms, channel-metadata, general-metadata,
                 roi-tables dictionary
     """
     channel_imgs = {}

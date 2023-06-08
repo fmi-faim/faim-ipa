@@ -1,11 +1,12 @@
 # OME-Zarr creation from MD Image Express
-from typing import Any, Dict, Sequence, Optional
+import logging
+import shutil
+from os.path import exists, join
+from typing import Any, Dict, Optional
+from collections.abc import Sequence
 
 from faim_hcs.io.MolecularDevicesImageXpress import parse_files
 from faim_hcs.Zarr import build_zarr_scaffold
-from os.path import join, exists
-import shutil
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -14,14 +15,14 @@ def create_ome_zarr_md(
     *,
     input_paths: Sequence[str],
     output_path: str,
-    metadata: Dict[str, Any],
+    metadata: dict[str, Any],
     zarr_name: str = "Plate",
     mode: str = "all",
     order_name: str = "example-order",
     barcode: str = "example-barcode",
     overwrite: bool = True,
-    num_levels = 5,
-) -> Dict[str, Any]:
+    num_levels=5,
+) -> dict[str, Any]:
     """
     Create OME-Zarr plate from MD Image Xpress files.
 
@@ -39,8 +40,8 @@ def create_ome_zarr_md(
     """
     # FIXME: Find a way to figure out here how many levels will be generated
     # (to be able to put it into the num_levels metadata)
-    # Currently, we're asking the user or setting it to 5, even if there are 
-    # a different number of pyramids then created. The calculation of levels 
+    # Currently, we're asking the user or setting it to 5, even if there are
+    # a different number of pyramids then created. The calculation of levels
     # is only done during the actual conversion though, so that's tricky.
     if len(input_paths) > 1:
         raise NotImplementedError(
@@ -93,14 +94,13 @@ def create_ome_zarr_md(
 
 
 if __name__ == "__main__":
-    from pydantic import BaseModel
-    from pydantic import Extra
     from fractal_tasks_core._utils import run_fractal_task
+    from pydantic import BaseModel, Extra
 
     class TaskArguments(BaseModel, extra=Extra.forbid):
         input_paths: Sequence[str]
         output_path: str
-        metadata: Dict[str, Any]
+        metadata: dict[str, Any]
         zarr_name: Optional[str]
         mode: Optional[str]
         order_name: Optional[str]

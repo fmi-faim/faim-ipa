@@ -9,7 +9,7 @@ output_path = "../zarr-files"
 order_name = "example-order"
 barcode = "example-barcode"
 overwrite = True
-# Mode can be 3 values: "z-steps" (only parse the 3D data), 
+# Mode can be 3 values: "z-steps" (only parse the 3D data),
 # "top-level" (only parse the 2D data), "all" (parse both)
 # mode = "z-steps"
 # mode = "top-level"
@@ -25,13 +25,13 @@ metatada_update = create_ome_zarr_md(
     mode=mode,
     order_name=order_name,
     barcode=barcode,
-    overwrite=overwrite
+    overwrite=overwrite,
 )
 
-for component in metatada_update['image']:
+for component in metatada_update["image"]:
     md_to_ome_zarr(
-        input_paths = [output_path],
-        output_path = output_path,
-        component = component,
-        metadata = metatada_update
+        input_paths=[output_path],
+        output_path=output_path,
+        component=component,
+        metadata=metatada_update,
     )

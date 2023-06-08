@@ -9,11 +9,11 @@ import pytest
 
 from faim_hcs.io.MolecularDevicesImageXpress import parse_files
 from faim_hcs.MetaSeriesUtils import (
+    _stage_label,
     get_well_image_CYX,
     get_well_image_CZYX,
     montage_grid_image_YX,
     montage_stage_pos_image_YX,
-    _stage_label,
 )
 
 ROOT_DIR = Path(__file__).parent.parent
@@ -37,7 +37,7 @@ def test_get_well_image_CYX(files):
         assert "z-scaling" not in metadata
         for ch_meta in ch_metadata:
             assert "z-projection-method" in ch_meta
-        # TODO: Make some checks on roi_tables (from monaging with actual 
+        # TODO: Make some checks on roi_tables (from monaging with actual
         # positions => different coordiantes)
 
 
@@ -83,22 +83,28 @@ def test_get_well_image_CYX_well_E07(files):
         "spatial-calibration-y": 1.3668,
     }
     roi_columns = [
-        "x_micrometer", 
-        "y_micrometer", 
-        "z_micrometer", 
-        "len_x_micrometer", 
-        "len_y_micrometer", 
-        "len_z_micrometer"
+        "x_micrometer",
+        "y_micrometer",
+        "z_micrometer",
+        "len_x_micrometer",
+        "len_y_micrometer",
+        "len_z_micrometer",
     ]
     assert list(roi_tables["well_ROI_table"].columns) == roi_columns
     assert len(roi_tables["well_ROI_table"]) == 1
     target_values = [0.0, 0.0, 0.0, 1399.6032, 699.8016, 1.0]
-    assert roi_tables["well_ROI_table"].loc["well_1"].values.flatten().tolist() == target_values
+    assert (
+        roi_tables["well_ROI_table"].loc["well_1"].values.flatten().tolist()
+        == target_values
+    )
 
     assert list(roi_tables["FOV_ROI_table"].columns) == roi_columns
     assert len(roi_tables["FOV_ROI_table"]) == 2
     target_values = [0.0, 699.8016, 0.0, 699.8016, 699.8016, 1.0]
-    assert roi_tables["FOV_ROI_table"].loc["Site 2"].values.flatten().tolist() == target_values
+    assert (
+        roi_tables["FOV_ROI_table"].loc["Site 2"].values.flatten().tolist()
+        == target_values
+    )
 
 
 def test_get_well_image_ZCYX(files):
@@ -115,31 +121,38 @@ def test_get_well_image_ZCYX(files):
         assert "z-scaling" in metadata
 
         roi_columns = [
-            "x_micrometer", 
-            "y_micrometer", 
-            "z_micrometer", 
-            "len_x_micrometer", 
-            "len_y_micrometer", 
-            "len_z_micrometer"
+            "x_micrometer",
+            "y_micrometer",
+            "z_micrometer",
+            "len_x_micrometer",
+            "len_y_micrometer",
+            "len_z_micrometer",
         ]
         assert list(roi_tables["well_ROI_table"].columns) == roi_columns
         assert len(roi_tables["well_ROI_table"]) == 1
         target_values = [0.0, 0.0, 0.0, 1399.6032, 699.8016, z_len[well]]
-        assert roi_tables["well_ROI_table"].loc["well_1"].values.flatten().tolist() == target_values
+        assert (
+            roi_tables["well_ROI_table"].loc["well_1"].values.flatten().tolist()
+            == target_values
+        )
 
         assert list(roi_tables["FOV_ROI_table"].columns) == roi_columns
         assert len(roi_tables["FOV_ROI_table"]) == 2
         target_values = [0.0, 699.8016, 0.0, 699.8016, 699.8016, z_len[well]]
-        assert roi_tables["FOV_ROI_table"].loc["Site 2"].values.flatten().tolist() == target_values
+        assert (
+            roi_tables["FOV_ROI_table"].loc["Site 2"].values.flatten().tolist()
+            == target_values
+        )
 
 
 test_stage_labels = [
-    ({"stage-label": 'E07 : Site 1'}, "Site 1"),
-    ({"stage-label": 'E07 : Site 2'}, "Site 2"),
-    ({"stage-labels": 'E07 : Site 2'}, ""),
+    ({"stage-label": "E07 : Site 1"}, "Site 1"),
+    ({"stage-label": "E07 : Site 2"}, "Site 2"),
+    ({"stage-labels": "E07 : Site 2"}, ""),
     ({}, ""),
 ]
+
+
 @pytest.mark.parametrize("data,expected", test_stage_labels)
 def test_stage_label_parser(data, expected):
     assert _stage_label(data) == expected
-
