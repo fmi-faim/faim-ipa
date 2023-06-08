@@ -354,6 +354,7 @@ def get_well_image_CZYX(
     px_metadata = None
     z_positions = []
     roi_tables = {}
+    max_z_len = 0
 
     for ch in channels:
         channel_files = well_files[well_files["channel"] == ch]
@@ -378,9 +379,13 @@ def get_well_image_CZYX(
                     plane_imgs.append(None)
                     z_plane_positions.append(None)
             
-            # Set the correct z-length for the ROIs
+            # Set the correct z-length for the ROIs by picking the largest 
+            # Z length of the available channels
             for roi_table in roi_tables.values():
-                roi_table["len_z_micrometer"] = max(x for x in z_plane_positions if x is not None) - min(x for x in z_plane_positions if x is not None)
+                new_z_diff = max(x for x in z_plane_positions if x is not None) \
+                             - min(x for x in z_plane_positions if x is not None)
+                max_z_len = max(max_z_len, new_z_diff)
+                roi_table["len_z_micrometer"] = max_z_len
 
             zyx = build_stack(plane_imgs)
             stacks.append(zyx)
