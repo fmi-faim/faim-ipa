@@ -82,10 +82,28 @@ def test_get_well_image_CYX_well_E07(files):
         "spatial-calibration-x": 1.3668,
         "spatial-calibration-y": 1.3668,
     }
+    roi_columns = [
+        "x_micrometer", 
+        "y_micrometer", 
+        "z_micrometer", 
+        "len_x_micrometer", 
+        "len_y_micrometer", 
+        "len_z_micrometer"
+    ]
+    assert list(roi_tables["well_ROI_table"].columns) == roi_columns
+    assert len(roi_tables["well_ROI_table"]) == 1
+    target_values = [0.0, 0.0, 0.0, 1399.6032, 699.8016, 1.0]
+    assert roi_tables["well_ROI_table"].loc["well_1"].values.flatten().tolist() == target_values
+
+    assert list(roi_tables["FOV_ROI_table"].columns) == roi_columns
+    assert len(roi_tables["FOV_ROI_table"]) == 2
+    target_values = [0.0, 699.8016, 0.0, 699.8016, 699.8016, 1.0]
+    assert roi_tables["FOV_ROI_table"].loc["Site 2"].values.flatten().tolist() == target_values
 
 
 def test_get_well_image_ZCYX(files):
     files3d = files[(~files["z"].isnull()) & (files["channel"].isin(["w1", "w2"]))]
+    z_len = {"E08": 45.0, "E07": 45.289999999999054}
     for well in files3d["well"].unique():
         img, hists, ch_metadata, metadata, roi_tables = get_well_image_CZYX(
             files3d[files3d["well"] == well],
@@ -95,7 +113,24 @@ def test_get_well_image_ZCYX(files):
         assert img.shape == (2, 10, 512, 1024)
         assert len(hists) == 2
         assert "z-scaling" in metadata
-        # TODO: Make some checks on roi_tables
+
+        roi_columns = [
+            "x_micrometer", 
+            "y_micrometer", 
+            "z_micrometer", 
+            "len_x_micrometer", 
+            "len_y_micrometer", 
+            "len_z_micrometer"
+        ]
+        assert list(roi_tables["well_ROI_table"].columns) == roi_columns
+        assert len(roi_tables["well_ROI_table"]) == 1
+        target_values = [0.0, 0.0, 0.0, 1399.6032, 699.8016, z_len[well]]
+        assert roi_tables["well_ROI_table"].loc["well_1"].values.flatten().tolist() == target_values
+
+        assert list(roi_tables["FOV_ROI_table"].columns) == roi_columns
+        assert len(roi_tables["FOV_ROI_table"]) == 2
+        target_values = [0.0, 699.8016, 0.0, 699.8016, 699.8016, z_len[well]]
+        assert roi_tables["FOV_ROI_table"].loc["Site 2"].values.flatten().tolist() == target_values
 
 
 test_stage_labels = [
