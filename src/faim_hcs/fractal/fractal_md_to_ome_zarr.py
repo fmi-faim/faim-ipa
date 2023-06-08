@@ -1,8 +1,8 @@
 # Convert a well of MD Image Xpress data to OME-Zarr
 import logging
-from pathlib import Path
-from typing import Any, Dict
 from collections.abc import Sequence
+from pathlib import Path
+from typing import Any
 
 import zarr
 

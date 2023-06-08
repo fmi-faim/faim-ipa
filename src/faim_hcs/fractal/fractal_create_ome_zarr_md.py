@@ -1,9 +1,9 @@
 # OME-Zarr creation from MD Image Express
 import logging
 import shutil
-from os.path import exists, join
-from typing import Any, Dict, Optional
 from collections.abc import Sequence
+from os.path import exists, join
+from typing import Any, Optional
 
 from faim_hcs.io.MolecularDevicesImageXpress import parse_files
 from faim_hcs.Zarr import build_zarr_scaffold

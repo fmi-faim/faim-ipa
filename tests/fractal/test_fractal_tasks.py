@@ -224,7 +224,7 @@ def test_fractal_task_overwrite_false():
 
     output_name = "OME-Zarr"
 
-    metatada_update = create_ome_zarr_md(
+    _ = create_ome_zarr_md(
         input_paths=input_paths,
         output_path=zarr_root,
         metadata={},
@@ -238,7 +238,7 @@ def test_fractal_task_overwrite_false():
     overwrite = False
 
     with pytest.raises(FileExistsError):
-        metatada_update = create_ome_zarr_md(
+        _ = create_ome_zarr_md(
             input_paths=input_paths,
             output_path=zarr_root,
             metadata={},
