@@ -37,7 +37,7 @@ Afterwards, the wheel can be built using `python -m build` and collected by Frac
 fractal task collect /path/to/faim-hcs-version-details.whl --package-extras fractal-tasks
 ```
 
-((The installation of optional dependencies with fractal task collection doesn't appear to work yet with this command, even though it should. We'll work on this bug. In the meantime, one needs to manually activate the newly created task environment and `pip install fractal-tasks-core`.)) [should be fixed in the current Fractal server version, 1.3.0 and upwards => test]
+If the fractal tasks are in their own module (i.e their own folder), this folder needs to contain an (empty) `__init__.py` file.
 
 
 ### Working with a Fractal task in development
