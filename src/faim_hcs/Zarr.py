@@ -8,7 +8,6 @@ import anndata as ad
 import numpy as np
 import pandas as pd
 import zarr
-from anndata.experimental import write_elem
 from numpy._typing import ArrayLike
 from ome_zarr.io import parse_url
 from ome_zarr.scale import Scaler
@@ -340,7 +339,7 @@ def write_roi_table(
     adata = ad.AnnData(X=df_roi)
     adata.obs_names = roi_table.index
     adata.var_names = list(map(str, roi_table.columns))
-    write_elem(group_tables, table_name, adata)
+    ad._io.specs.write_elem(group_tables, table_name, adata)
     update_table_metadata(group_tables, table_name)
 
 
