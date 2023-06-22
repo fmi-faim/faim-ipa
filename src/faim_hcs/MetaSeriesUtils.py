@@ -352,7 +352,6 @@ def get_well_image_CZYX(
     px_metadata = None
     z_positions = []
     roi_tables = {}
-    max_z_len = 0
 
     for ch in channels:
         channel_files = well_files[well_files["channel"] == ch]
@@ -377,15 +376,6 @@ def get_well_image_CZYX(
                     plane_imgs.append(None)
                     z_plane_positions.append(None)
 
-            # Set the correct z-length for the ROIs by picking the largest
-            # Z length of the available channels
-            for roi_table in roi_tables.values():
-                new_z_diff = max(x for x in z_plane_positions if x is not None) - min(
-                    x for x in z_plane_positions if x is not None
-                )
-                max_z_len = max(max_z_len, new_z_diff)
-                roi_table["len_z_micrometer"] = max_z_len
-
             zyx = build_stack(plane_imgs)
             stacks.append(zyx)
             channel_histograms.append(UIntHistogram(stacks[-1]))
@@ -404,6 +394,9 @@ def get_well_image_CZYX(
 
     z_sampling = compute_z_sampling(z_positions)
     px_metadata["z-scaling"] = z_sampling
+    max_stack_size = max([x.shape[0] for x in stacks if x is not None])
+    for roi_table in roi_tables.values():
+        roi_table["len_z_micrometer"] = z_sampling * (max_stack_size - 1)
 
     roll_single_plane(stacks, z_positions)
 
@@ -425,7 +418,6 @@ def get_well_image_CYX(
     well_files: pd.DataFrame,
     channels: list[str],
     assemble_fn: Callable = montage_grid_image_YX,
-    include_z_position: bool = False,
 ) -> tuple[ArrayLike, list[UIntHistogram], list[dict], dict]:
     """Assemble image data for the given well-files.
 
@@ -436,7 +428,6 @@ def get_well_image_CYX(
     :param well_files: all files corresponding to the well
     :param channels: list of required channels
     :param assemble_fn: creates a single image for each channel
-    :param include_z_position: whether to include z-position metadata
     :return: CYX image, channel-histograms, channel-metadata, general-metadata,
                 roi-tables dictionary
     """
@@ -449,7 +440,7 @@ def get_well_image_CYX(
         channel_files = well_files[well_files["channel"] == ch]
 
         if len(channel_files) > 0:
-            px_metadata, img, ch_metadata, z_position, roi_tables = get_img_YX(
+            px_metadata, img, ch_metadata, _, roi_tables = get_img_YX(
                 assemble_fn, channel_files
             )
 
