@@ -109,7 +109,7 @@ def test_get_well_image_CYX_well_E07(files):
 
 def test_get_well_image_ZCYX(files):
     files3d = files[(~files["z"].isnull()) & (files["channel"].isin(["w1", "w2"]))]
-    z_len = {"E08": 45.0, "E07": 45.289999999999054}
+    z_len = {"E08": 45.0, "E07": 45.17999999999999}
     for well in files3d["well"].unique():
         img, hists, ch_metadata, metadata, roi_tables = get_well_image_CZYX(
             files3d[files3d["well"] == well],
