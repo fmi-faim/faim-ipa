@@ -190,6 +190,7 @@ def _compute_chunk_size_cyx(
     max_levels: int = 4,
     max_size: int = 2048,
     write_empty_chunks: bool = True,
+    dimension_separator: str = "/",
 ) -> tuple[list[dict[str, list[int]]], int]:
     """Compute chunk-size for zarr storage.
 
@@ -211,6 +212,7 @@ def _compute_chunk_size_cyx(
             {
                 "chunks": chunks.copy(),
                 "write_empty_chunks": write_empty_chunks,
+                "dimension_separator": dimension_separator,
             }
         )
         if h <= max_size / 2 and w <= max_size / 2:
@@ -244,15 +246,15 @@ def write_image_to_group(
     axes: list[dict],
     group: Group,
     write_empty_chunks: bool = True,
+    dimension_separator: str = "/",
 ):
     storage_options, max_layer = _compute_chunk_size_cyx(
-        img, write_empty_chunks=write_empty_chunks
+        img,
+        write_empty_chunks=write_empty_chunks,
+        dimension_separator=dimension_separator,
     )
 
     scaler = Scaler(max_layer=max_layer)
-
-    for i in range(len(storage_options)):
-        storage_options[i]["dimension_separator"] = "/"
 
     write_image(
         img, group=group, axes=axes, storage_options=storage_options, scaler=scaler
@@ -267,12 +269,14 @@ def write_image_and_metadata(
     general_metadata: dict,
     group: Group,
     write_empty_chunks: bool = True,
+    dimension_separator: str = "/",
 ):
     write_image_to_group(
         img=img,
         axes=axes,
         group=group,
         write_empty_chunks=write_empty_chunks,
+        dimension_separator=dimension_separator,
     )
 
     _set_multiscale_metadata(group=group, general_metadata=general_metadata, axes=axes)
@@ -292,6 +296,7 @@ def write_cyx_image_to_well(
     general_metadata: dict,
     group: Group,
     write_empty_chunks: bool = True,
+    dimension_separator: str = "/",
 ):
     if general_metadata["spatial-calibration-units"] == "um":
         axes = [
@@ -310,6 +315,7 @@ def write_cyx_image_to_well(
         general_metadata=general_metadata,
         group=group,
         write_empty_chunks=write_empty_chunks,
+        dimension_separator=dimension_separator,
     )
 
 
@@ -357,6 +363,7 @@ def write_czyx_image_to_well(
     general_metadata: dict,
     group: Group,
     write_empty_chunks: bool = True,
+    dimension_separator: str = "/",
 ):
     if general_metadata["spatial-calibration-units"] == "um":
         axes = [
@@ -376,6 +383,7 @@ def write_czyx_image_to_well(
         general_metadata=general_metadata,
         group=group,
         write_empty_chunks=write_empty_chunks,
+        dimension_separator=dimension_separator,
     )
 
 
@@ -440,6 +448,7 @@ def write_labels_to_group(
     labels_name,
     parent_group: Group,
     write_empty_chunks: bool = True,
+    dimension_separator: str = "/",
 ):
     try:
         subgroup = parent_group[f"labels/{labels_name}"]
@@ -458,6 +467,7 @@ def write_labels_to_group(
         axes=axes,
         group=subgroup,
         write_empty_chunks=write_empty_chunks,
+        dimension_separator=dimension_separator,
     )
 
     _copy_multiscales_metadata(parent_group, subgroup)
