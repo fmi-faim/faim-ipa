@@ -347,22 +347,12 @@ def write_roi_table(
     group: Group,
 ):
     """Writes a roi table to an OME-Zarr image. If no table folder exists, it is created."""
-    group_tables = group.require_group("tables/")
-
-    # These columns are required by the Fractal ROI spec
-    positional_columns = [
-        "x_micrometer",
-        "y_micrometer",
-        "z_micrometer",
-        "len_x_micrometer",
-        "len_y_micrometer",
-        "len_z_micrometer",
-    ]
+    group_tables = group.require_group("tables")
 
     # Assign dtype explicitly, to avoid
     # >> UserWarning: X converted to numpy array with dtype float64
     # when creating AnnData object
-    df_roi = roi_table.loc[:, positional_columns].astype(np.float32)
+    df_roi = roi_table.astype(np.float32)
 
     adata = ad.AnnData(X=df_roi)
     adata.obs_names = roi_table.index
