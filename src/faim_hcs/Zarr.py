@@ -251,11 +251,17 @@ def write_image_to_group(
     group: Group,
     write_empty_chunks: bool = True,
     dimension_separator: str = "/",
+    max_levels: int = 4,
+    max_size: int = 2048,
+    lowest_res_target: int = 1024,
 ):
     storage_options, max_layer = _compute_chunk_size_cyx(
         img,
         write_empty_chunks=write_empty_chunks,
         dimension_separator=dimension_separator,
+        max_levels=max_levels,
+        max_size=max_size,
+        lowest_res_target=lowest_res_target,
     )
 
     scaler = Scaler(max_layer=max_layer)
@@ -274,6 +280,9 @@ def write_image_and_metadata(
     group: Group,
     write_empty_chunks: bool = True,
     dimension_separator: str = "/",
+    max_levels: int = 4,
+    max_size: int = 2048,
+    lowest_res_target: int = 1024,
 ):
     write_image_to_group(
         img=img,
@@ -281,6 +290,9 @@ def write_image_and_metadata(
         group=group,
         write_empty_chunks=write_empty_chunks,
         dimension_separator=dimension_separator,
+        max_levels=max_levels,
+        max_size=max_size,
+        lowest_res_target=lowest_res_target,
     )
 
     _set_multiscale_metadata(group=group, general_metadata=general_metadata, axes=axes)
@@ -301,6 +313,9 @@ def write_cyx_image_to_well(
     group: Group,
     write_empty_chunks: bool = True,
     dimension_separator: str = "/",
+    max_levels: int = 4,
+    max_size: int = 2048,
+    lowest_res_target: int = 1024,
 ):
     if general_metadata["spatial-calibration-units"] == "um":
         axes = [
@@ -320,6 +335,9 @@ def write_cyx_image_to_well(
         group=group,
         write_empty_chunks=write_empty_chunks,
         dimension_separator=dimension_separator,
+        max_levels=max_levels,
+        max_size=max_size,
+        lowest_res_target=lowest_res_target,
     )
 
 
@@ -368,6 +386,9 @@ def write_czyx_image_to_well(
     group: Group,
     write_empty_chunks: bool = True,
     dimension_separator: str = "/",
+    max_levels: int = 4,
+    max_size: int = 2048,
+    lowest_res_target: int = 1024,
 ):
     if general_metadata["spatial-calibration-units"] == "um":
         axes = [
@@ -388,6 +409,9 @@ def write_czyx_image_to_well(
         group=group,
         write_empty_chunks=write_empty_chunks,
         dimension_separator=dimension_separator,
+        max_levels=max_levels,
+        max_size=max_size,
+        lowest_res_target=lowest_res_target,
     )
 
 
@@ -453,6 +477,9 @@ def write_labels_to_group(
     parent_group: Group,
     write_empty_chunks: bool = True,
     dimension_separator: str = "/",
+    max_levels: int = 4,
+    max_size: int = 2048,
+    lowest_res_target: int = 1024,
 ):
     try:
         subgroup = parent_group[f"labels/{labels_name}"]
@@ -472,6 +499,9 @@ def write_labels_to_group(
         group=subgroup,
         write_empty_chunks=write_empty_chunks,
         dimension_separator=dimension_separator,
+        max_levels=max_levels,
+        max_size=max_size,
+        lowest_res_target=lowest_res_target,
     )
 
     _copy_multiscales_metadata(parent_group, subgroup)
