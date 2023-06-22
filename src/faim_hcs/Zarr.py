@@ -189,6 +189,7 @@ def _compute_chunk_size_cyx(
     img: ArrayLike,
     max_levels: int = 4,
     max_size: int = 2048,
+    lowest_res_target: int = 1024,
     write_empty_chunks: bool = True,
     dimension_separator: str = "/",
 ) -> tuple[list[dict[str, list[int]]], int]:
@@ -197,6 +198,9 @@ def _compute_chunk_size_cyx(
     :param img: to be saved
     :param max_levels: max resolution pyramid levels
     :param max_size: chunk size maximum
+    :param lowest_res_target: lowest resolution target value. If the image is
+                              smaller than this value, no more pyramid levels
+                              will be created.
     :return: storage options, number of pyramid levels
     """
     storage_options = []
@@ -215,7 +219,7 @@ def _compute_chunk_size_cyx(
                 "dimension_separator": dimension_separator,
             }
         )
-        if h <= max_size / 2 and w <= max_size / 2:
+        if h <= lowest_res_target and w <= lowest_res_target:
             return storage_options, i
     return storage_options, max_levels
 
