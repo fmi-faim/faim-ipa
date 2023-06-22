@@ -168,12 +168,7 @@ def montage_stage_pos_image_YX(data):
             )
         )
 
-    # Generate the ROI tables
-    roi_tables = {}
-    roi_tables["FOV_ROI_table"] = create_fov_ROI_table(fov_rois)
-    roi_tables["well_ROI_table"] = create_well_ROI_table(
-        shape[1], shape[0], d[1]["spatial-calibration-x"], d[1]["spatial-calibration-y"]
-    )
+    roi_tables = create_ROI_tables(fov_rois, shape, calibration_dict=d[1])
 
     return img, roi_tables
 
@@ -234,14 +229,21 @@ def montage_grid_image_YX(data):
             )
         )
 
-    # Generate the ROI tables
+    roi_tables = create_ROI_tables(fov_rois, shape, calibration_dict=d[1])
+
+    return img, roi_tables
+
+
+def create_ROI_tables(fov_rois, shape, calibration_dict):
     roi_tables = {}
     roi_tables["FOV_ROI_table"] = create_fov_ROI_table(fov_rois)
     roi_tables["well_ROI_table"] = create_well_ROI_table(
-        shape[1], shape[0], d[1]["spatial-calibration-x"], d[1]["spatial-calibration-y"]
+        shape[1],
+        shape[0],
+        calibration_dict["spatial-calibration-x"],
+        calibration_dict["spatial-calibration-y"],
     )
-
-    return img, roi_tables
+    return roi_tables
 
 
 def create_well_ROI_table(shape_x, shape_y, pixel_size_x, pixel_size_y):
