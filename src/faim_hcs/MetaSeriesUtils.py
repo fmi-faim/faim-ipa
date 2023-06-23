@@ -235,18 +235,6 @@ def montage_grid_image_YX(data):
 
 
 def create_ROI_tables(fov_rois, shape, calibration_dict):
-    roi_tables = {}
-    roi_tables["FOV_ROI_table"] = create_fov_ROI_table(fov_rois)
-    roi_tables["well_ROI_table"] = create_well_ROI_table(
-        shape[1],
-        shape[0],
-        calibration_dict["spatial-calibration-x"],
-        calibration_dict["spatial-calibration-y"],
-    )
-    return roi_tables
-
-
-def create_well_ROI_table(shape_x, shape_y, pixel_size_x, pixel_size_y):
     columns = [
         "FieldIndex",
         "x_micrometer",
@@ -256,7 +244,19 @@ def create_well_ROI_table(shape_x, shape_y, pixel_size_x, pixel_size_y):
         "len_y_micrometer",
         "len_z_micrometer",
     ]
+    roi_tables = {}
+    roi_tables["FOV_ROI_table"] = create_fov_ROI_table(fov_rois, columns)
+    roi_tables["well_ROI_table"] = create_well_ROI_table(
+        shape[1],
+        shape[0],
+        calibration_dict["spatial-calibration-x"],
+        calibration_dict["spatial-calibration-y"],
+        columns,
+    )
+    return roi_tables
 
+
+def create_well_ROI_table(shape_x, shape_y, pixel_size_x, pixel_size_y, columns):
     well_roi = [
         "well_1",
         0.0,
@@ -272,17 +272,7 @@ def create_well_ROI_table(shape_x, shape_y, pixel_size_x, pixel_size_y):
     return well_roi_table
 
 
-def create_fov_ROI_table(fov_rois):
-    columns = [
-        "FieldIndex",
-        "x_micrometer",
-        "y_micrometer",
-        "z_micrometer",
-        "len_x_micrometer",
-        "len_y_micrometer",
-        "len_z_micrometer",
-    ]
-
+def create_fov_ROI_table(fov_rois, columns):
     roi_table = pd.DataFrame(fov_rois, columns=columns).set_index("FieldIndex")
     return roi_table
 
