@@ -178,7 +178,7 @@ def _pixel_pos(dim: str, data: dict):
 
 
 def _stage_label(data: dict):
-    """Get the FOV string for a given FOV dict"""
+    """Get the field of view (FOV) string for a given FOV dict"""
     try:
         return data["stage-label"].split(":")[-1][1:]
     # Return an empty string if the metadata does not contain stage-label
