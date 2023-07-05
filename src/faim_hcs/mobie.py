@@ -131,6 +131,7 @@ def add_labels_view(
     label_name: str = "default",
     view_name: str = "default_labels",
     extra_properties: tuple[str] = ("area",),
+    add_empty_tables: bool = False,
 ):
     """Add merged grid segmentation view for labels of all wells in zarr
 
@@ -141,6 +142,7 @@ def add_labels_view(
     :param label_name: Name of the label subgroup in the Zarr file
     :param view_name: View of the MoBIE dataset, will be updated in place
     :param extra_properties: Property names to be added to regionprops measurement table
+    :param add_empty_tables: Write tables for empty segmentations
     """
     # add sources for each label image
     sources = []
@@ -162,6 +164,8 @@ def add_labels_view(
             properties=("label", "centroid") + extra_properties,
             spacing=spacing,
         )
+        if not add_empty_tables and len(props["label"]) == 0:
+            continue
 
         # write default.tsv to dataset_folder/tables/name
         # TODO reconcile once saving table data inside zarr is possible
