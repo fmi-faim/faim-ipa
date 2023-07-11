@@ -24,6 +24,18 @@ def files():
     return parse_files(ROOT_DIR / "resources" / "Projection-Mix")
 
 
+@pytest.fixture
+def roi_columns():
+    return [
+        "x_micrometer",
+        "y_micrometer",
+        "z_micrometer",
+        "len_x_micrometer",
+        "len_y_micrometer",
+        "len_z_micrometer",
+    ]
+
+
 def test_get_well_image_CYX(files):
     files2d = files[(files["z"].isnull()) & (files["channel"].isin(["w1", "w2"]))]
     for well in files2d["well"].unique():
@@ -41,7 +53,7 @@ def test_get_well_image_CYX(files):
         # positions => different coordiantes)
 
 
-def test_get_well_image_CYX_well_E07(files):
+def test_get_well_image_CYX_well_E07(files, roi_columns):
     files2d = files[(files["z"].isnull()) & (files["channel"].isin(["w1", "w2"]))]
     cyx, hists, ch_meta, metadata, roi_tables = get_well_image_CYX(
         well_files=files2d[files2d["well"] == "E07"], channels=["w1", "w2"]
@@ -82,14 +94,7 @@ def test_get_well_image_CYX_well_E07(files):
         "spatial-calibration-x": 1.3668,
         "spatial-calibration-y": 1.3668,
     }
-    roi_columns = [
-        "x_micrometer",
-        "y_micrometer",
-        "z_micrometer",
-        "len_x_micrometer",
-        "len_y_micrometer",
-        "len_z_micrometer",
-    ]
+
     assert list(roi_tables["well_ROI_table"].columns) == roi_columns
     assert len(roi_tables["well_ROI_table"]) == 1
     target_values = [0.0, 0.0, 0.0, 1399.6032, 699.8016, 1.0]
