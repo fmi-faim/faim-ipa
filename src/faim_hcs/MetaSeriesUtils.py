@@ -122,7 +122,25 @@ def _get_molecular_devices_well_bbox_2D(
 
 
 def montage_stage_pos_image_YX(data):
-    """Montage 2D fields based on stage position metadata."""
+    """Montage 2D fields based on stage position metadata.
+
+    Montages 2D fields based on stage position metadata. If the stage position
+    specifies overlapping images, the overlapping part is overwritten
+    (=> just uses the data of one image). Not well suited for regular grids,
+    as the stage position can show overlap, but overwriting of data at the
+    edge is not the intended behavior. In that case, use
+    `montage_grid_image_YX`.
+
+    Also calculates ROI tables for the whole well and the field of views.
+    Given that Fractal ROI tables are always 3D, but we only stitch the xy
+    planes here, the z starting position is always 0 and the
+    z extent is set to 1. This is overwritten downsteam if the 2D planes are
+    assembled into a 3D stack.
+
+    :param data: list of tuples (image, metadata)
+    :return: img (stitched 2D np array), fov_df (dataframe with region of
+            interest information for the fields of view)
+    """
 
     def sort_key(d):
         label = d[1]["stage-label"]
@@ -160,11 +178,10 @@ def montage_stage_pos_image_YX(data):
                 _stage_label(d[1]),
                 pos_y * d[1]["spatial-calibration-y"],
                 pos_x * d[1]["spatial-calibration-x"],
-                0.0,  # Hard-coded z starting position
+                0.0,
                 d[0].shape[0] * d[1]["spatial-calibration-y"],
                 d[0].shape[1] * d[1]["spatial-calibration-x"],
-                1.0,  # Hard-coded z length (for 2D planes), to be overwritten if
-                # the 2D planes are assembled into a 3D stack
+                1.0,
             )
         )
 
@@ -188,6 +205,17 @@ def _stage_label(data: dict):
 
 def montage_grid_image_YX(data):
     """Montage 2D fields into fixed grid, based on stage position metadata.
+
+    Uses the stage position coordinates to decide which grid cell to put the
+    image in. Always writes images into a grid, thus avoiding overwriting
+    partially overwriting parts of images. Not well suited for arbitarily
+    positioned fields. In that case, use `montage_stage_pos_image_YX`.
+
+    Also calculates ROI tables for the whole well and the field of views.
+    Given that Fractal ROI tables are always 3D, but we only stitch the xy
+    planes here, the z starting position is always 0 and the
+    z extent is set to 1. This is overwritten downsteam if the 2D planes are
+    assembled into a 3D stack.
 
     :param data: list of tuples of (image, metadata)
     :return: img (stitched 2D np array), fov_df (dataframe with region of
@@ -221,11 +249,10 @@ def montage_grid_image_YX(data):
                 _stage_label(d[1]),
                 pos_y * step_y * d[1]["spatial-calibration-y"],
                 pos_x * step_x * d[1]["spatial-calibration-x"],
-                0.0,  # Hard-coded z starting position
+                0.0,
                 step_y * d[1]["spatial-calibration-y"],
                 step_x * d[1]["spatial-calibration-x"],
-                1.0,  # Hard-coded z length (for 2D planes), to be overwritten if
-                # the 2D planes are assembled into a 3D stack
+                1.0,
             )
         )
 
