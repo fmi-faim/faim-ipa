@@ -8,11 +8,11 @@ dependencies:
   - pip
   - click
   - cloudpickle
-  - dask 
+  - dask
   - fasteners
   - importlib-metadata
   - jinja2
-  - locket 
+  - locket
   - numcodecs
   - ome-zarr
   - pip:
