@@ -131,11 +131,11 @@ def montage_stage_pos_image_YX(data):
     edge is not the intended behavior. In that case, use
     `montage_grid_image_YX`.
 
-    Also calculates ROI tables for the whole well and the field of views.
-    Given that Fractal ROI tables are always 3D, but we only stitch the xy
-    planes here, the z starting position is always 0 and the
-    z extent is set to 1. This is overwritten downsteam if the 2D planes are
-    assembled into a 3D stack.
+    Also calculates ROI tables for the whole well and the field of views in
+    the Fractal ROI table format. We only stitch the xy planes here.
+    Therefore, the z starting position is always 0 and the z extent is set to
+    1. This is overwritten downsteam if the 2D planes are assembled into a
+    3D stack.
 
     :param data: list of tuples (image, metadata)
     :return: img (stitched 2D np array), fov_df (dataframe with region of
