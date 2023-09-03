@@ -250,18 +250,16 @@ def write_image_to_group(
     axes: list[dict],
     group: Group,
     write_empty_chunks: bool = True,
-    dimension_separator: str = "/",
-    max_levels: int = 4,
-    max_size: int = 2048,
-    lowest_res_target: int = 1024,
+    **kwargs,
 ):
+    """
+    Potential kwargs are `lowest_res_target`, `max_levels`, `max_size` and
+    `dimension_separator` that are used in `_compute_chunk_size_cyx`.
+    """
     storage_options, max_layer = _compute_chunk_size_cyx(
         img,
         write_empty_chunks=write_empty_chunks,
-        dimension_separator=dimension_separator,
-        max_levels=max_levels,
-        max_size=max_size,
-        lowest_res_target=lowest_res_target,
+        **kwargs,
     )
 
     scaler = Scaler(max_layer=max_layer)
@@ -279,20 +277,18 @@ def write_image_and_metadata(
     general_metadata: dict,
     group: Group,
     write_empty_chunks: bool = True,
-    dimension_separator: str = "/",
-    max_levels: int = 4,
-    max_size: int = 2048,
-    lowest_res_target: int = 1024,
+    **kwargs,
 ):
+    """
+    Potential kwargs are `lowest_res_target`, `max_levels`, `max_size` and
+    `dimension_separator` that are used in `_compute_chunk_size_cyx`.
+    """
     write_image_to_group(
         img=img,
         axes=axes,
         group=group,
         write_empty_chunks=write_empty_chunks,
-        dimension_separator=dimension_separator,
-        max_levels=max_levels,
-        max_size=max_size,
-        lowest_res_target=lowest_res_target,
+        **kwargs,
     )
 
     _set_multiscale_metadata(group=group, general_metadata=general_metadata, axes=axes)
@@ -312,11 +308,12 @@ def write_cyx_image_to_well(
     general_metadata: dict,
     group: Group,
     write_empty_chunks: bool = True,
-    dimension_separator: str = "/",
-    max_levels: int = 4,
-    max_size: int = 2048,
-    lowest_res_target: int = 1024,
+    **kwargs,
 ):
+    """
+    Potential kwargs are `lowest_res_target`, `max_levels`, `max_size` and
+    `dimension_separator` that are used in `_compute_chunk_size_cyx`.
+    """
     if general_metadata["spatial-calibration-units"] == "um":
         axes = [
             {"name": "c", "type": "channel"},
@@ -334,10 +331,7 @@ def write_cyx_image_to_well(
         general_metadata=general_metadata,
         group=group,
         write_empty_chunks=write_empty_chunks,
-        dimension_separator=dimension_separator,
-        max_levels=max_levels,
-        max_size=max_size,
-        lowest_res_target=lowest_res_target,
+        **kwargs,
     )
 
 
@@ -375,11 +369,12 @@ def write_czyx_image_to_well(
     general_metadata: dict,
     group: Group,
     write_empty_chunks: bool = True,
-    dimension_separator: str = "/",
-    max_levels: int = 4,
-    max_size: int = 2048,
-    lowest_res_target: int = 1024,
+    **kwargs,
 ):
+    """
+    Potential kwargs are `lowest_res_target`, `max_levels`, `max_size` and
+    `dimension_separator` that are used in `_compute_chunk_size_cyx`.
+    """
     if general_metadata["spatial-calibration-units"] == "um":
         axes = [
             {"name": "c", "type": "channel"},
@@ -398,10 +393,7 @@ def write_czyx_image_to_well(
         general_metadata=general_metadata,
         group=group,
         write_empty_chunks=write_empty_chunks,
-        dimension_separator=dimension_separator,
-        max_levels=max_levels,
-        max_size=max_size,
-        lowest_res_target=lowest_res_target,
+        **kwargs,
     )
 
 
@@ -466,12 +458,13 @@ def write_labels_to_group(
     labels_name,
     parent_group: Group,
     write_empty_chunks: bool = True,
-    dimension_separator: str = "/",
-    max_levels: int = 4,
-    max_size: int = 2048,
-    lowest_res_target: int = 1024,
     overwrite: bool = False,
+    **kwargs,
 ):
+    """
+    Potential kwargs are `lowest_res_target`, `max_levels`, `max_size` and
+    `dimension_separator` that are used in `_compute_chunk_size_cyx`.
+    """
     try:
         subgroup = parent_group[f"labels/{labels_name}"]
     except KeyError:
@@ -490,10 +483,7 @@ def write_labels_to_group(
         axes=axes,
         group=subgroup,
         write_empty_chunks=write_empty_chunks,
-        dimension_separator=dimension_separator,
-        max_levels=max_levels,
-        max_size=max_size,
-        lowest_res_target=lowest_res_target,
+        **kwargs,
     )
 
     _copy_multiscales_metadata(parent_group, subgroup)
