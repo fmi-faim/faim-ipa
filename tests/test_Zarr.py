@@ -8,6 +8,8 @@ import unittest
 from os.path import exists, join
 from pathlib import Path
 
+import anndata as ad
+
 from faim_hcs.io.MolecularDevicesImageXpress import (
     parse_multi_field_stacks,
     parse_single_plane_multi_fields,
@@ -19,6 +21,7 @@ from faim_hcs.Zarr import (
     write_cyx_image_to_well,
     write_czyx_image_to_well,
     write_labels_to_group,
+    write_roi_table,
 )
 
 ROOT_DIR = Path(__file__).parent
@@ -98,12 +101,16 @@ class TestZarr(unittest.TestCase):
 
         for well in self.files["well"].unique():
             well_files = self.files[self.files["well"] == well]
-            img, hists, ch_metadata, metadata = get_well_image_CYX(
+            img, hists, ch_metadata, metadata, roi_tables = get_well_image_CYX(
                 well_files=well_files, channels=["w1", "w2", "w3", "w4"]
             )
 
             field = plate[well[0]][str(int(well[1:]))][0]
             write_cyx_image_to_well(img, hists, ch_metadata, metadata, field)
+
+            # Write all ROI tables
+            for roi_table in roi_tables:
+                write_roi_table(roi_tables[roi_table], roi_table, field)
 
         e07 = plate["E"]["7"]["0"].attrs.asdict()
         assert (
@@ -177,11 +184,75 @@ class TestZarr(unittest.TestCase):
             / "0"
             / "C03_empty_histogram.npz"
         ).exists()
+        assert (
+            self.zarr_root
+            / "Projection-Mix.zarr"
+            / "E"
+            / "7"
+            / "0"
+            / "tables"
+            / "well_ROI_table"
+        ).exists()
+        assert (
+            self.zarr_root
+            / "Projection-Mix.zarr"
+            / "E"
+            / "7"
+            / "0"
+            / "tables"
+            / "FOV_ROI_table"
+        ).exists()
         assert "histograms" in e08.keys()
         assert "acquisition_metadata" in e08.keys()
         assert e08["multiscales"][0]["datasets"][0]["coordinateTransformations"][0][
             "scale"
         ] == [1.0, 1.3668, 1.3668]
+
+        # Check ROI table content
+        table = ad.read_zarr(
+            self.zarr_root
+            / "Projection-Mix.zarr"
+            / "E"
+            / "7"
+            / "0"
+            / "tables"
+            / "well_ROI_table"
+        )
+        df_well = table.to_df()
+        roi_columns = [
+            "x_micrometer",
+            "y_micrometer",
+            "z_micrometer",
+            "len_x_micrometer",
+            "len_y_micrometer",
+            "len_z_micrometer",
+        ]
+        assert list(df_well.columns) == roi_columns
+        assert len(df_well) == 1
+        target_values = [0.0, 0.0, 0.0, 1399.6031494140625, 699.8015747070312, 1.0]
+        assert df_well.loc["well_1"].values.flatten().tolist() == target_values
+
+        table = ad.read_zarr(
+            self.zarr_root
+            / "Projection-Mix.zarr"
+            / "E"
+            / "7"
+            / "0"
+            / "tables"
+            / "FOV_ROI_table"
+        )
+        df_fov = table.to_df()
+        assert list(df_fov.columns) == roi_columns
+        assert len(df_fov) == 2
+        target_values = [
+            0.0,
+            699.8015747070312,
+            0.0,
+            699.8015747070312,
+            699.8015747070312,
+            1.0,
+        ]
+        assert df_fov.loc["Site 2"].values.flatten().tolist() == target_values
 
     def test_write_czyx_image_to_well(self):
         plate = build_zarr_scaffold(
@@ -194,12 +265,16 @@ class TestZarr(unittest.TestCase):
 
         for well in self.files3d["well"].unique():
             well_files = self.files3d[self.files3d["well"] == well]
-            img, hists, ch_metadata, metadata = get_well_image_CZYX(
+            img, hists, ch_metadata, metadata, roi_tables = get_well_image_CZYX(
                 well_files=well_files, channels=["w1", "w2", "w3", "w4"]
             )
 
             field = plate[well[0]][str(int(well[1:]))][0]
             write_czyx_image_to_well(img, hists, ch_metadata, metadata, field)
+
+            # Write all ROI tables
+            for roi_table in roi_tables:
+                write_roi_table(roi_tables[roi_table], roi_table, field)
 
         e07 = plate["E"]["7"]["0"].attrs.asdict()
         assert (
@@ -273,11 +348,82 @@ class TestZarr(unittest.TestCase):
             / "0"
             / "C03_FITC_05_histogram.npz"
         ).exists()
+        assert (
+            self.zarr_root
+            / "Projection-Mix.zarr"
+            / "E"
+            / "7"
+            / "0"
+            / "tables"
+            / "well_ROI_table"
+        ).exists()
+        assert (
+            self.zarr_root
+            / "Projection-Mix.zarr"
+            / "E"
+            / "7"
+            / "0"
+            / "tables"
+            / "FOV_ROI_table"
+        ).exists()
         assert "histograms" in e08.keys()
         assert "acquisition_metadata" in e08.keys()
         assert e08["multiscales"][0]["datasets"][0]["coordinateTransformations"][0][
             "scale"
         ] == [1.0, 5.0, 1.3668, 1.3668]
+
+        # Check ROI table content
+        table = ad.read_zarr(
+            self.zarr_root
+            / "Projection-Mix.zarr"
+            / "E"
+            / "7"
+            / "0"
+            / "tables"
+            / "well_ROI_table"
+        )
+        df_well = table.to_df()
+        roi_columns = [
+            "x_micrometer",
+            "y_micrometer",
+            "z_micrometer",
+            "len_x_micrometer",
+            "len_y_micrometer",
+            "len_z_micrometer",
+        ]
+        assert list(df_well.columns) == roi_columns
+        assert len(df_well) == 1
+        target_values = [
+            0.0,
+            0.0,
+            0.0,
+            1399.6031494140625,
+            699.8015747070312,
+            45.18000030517578,
+        ]
+        assert df_well.loc["well_1"].values.flatten().tolist() == target_values
+
+        table = ad.read_zarr(
+            self.zarr_root
+            / "Projection-Mix.zarr"
+            / "E"
+            / "7"
+            / "0"
+            / "tables"
+            / "FOV_ROI_table"
+        )
+        df_fov = table.to_df()
+        assert list(df_fov.columns) == roi_columns
+        assert len(df_fov) == 2
+        target_values = [
+            0.0,
+            699.8015747070312,
+            0.0,
+            699.8015747070312,
+            699.8015747070312,
+            45.18000030517578,
+        ]
+        assert df_fov.loc["Site 2"].values.flatten().tolist() == target_values
 
     def test_write_labels(self):
         plate = build_zarr_scaffold(
@@ -288,7 +434,7 @@ class TestZarr(unittest.TestCase):
             barcode="test-barcode",
         )
         well_files = self.files3d[self.files3d["well"] == "E07"]
-        img, hists, ch_metadata, metadata = get_well_image_CZYX(
+        img, hists, ch_metadata, metadata, roi_tables = get_well_image_CZYX(
             well_files=well_files, channels=["w1", "w2", "w3", "w4"]
         )
         field = plate["E"]["7"][0]

@@ -4,6 +4,7 @@ from os.path import join
 from pathlib import Path
 from typing import Union
 
+import anndata as ad
 import numpy as np
 import pandas as pd
 import zarr
@@ -188,13 +189,18 @@ def _compute_chunk_size_cyx(
     img: ArrayLike,
     max_levels: int = 4,
     max_size: int = 2048,
+    lowest_res_target: int = 1024,
     write_empty_chunks: bool = True,
+    dimension_separator: str = "/",
 ) -> tuple[list[dict[str, list[int]]], int]:
     """Compute chunk-size for zarr storage.
 
     :param img: to be saved
     :param max_levels: max resolution pyramid levels
     :param max_size: chunk size maximum
+    :param lowest_res_target: lowest resolution target value. If the image is
+                              smaller than this value, no more pyramid levels
+                              will be created.
     :return: storage options, number of pyramid levels
     """
     storage_options = []
@@ -210,9 +216,10 @@ def _compute_chunk_size_cyx(
             {
                 "chunks": chunks.copy(),
                 "write_empty_chunks": write_empty_chunks,
+                "dimension_separator": dimension_separator,
             }
         )
-        if h <= max_size / 2 and w <= max_size / 2:
+        if h <= lowest_res_target and w <= lowest_res_target:
             return storage_options, i
     return storage_options, max_levels
 
@@ -243,9 +250,16 @@ def write_image_to_group(
     axes: list[dict],
     group: Group,
     write_empty_chunks: bool = True,
+    **kwargs,
 ):
+    """
+    Potential kwargs are `lowest_res_target`, `max_levels`, `max_size` and
+    `dimension_separator` that are used in `_compute_chunk_size_cyx`.
+    """
     storage_options, max_layer = _compute_chunk_size_cyx(
-        img, write_empty_chunks=write_empty_chunks
+        img,
+        write_empty_chunks=write_empty_chunks,
+        **kwargs,
     )
 
     scaler = Scaler(max_layer=max_layer)
@@ -263,12 +277,18 @@ def write_image_and_metadata(
     general_metadata: dict,
     group: Group,
     write_empty_chunks: bool = True,
+    **kwargs,
 ):
+    """
+    Potential kwargs are `lowest_res_target`, `max_levels`, `max_size` and
+    `dimension_separator` that are used in `_compute_chunk_size_cyx`.
+    """
     write_image_to_group(
         img=img,
         axes=axes,
         group=group,
         write_empty_chunks=write_empty_chunks,
+        **kwargs,
     )
 
     _set_multiscale_metadata(group=group, general_metadata=general_metadata, axes=axes)
@@ -288,7 +308,12 @@ def write_cyx_image_to_well(
     general_metadata: dict,
     group: Group,
     write_empty_chunks: bool = True,
+    **kwargs,
 ):
+    """
+    Potential kwargs are `lowest_res_target`, `max_levels`, `max_size` and
+    `dimension_separator` that are used in `_compute_chunk_size_cyx`.
+    """
     if general_metadata["spatial-calibration-units"] == "um":
         axes = [
             {"name": "c", "type": "channel"},
@@ -306,7 +331,35 @@ def write_cyx_image_to_well(
         general_metadata=general_metadata,
         group=group,
         write_empty_chunks=write_empty_chunks,
+        **kwargs,
     )
+
+
+def write_roi_table(
+    roi_table: pd.DataFrame,
+    table_name: str,
+    group: Group,
+):
+    """Writes a roi table to an OME-Zarr image. If no table folder exists, it is created."""
+    group_tables = group.require_group("tables")
+
+    # Assign dtype explicitly, to avoid
+    # >> UserWarning: X converted to numpy array with dtype float64
+    # when creating AnnData object
+    df_roi = roi_table.astype(np.float32)
+
+    adata = ad.AnnData(X=df_roi)
+    adata.obs_names = roi_table.index
+    adata.var_names = list(map(str, roi_table.columns))
+    ad._io.specs.write_elem(group_tables, table_name, adata)
+    update_table_metadata(group_tables, table_name)
+
+
+def update_table_metadata(group_tables, table_name):
+    if "tables" not in group_tables.attrs:
+        group_tables.attrs["tables"] = [table_name]
+    elif table_name not in group_tables.attrs["tables"]:
+        group_tables.attrs["tables"] = group_tables.attrs["tables"] + [table_name]
 
 
 def write_czyx_image_to_well(
@@ -316,7 +369,12 @@ def write_czyx_image_to_well(
     general_metadata: dict,
     group: Group,
     write_empty_chunks: bool = True,
+    **kwargs,
 ):
+    """
+    Potential kwargs are `lowest_res_target`, `max_levels`, `max_size` and
+    `dimension_separator` that are used in `_compute_chunk_size_cyx`.
+    """
     if general_metadata["spatial-calibration-units"] == "um":
         axes = [
             {"name": "c", "type": "channel"},
@@ -335,6 +393,7 @@ def write_czyx_image_to_well(
         general_metadata=general_metadata,
         group=group,
         write_empty_chunks=write_empty_chunks,
+        **kwargs,
     )
 
 
@@ -346,7 +405,7 @@ def build_omero_channel_metadata(
     * Color is computed from the metaseries wavelength metadata.
     * Label is the set to the metaseries _IllumSetting_ metadata.
     * Intensity scaling is obtained from the data histogram [0.01,
-    0.99] quantiles.
+    0.999] quantiles.
 
     :param ch_metadata: channel metadata from tiff-tags
     :param dtype: data type
@@ -361,6 +420,12 @@ def build_omero_channel_metadata(
             proj_method = proj_method.replace(" ", "-")
             label = f"{proj_method}-Projection_{label}"
 
+        start = hist.quantile(0.01)
+        end = hist.quantile(0.999)
+        # Avoid rescaling from 0 to 0 (leads to napari display errors)
+        if start == end:
+            end = end + 1
+
         channels.append(
             {
                 "active": True,
@@ -373,8 +438,8 @@ def build_omero_channel_metadata(
                 "window": {
                     "min": np.iinfo(dtype).min,
                     "max": np.iinfo(dtype).max,
-                    "start": hist.quantile(0.01),
-                    "end": hist.quantile(0.99),
+                    "start": start,
+                    "end": end,
                 },
             }
         )
@@ -394,7 +459,12 @@ def write_labels_to_group(
     parent_group: Group,
     write_empty_chunks: bool = True,
     overwrite: bool = False,
+    **kwargs,
 ):
+    """
+    Potential kwargs are `lowest_res_target`, `max_levels`, `max_size` and
+    `dimension_separator` that are used in `_compute_chunk_size_cyx`.
+    """
     try:
         subgroup = parent_group[f"labels/{labels_name}"]
     except KeyError:
@@ -413,6 +483,7 @@ def write_labels_to_group(
         axes=axes,
         group=subgroup,
         write_empty_chunks=write_empty_chunks,
+        **kwargs,
     )
 
     _copy_multiscales_metadata(parent_group, subgroup)
