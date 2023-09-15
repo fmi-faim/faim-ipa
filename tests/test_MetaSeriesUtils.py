@@ -104,7 +104,7 @@ def test_get_well_image_CYX_well_E07(files, roi_columns):
 
     assert list(roi_tables["FOV_ROI_table"].columns) == roi_columns
     assert len(roi_tables["FOV_ROI_table"]) == 2
-    target_values = [0.0, 699.8016, 0.0, 699.8016, 699.8016, 1.0]
+    target_values = [699.8016, 0.0, 0.0, 699.8016, 699.8016, 1.0]
     assert (
         roi_tables["FOV_ROI_table"].loc["Site 2"].values.flatten().tolist()
         == target_values
@@ -142,7 +142,7 @@ def test_get_well_image_ZCYX(files):
 
         assert list(roi_tables["FOV_ROI_table"].columns) == roi_columns
         assert len(roi_tables["FOV_ROI_table"]) == 2
-        target_values = [0.0, 699.8016, 0.0, 699.8016, 699.8016, z_len[well]]
+        target_values = [699.8016, 0.0, 0.0, 699.8016, 699.8016, z_len[well]]
         assert (
             roi_tables["FOV_ROI_table"].loc["Site 2"].values.flatten().tolist()
             == target_values

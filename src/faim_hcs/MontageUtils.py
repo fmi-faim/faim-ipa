@@ -53,11 +53,11 @@ def montage_grid_image_YX(data):
         fov_rois.append(
             (
                 _stage_label(d[1]),
-                pos_y * step_y * d[1]["spatial-calibration-y"],
                 pos_x * step_x * d[1]["spatial-calibration-x"],
+                pos_y * step_y * d[1]["spatial-calibration-y"],
                 0.0,
-                step_y * d[1]["spatial-calibration-y"],
                 step_x * d[1]["spatial-calibration-x"],
+                step_y * d[1]["spatial-calibration-y"],
                 1.0,
             )
         )
@@ -159,11 +159,11 @@ def montage_stage_pos_image_YX(data):
         fov_rois.append(
             (
                 _stage_label(d[1]),
-                pos_y * d[1]["spatial-calibration-y"],
                 pos_x * d[1]["spatial-calibration-x"],
+                pos_y * d[1]["spatial-calibration-y"],
                 0.0,
-                d[0].shape[0] * d[1]["spatial-calibration-y"],
                 d[0].shape[1] * d[1]["spatial-calibration-x"],
+                d[0].shape[0] * d[1]["spatial-calibration-y"],
                 1.0,
             )
         )
