@@ -1,0 +1,49 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<bts:MeasurementSetting bts:Version="1.0" bts:ProductID="1009680001" bts:Application="" bts:Columns="12" bts:Rows="8" xmlns:bts="http://www.yokogawa.co.jp/BTS/BTSSchema/1.0">
+  <bts:Timelapse>
+    <bts:Timeline bts:Name="Time Line 1" bts:InitialTime="0" bts:Period="4618" bts:Interval="0" bts:ExpectedTime="103" bts:Color="#ff44ee66" bts:OverrideExpectedTime="false">
+      <bts:WellSequence bts:IsSelected="true">
+        <bts:TargetWell bts:Column="8" bts:Row="4">true</bts:TargetWell>
+        <bts:TargetWell bts:Column="3" bts:Row="5">true</bts:TargetWell>
+        <bts:TargetWell bts:Column="8" bts:Row="6">true</bts:TargetWell>
+      </bts:WellSequence>
+      <bts:PointSequence bts:Method="FixedPosition">
+        <bts:FixedPosition bts:IsProportional="false">
+          <bts:Point bts:X="-567.17999999999984" bts:Y="402.9600000000022" />
+          <bts:Point bts:X="82.820000000000164" bts:Y="402.9600000000022" />
+          <bts:Point bts:X="-567.17999999999984" bts:Y="-247.0399999999978" />
+          <bts:Point bts:X="82.820000000000164" bts:Y="-247.0399999999978" />
+        </bts:FixedPosition>
+      </bts:PointSequence>
+      <bts:ActionList bts:RunMode="sequential" bts:AFSearch="afparam">
+        <bts:ActionAcquire3D bts:XOffset="0" bts:YOffset="0" bts:AFShiftBase="5" bts:TopDistance="5" bts:BottomDistance="-5" bts:SliceLength="3" bts:UseSoftFocus="false">
+          <bts:Ch>1</bts:Ch>
+        </bts:ActionAcquire3D>
+        <bts:ActionAcquire3D bts:XOffset="0" bts:YOffset="0" bts:AFShiftBase="5" bts:TopDistance="5" bts:BottomDistance="-5" bts:SliceLength="3" bts:UseSoftFocus="false">
+          <bts:Ch>2</bts:Ch>
+        </bts:ActionAcquire3D>
+      </bts:ActionList>
+    </bts:Timeline>
+  </bts:Timelapse>
+  <bts:LightSourceList bts:UseCalibratedLaserPower="true">
+    <bts:LightSource bts:Name="405nm" bts:Type="Laser" bts:WaveLength="405" bts:Power="100" />
+    <bts:LightSource bts:Name="488nm" bts:Type="Laser" bts:WaveLength="488" bts:Power="50" />
+    <bts:LightSource bts:Name="561nm" bts:Type="Laser" bts:WaveLength="561" bts:Power="50" />
+    <bts:LightSource bts:Name="640nm" bts:Type="Laser" bts:WaveLength="640" bts:Power="50" />
+    <bts:LightSource bts:Name="Lamp" bts:Type="Lamp" bts:WaveLength="0" bts:Power="30" />
+  </bts:LightSourceList>
+  <bts:ChannelList>
+    <bts:Channel bts:Ch="1" bts:Target="405" bts:ObjectiveID="20200" bts:Objective="20x v2" bts:Magnification="20" bts:MethodID="1" bts:Method="Confocal Fluorescence 405/488/561/640 nm" bts:FilterID="1" bts:Acquisition="BP445/45" bts:ExposureTime="100" bts:Binning="1" bts:Color="#FF002FFF" bts:MinLevel="0" bts:MaxLevel="0.59884668421712428" bts:CSUID="2" bts:PinholeDiameter="50" bts:Kind="ConfocalFluorescence" bts:CameraType="DCAM" bts:InputLevel="10000" bts:Fluorophore="">
+      <bts:LightSourceName>405nm</bts:LightSourceName>
+    </bts:Channel>
+    <bts:Channel bts:Ch="2" bts:Target="488" bts:ObjectiveID="20200" bts:Objective="20x v2" bts:Magnification="20" bts:MethodID="1" bts:Method="Confocal Fluorescence 405/488/561/640 nm" bts:FilterID="2" bts:Acquisition="BP525/50" bts:ExposureTime="100" bts:Binning="1" bts:Color="#FF00FFA1" bts:MinLevel="0" bts:MaxLevel="0.078600977811206979" bts:CSUID="2" bts:PinholeDiameter="50" bts:Kind="ConfocalFluorescence" bts:CameraType="DCAM" bts:InputLevel="10000" bts:Fluorophore="">
+      <bts:LightSourceName>488nm</bts:LightSourceName>
+    </bts:Channel>
+    <bts:Channel bts:Ch="3" bts:Target="561" bts:ObjectiveID="20200" bts:Objective="20x v2" bts:Magnification="20" bts:MethodID="1" bts:Method="Confocal Fluorescence 405/488/561/640 nm" bts:FilterID="3" bts:Acquisition="BP600/37" bts:ExposureTime="250" bts:Binning="1" bts:Color="#FFFF8200" bts:MinLevel="0" bts:MaxLevel="0.16008524507960364" bts:CSUID="2" bts:PinholeDiameter="50" bts:Kind="ConfocalFluorescence" bts:CameraType="DCAM" bts:InputLevel="10000" bts:Fluorophore="">
+      <bts:LightSourceName>561nm</bts:LightSourceName>
+    </bts:Channel>
+    <bts:Channel bts:Ch="4" bts:Target="640" bts:ObjectiveID="20200" bts:Objective="20x v2" bts:Magnification="20" bts:MethodID="1" bts:Method="Confocal Fluorescence 405/488/561/640 nm" bts:FilterID="4" bts:Acquisition="BP676/29" bts:ExposureTime="250" bts:Binning="1" bts:Color="#FFFF1B00" bts:MinLevel="0" bts:MaxLevel="0.078600977811207" bts:CSUID="2" bts:PinholeDiameter="50" bts:Kind="ConfocalFluorescence" bts:CameraType="DCAM" bts:InputLevel="10000" bts:Fluorophore="">
+      <bts:LightSourceName>640nm</bts:LightSourceName>
+    </bts:Channel>
+  </bts:ChannelList>
+</bts:MeasurementSetting>

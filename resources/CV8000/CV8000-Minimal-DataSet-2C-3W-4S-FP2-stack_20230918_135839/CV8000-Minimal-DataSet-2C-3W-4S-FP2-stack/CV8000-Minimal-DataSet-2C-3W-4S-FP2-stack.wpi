@@ -1,0 +1,4 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<bts:WellPlate bts:Version="1.0" bts:Name="CV8000-Minimal-DataSet-2C-3W-4S-FP2-stack" bts:ProductID="1009680001" bts:Usage="SamplePlate" bts:DensityUnit="uM" bts:Columns="12" bts:Rows="8" xmlns:bts="http://www.yokogawa.co.jp/BTS/BTSSchema/1.0">
+  <bts:Description>Default Plate Information</bts:Description>
+</bts:WellPlate>

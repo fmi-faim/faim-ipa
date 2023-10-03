@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<lsc:CrosstalkParameter lsc:Version="1" xmlns:lsc="http://www.yokogawa.co.jp/LSC/CorrectionSchema/1.0">
+  <lsc:EMFilter lsc:FilterID="1" lsc:CameraID="3" lsc:Acquisition="BP445/45" lsc:AverageTransmittance="93.77" lsc:MinWaveLength="422" lsc:MaxWaveLength="467">
+    <lsc:ISDM lsc:ID="2" lsc:Name="DM561" lsc:Reflection="true" lsc:AverageTransmittance="50" />
+  </lsc:EMFilter>
+  <lsc:EMFilter lsc:FilterID="2" lsc:CameraID="3" lsc:Acquisition="BP525/50" lsc:AverageTransmittance="97.89" lsc:MinWaveLength="500" lsc:MaxWaveLength="550">
+    <lsc:ISDM lsc:ID="2" lsc:Name="DM561" lsc:Reflection="true" lsc:AverageTransmittance="50" />
+  </lsc:EMFilter>
+  <lsc:EMFilter lsc:FilterID="3" lsc:CameraID="4" lsc:Acquisition="BP600/37" lsc:AverageTransmittance="93.78" lsc:MinWaveLength="582" lsc:MaxWaveLength="618">
+    <lsc:ISDM lsc:ID="2" lsc:Name="DM561" lsc:Reflection="false" lsc:AverageTransmittance="50" />
+  </lsc:EMFilter>
+  <lsc:EMFilter lsc:FilterID="4" lsc:CameraID="4" lsc:Acquisition="BP676/29" lsc:AverageTransmittance="94.33" lsc:MinWaveLength="661" lsc:MaxWaveLength="690">
+    <lsc:ISDM lsc:ID="2" lsc:Name="DM561" lsc:Reflection="false" lsc:AverageTransmittance="50" />
+  </lsc:EMFilter>
+  <lsc:EMFilter lsc:FilterID="5" lsc:CameraID="3" lsc:Acquisition="BP447/45(Dual)" lsc:AverageTransmittance="97.49" lsc:MinWaveLength="425" lsc:MaxWaveLength="469">
+    <lsc:ISDM lsc:ID="2" lsc:Name="DM561" lsc:Reflection="true" lsc:AverageTransmittance="50" />
+  </lsc:EMFilter>
+  <lsc:EMFilter lsc:FilterID="6" lsc:CameraID="3" lsc:Acquisition="BP522/35(Dual)" lsc:AverageTransmittance="98.23" lsc:MinWaveLength="505" lsc:MaxWaveLength="539">
+    <lsc:ISDM lsc:ID="2" lsc:Name="DM561" lsc:Reflection="true" lsc:AverageTransmittance="50" />
+  </lsc:EMFilter>
+</lsc:CrosstalkParameter>
