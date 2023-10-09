@@ -3,7 +3,7 @@ channels:
   - conda-forge
   - nodefaults
 dependencies:
-  - python==3.9
+  - python==3.11
   - conda-forge::mobie_utils==0.4.2
   - pip
   - click
