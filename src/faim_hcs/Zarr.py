@@ -111,12 +111,10 @@ def _add_wells_to_plate(plate: Group, files: pd.DataFrame) -> None:
     for well in files["well"].unique():
         row, col = well[0], str(int(well[1:]))
 
-        if row not in plate:
-            plate.create_group(row)
+        well_group = plate.require_group(row).require_group(col)
 
-        if col not in plate[row]:
-            plate[row].create_group(col).create_group("0")
-            write_well_metadata(plate[row][col], [{"path": "0"}])
+        well_group.create_group("0")
+        write_well_metadata(well_group, [{"path": "0"}])
 
 
 def build_zarr_scaffold(
@@ -465,13 +463,10 @@ def write_labels_to_group(
     Potential kwargs are `lowest_res_target`, `max_levels`, `max_size` and
     `dimension_separator` that are used in `_compute_chunk_size_cyx`.
     """
-    try:
-        subgroup = parent_group[f"labels/{labels_name}"]
-    except KeyError:
-        subgroup = parent_group.create_group(
-            f"labels/{labels_name}",
-            overwrite=overwrite,
-        )  # only create group once
+    subgroup = parent_group.require_group(
+        f"labels/{labels_name}",
+        overwrite=overwrite,
+    )
 
     axes = parent_group.attrs.asdict()["multiscales"][0]["axes"]
     assert len(axes) == len(
