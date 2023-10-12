@@ -12,7 +12,7 @@ class TestUIntHistogram(unittest.TestCase):
     def test_bins(self):
         data = np.array([4, 5, 6])
         hist = UIntHistogram(data)
-        assert hist.bins == len(hist.frequencies) + 1
+        assert hist.n_bins() == len(hist.frequencies)
 
     def test_update_same_length(self):
         # Old and new frequencies cover the same range:
@@ -23,7 +23,7 @@ class TestUIntHistogram(unittest.TestCase):
         hist.update(data)
 
         assert_array_equal(hist.frequencies, np.array([2, 2, 2]))
-        assert_equal(hist.bins, len(hist.frequencies) + 1)
+        assert_equal(hist.n_bins(), len(hist.frequencies))
         assert_equal(hist.offset, 4)
 
     def test_update_lower_overlap(self):
@@ -36,7 +36,7 @@ class TestUIntHistogram(unittest.TestCase):
         hist.update(update_data)
 
         assert_array_equal(hist.frequencies, np.array([1, 1, 2, 1, 1]))
-        assert_equal(hist.bins, len(hist.frequencies) + 1)
+        assert_equal(hist.n_bins(), len(hist.frequencies))
         assert_equal(hist.offset, 2)
 
         update_data = np.array([2, 3, 4, 5, 6])
@@ -44,7 +44,7 @@ class TestUIntHistogram(unittest.TestCase):
         hist.update(update_data)
 
         assert_array_equal(hist.frequencies, np.array([1, 1, 2, 2, 2]))
-        assert_equal(hist.bins, len(hist.frequencies) + 1)
+        assert_equal(hist.n_bins(), len(hist.frequencies))
         assert_equal(hist.offset, 2)
 
     def test_update_lower_concat(self):
@@ -57,7 +57,7 @@ class TestUIntHistogram(unittest.TestCase):
         hist.update(update_data)
 
         assert_array_equal(hist.frequencies, np.array([1, 1, 1, 1, 1, 1]))
-        assert_equal(hist.bins, len(hist.frequencies) + 1)
+        assert_equal(hist.n_bins(), len(hist.frequencies))
         assert_equal(hist.offset, 1)
 
     def test_update_lower_gap(self):
@@ -70,7 +70,7 @@ class TestUIntHistogram(unittest.TestCase):
         hist.update(update_data)
 
         assert_array_equal(hist.frequencies, np.array([1, 1, 0, 1, 1, 1]))
-        assert_equal(hist.bins, len(hist.frequencies) + 1)
+        assert_equal(hist.n_bins(), len(hist.frequencies))
         assert_equal(hist.offset, 1)
 
     def test_update_upper_overlap(self):
@@ -83,7 +83,7 @@ class TestUIntHistogram(unittest.TestCase):
         hist.update(update_data)
 
         assert_array_equal(hist.frequencies, np.array([1, 2, 2, 1]))
-        assert_equal(hist.bins, len(hist.frequencies) + 1)
+        assert_equal(hist.n_bins(), len(hist.frequencies))
         assert_equal(hist.offset, 4)
 
         update_data = np.array([4, 5, 6, 7])
@@ -91,7 +91,7 @@ class TestUIntHistogram(unittest.TestCase):
         hist.update(update_data)
 
         assert_array_equal(hist.frequencies, np.array([2, 2, 2, 1]))
-        assert_equal(hist.bins, len(hist.frequencies) + 1)
+        assert_equal(hist.n_bins(), len(hist.frequencies))
         assert_equal(hist.offset, 4)
 
     def test_update_upper_concat(self):
@@ -104,7 +104,7 @@ class TestUIntHistogram(unittest.TestCase):
         hist.update(update_data)
 
         assert_array_equal(hist.frequencies, np.array([1, 1, 1, 1, 1]))
-        assert_equal(hist.bins, len(hist.frequencies) + 1)
+        assert_equal(hist.n_bins(), len(hist.frequencies))
         assert_equal(hist.offset, 4)
 
     def test_update_upper_gap(self):
@@ -117,7 +117,7 @@ class TestUIntHistogram(unittest.TestCase):
         hist.update(update_data)
 
         assert_array_equal(hist.frequencies, np.array([1, 1, 1, 0, 1, 1]))
-        assert_equal(hist.bins, len(hist.frequencies) + 1)
+        assert_equal(hist.n_bins(), len(hist.frequencies))
         assert_equal(hist.offset, 4)
 
     def test_update_covered(self):
@@ -130,7 +130,7 @@ class TestUIntHistogram(unittest.TestCase):
         hist.update(update_data)
 
         assert_array_equal(hist.frequencies, np.array([1, 2, 1]))
-        assert_equal(hist.bins, len(hist.frequencies) + 1)
+        assert_equal(hist.n_bins(), len(hist.frequencies))
         assert_equal(hist.offset, 4)
 
         data = np.array([4, 5, 6, 7])
@@ -139,7 +139,7 @@ class TestUIntHistogram(unittest.TestCase):
         hist.update(update_data)
 
         assert_array_equal(hist.frequencies, np.array([1, 2, 2, 1]))
-        assert_equal(hist.bins, len(hist.frequencies) + 1)
+        assert_equal(hist.n_bins(), len(hist.frequencies))
         assert_equal(hist.offset, 4)
 
         data = np.array([4, 5, 6, 7])
@@ -148,7 +148,7 @@ class TestUIntHistogram(unittest.TestCase):
         hist.update(update_data)
 
         assert_array_equal(hist.frequencies, np.array([2, 2, 2, 1]))
-        assert_equal(hist.bins, len(hist.frequencies) + 1)
+        assert_equal(hist.n_bins(), len(hist.frequencies))
         assert_equal(hist.offset, 4)
 
         data = np.array([4, 5, 6, 7])
@@ -157,7 +157,7 @@ class TestUIntHistogram(unittest.TestCase):
         hist.update(update_data)
 
         assert_array_equal(hist.frequencies, np.array([1, 2, 2, 2]))
-        assert_equal(hist.bins, len(hist.frequencies) + 1)
+        assert_equal(hist.n_bins(), len(hist.frequencies))
         assert_equal(hist.offset, 4)
 
     def test_old_frequencies_covered(self):
@@ -170,7 +170,7 @@ class TestUIntHistogram(unittest.TestCase):
         hist.update(update_data)
 
         assert_array_equal(hist.frequencies, np.array([1, 2, 1]))
-        assert_equal(hist.bins, len(hist.frequencies) + 1)
+        assert_equal(hist.n_bins(), len(hist.frequencies))
         assert_equal(hist.offset, 4)
 
         data = np.array([5])
@@ -179,7 +179,7 @@ class TestUIntHistogram(unittest.TestCase):
         hist.update(update_data)
 
         assert_array_equal(hist.frequencies, np.array([1, 0, 2, 1]))
-        assert_equal(hist.bins, len(hist.frequencies) + 1)
+        assert_equal(hist.n_bins(), len(hist.frequencies))
         assert_equal(hist.offset, 3)
 
         data = np.array([5])
@@ -188,7 +188,7 @@ class TestUIntHistogram(unittest.TestCase):
         hist.update(update_data)
 
         assert_array_equal(hist.frequencies, np.array([1, 2, 0, 1]))
-        assert_equal(hist.bins, len(hist.frequencies) + 1)
+        assert_equal(hist.n_bins(), len(hist.frequencies))
         assert_equal(hist.offset, 4)
 
         data = np.array([5])
@@ -197,7 +197,7 @@ class TestUIntHistogram(unittest.TestCase):
         hist.update(update_data)
 
         assert_array_equal(hist.frequencies, np.array([1, 0, 2, 0, 1]))
-        assert_equal(hist.bins, len(hist.frequencies) + 1)
+        assert_equal(hist.n_bins(), len(hist.frequencies))
         assert_equal(hist.offset, 3)
 
     def test_mean(self):
@@ -327,13 +327,11 @@ class TestUIntHistogram(unittest.TestCase):
 
             hist_ = UIntHistogram.load(join(temp_dir, "hist.npz"))
 
-            assert_equal(hist_.bins, hist.bins)
             assert_equal(hist_.offset, hist.offset)
             assert_array_equal(hist_.frequencies, hist.frequencies)
 
             assert hist != hist_
             assert isinstance(hist.frequencies, list)
-            assert isinstance(hist.bins, int)
             assert isinstance(hist.offset, int)
 
 
