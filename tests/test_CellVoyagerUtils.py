@@ -8,9 +8,7 @@ from faim_hcs.CellVoyagerUtils import (
     get_well_image_CZYX,
 )
 from faim_hcs.io.YokogawaCellVoyager import parse_files, parse_metadata
-from faim_hcs.MetaSeriesUtils import (  # FIXME factor out into common file
-    montage_stage_pos_image_YX,
-)
+from faim_hcs.MontageUtils import montage_stage_pos_image_YX
 
 
 @pytest.fixture
