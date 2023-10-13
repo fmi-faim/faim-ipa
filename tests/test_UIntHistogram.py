@@ -1,11 +1,14 @@
 import tempfile
 import unittest
 from os.path import join
+from pathlib import Path
 
 import numpy as np
 from numpy.testing import assert_almost_equal, assert_array_equal, assert_equal
 
 from faim_hcs.UIntHistogram import UIntHistogram
+
+ROOT_DIR = Path(__file__).parent
 
 
 class TestUIntHistogram(unittest.TestCase):
@@ -333,6 +336,32 @@ class TestUIntHistogram(unittest.TestCase):
             assert hist != hist_
             assert isinstance(hist.frequencies, list)
             assert isinstance(hist.offset, int)
+
+    def test_empty_histogram(self):
+        hist = UIntHistogram()
+        assert hist.mean() == 0
+        assert hist.std() == 0
+        assert hist.min() == 0
+        assert hist.max() == 0
+        assert hist.n_bins() is None
+
+    def test_combine_empty_histogram(self):
+        hist = UIntHistogram()
+        update_data = np.array([5])
+        update_hist = UIntHistogram(update_data)
+        hist.combine(update_hist)
+        assert hist.offset == update_hist.offset
+        assert hist.frequencies == update_hist.frequencies
+
+    def test_load_legacy(self):
+        legacy_hist_path = ROOT_DIR.parent / "resources" / "legacy_hist.npz"
+
+        raw = np.load(legacy_hist_path)
+        assert "bins" in raw  # `bins` exists in the file but is now ignored
+
+        hist = UIntHistogram.load(legacy_hist_path)
+        assert hist.frequencies == [1, 2, 1]
+        assert hist.offset == 4
 
 
 if __name__ == "__main__":
