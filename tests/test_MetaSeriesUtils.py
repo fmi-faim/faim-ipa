@@ -8,10 +8,9 @@ import numpy as np
 import pytest
 
 from faim_hcs.io.MolecularDevicesImageXpress import parse_files
-from faim_hcs.MetaSeriesUtils import (
+from faim_hcs.MetaSeriesUtils import get_well_image_CYX, get_well_image_CZYX
+from faim_hcs.MontageUtils import (
     _stage_label,
-    get_well_image_CYX,
-    get_well_image_CZYX,
     montage_grid_image_YX,
     montage_stage_pos_image_YX,
 )

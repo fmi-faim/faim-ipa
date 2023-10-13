@@ -6,9 +6,7 @@ import pandas as pd
 from numpy.typing import ArrayLike
 from tifffile.tifffile import imread
 
-from faim_hcs.MetaSeriesUtils import (
-    montage_stage_pos_image_YX,  # FIXME factor out into common file
-)
+from faim_hcs.MontageUtils import montage_stage_pos_image_YX
 from faim_hcs.UIntHistogram import UIntHistogram
 
 
