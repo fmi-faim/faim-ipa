@@ -12,9 +12,9 @@ class UIntHistogram:
         """
         if data is not None:
             assert data.min() >= 0, "Negative data is not supported."
-            self.offset, self.bins, self.frequencies = self._get_hist(data)
+            self.offset, _, self.frequencies = self._get_hist(data)
         else:
-            self.offset, self.bins, self.frequencies = None, None, None
+            self.offset, self.frequencies = None, None
 
     @staticmethod
     def _add(list_a, list_b):
@@ -34,8 +34,8 @@ class UIntHistogram:
         :return: offset, bins, frequencies
         """
         offset = int(data.min())
-        bins = int(data.max()) + 2 - offset
-        freq = np.histogram(data, np.arange(offset, offset + bins))[0].tolist()
+        bins = int(data.max()) + 1 - offset
+        freq = np.histogram(data, np.arange(offset, offset + bins + 1))[0].tolist()
         return offset, bins, freq
 
     def _aggregate_histograms(self, offset_data, bins, freq):
@@ -52,7 +52,7 @@ class UIntHistogram:
             "frequencies must be of " "type List."
         )
         lower_shift = offset_data - self.offset
-        upper_shift = self.offset + self.bins - (offset_data + bins)
+        upper_shift = self.offset + self.n_bins() + 1 - (offset_data + bins + 1)
 
         if lower_shift == 0 and upper_shift == 0:
             # Old and new frequencies cover the same range:
@@ -61,13 +61,13 @@ class UIntHistogram:
             self.frequencies = self._add(self.frequencies, freq)
         elif (
             lower_shift < 0
-            and (offset_data + bins - 1 >= self.offset)
-            and (offset_data + bins - 1 <= self.offset + self.bins - 1)
+            and (offset_data + bins >= self.offset)
+            and (offset_data + bins <= self.offset + self.n_bins())
         ):
             # New frequencies have additional lower ones.
             #     [old frequencies]
             # [new frequencies]
-            frequencies_to = offset_data + bins - self.offset - 1
+            frequencies_to = offset_data + bins - self.offset
             freq_from = self.offset - offset_data
             self.frequencies[:frequencies_to] = self._add(
                 self.frequencies[:frequencies_to],
@@ -75,43 +75,39 @@ class UIntHistogram:
             )
             self.frequencies = freq[:freq_from] + self.frequencies
             self.offset = offset_data
-            self.bins = len(self.frequencies) + 1
-        elif lower_shift < 0 and (offset_data + bins - 1 < self.offset):
+        elif lower_shift < 0 and (offset_data + bins < self.offset):
             # New frequencies only have additional lower ones.
             #                       [old frequencies]
             # [new frequencies]
             gap_freq = [
                 0,
-            ] * (self.offset - offset_data - bins + 1)
+            ] * (self.offset - offset_data - bins)
             self.frequencies = freq + gap_freq + self.frequencies
             self.offset = offset_data
-            self.bins = len(self.frequencies) + 1
         elif (
             self.offset
             <= offset_data
-            <= (self.offset + self.bins - 2)
-            < offset_data + bins - 2
+            <= (self.offset + self.n_bins() - 1)
+            < offset_data + bins - 1
         ):
             # New frequencies have additional upper ones.
             #     [old frequencies]
             #            [new frequencies]
-            from_frequencies = self.offset + self.bins - offset_data - 1
-            to_freq = self.offset + self.bins - offset_data
+            from_frequencies = self.offset + self.n_bins() - offset_data
+            to_freq = self.offset + self.n_bins() + 1 - offset_data
             self.frequencies[-from_frequencies:] = self._add(
                 self.frequencies[-from_frequencies:],
                 freq[:to_freq],
             )
             self.frequencies = self.frequencies + freq[from_frequencies:]
-            self.bins = len(self.frequencies) + 1
-        elif (offset_data) > (self.offset + self.bins - 2):
+        elif (offset_data) > (self.offset + self.n_bins() - 1):
             # New frequencies have only additional upper ones.
             #     [old frequencies]
             #                           [new frequencies]
             gap_freq = [
                 0,
-            ] * (offset_data - self.offset - self.bins + 1)
+            ] * (offset_data - self.offset - self.n_bins())
             self.frequencies = self.frequencies + gap_freq + freq
-            self.bins = len(self.frequencies) + 1
         elif lower_shift >= 0 and upper_shift >= 0:
             # New frequencies are completely covered.
             # [          old frequencies          ]
@@ -129,14 +125,13 @@ class UIntHistogram:
             #     [old frequencies]
             # [    new frequencies    ]
             from_ = self.offset - offset_data
-            to = from_ + self.bins - 1
+            to = from_ + self.n_bins()
             self.frequencies = self._add(
                 self.frequencies,
                 freq[from_:to],
             )
             self.frequencies = freq[:from_] + self.frequencies + freq[to:]
             self.offset = offset_data
-            self.bins = len(self.frequencies) + 1
 
     def combine(self, histogram):
         """
@@ -146,13 +141,12 @@ class UIntHistogram:
         """
         if self.frequencies is None:
             self.frequencies = histogram.frequencies
-            self.bins = histogram.bins
             self.offset = histogram.offset
         else:
             if histogram.frequencies is not None:
                 self._aggregate_histograms(
                     offset_data=histogram.offset,
-                    bins=histogram.bins,
+                    bins=histogram.n_bins(),
                     freq=histogram.frequencies,
                 )
 
@@ -168,7 +162,7 @@ class UIntHistogram:
         assert data.min() >= 0, "Negative data is not supported."
 
         if self.frequencies is None:
-            self.offset, self.bins, self.frequencies = self._get_hist(data)
+            self.offset, _, self.frequencies = self._get_hist(data)
         else:
             offset_data, bins, freq = self._get_hist(data)
             self._aggregate_histograms(offset_data=offset_data, bins=bins, freq=freq)
@@ -181,13 +175,13 @@ class UIntHistogram:
         """
         if width > 1:
             heights = []
-            for i in range(self.offset, self.offset + self.bins - 1, width):
+            for i in range(self.offset, self.offset + self.n_bins(), width):
                 heights.append(np.sum(self.frequencies[i : i + width]))
         else:
             heights = self.frequencies
 
         plt.bar(
-            np.arange(self.offset, self.offset + self.bins - 1, width),
+            np.arange(self.offset, self.offset + self.n_bins(), width),
             heights,
             width=width,
         )
@@ -201,7 +195,7 @@ class UIntHistogram:
         if self.frequencies is None:
             return 0
         return np.sum(
-            np.arange(self.offset, self.offset + self.bins - 1) * self.frequencies
+            np.arange(self.offset, self.offset + self.n_bins()) * self.frequencies
         ) / np.sum(self.frequencies)
 
     def std(self):
@@ -213,7 +207,7 @@ class UIntHistogram:
             return 0
         return np.sqrt(
             np.sum(
-                (np.arange(self.offset, self.offset + self.bins - 1) - self.mean()) ** 2
+                (np.arange(self.offset, self.offset + self.n_bins()) - self.mean()) ** 2
                 * self.frequencies
             )
             / np.sum(self.frequencies)
@@ -248,10 +242,19 @@ class UIntHistogram:
         """
         if self.frequencies is None:
             return 0
-        return self.offset + self.bins - 2
+        return self.offset + self.n_bins() - 1
+
+    def n_bins(self):
+        """Return number of bins.
+
+        :return: uint
+        """
+        if self.frequencies is None:
+            return None
+        return len(self.frequencies)
 
     def save(self, path):
-        np.savez(path, frequencies=self.frequencies, offset=self.offset, bins=self.bins)
+        np.savez(path, frequencies=self.frequencies, offset=self.offset)
 
     @staticmethod
     def load(path):
@@ -259,5 +262,4 @@ class UIntHistogram:
         hist = UIntHistogram()
         hist.frequencies = storage["frequencies"].tolist()
         hist.offset = storage["offset"]
-        hist.bins = storage["bins"]
         return hist
