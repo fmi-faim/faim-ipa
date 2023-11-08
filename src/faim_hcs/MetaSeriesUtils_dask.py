@@ -2,6 +2,8 @@ from typing import Callable
 
 import dask.array as da
 import numpy as np
+import pandas as pd
+import tifffile
 from numpy.typing import ArrayLike
 from scipy.ndimage import distance_transform_edt
 
@@ -127,9 +129,7 @@ def fuse_rev(tiles: ArrayLike, positions: ArrayLike) -> ArrayLike:
 
 
 def _fuse_xy(
-    x: ArrayLike,
-    assemble_fun: Callable,
-    positions: ArrayLike,
+    x: ArrayLike, assemble_fun: Callable, positions: ArrayLike, ny_tot: int, nx_tot: int
 ) -> ArrayLike:
     """
     Load images and fuse them (used with dask.array.map_blocks())
@@ -139,23 +139,11 @@ def _fuse_xy(
     positions: Array of tile-positions in pixels
     ny_tot, nx_tot: yx-dimensions of output array
     """
-    # x can have any number of additional axes between fields & yx
-    # -> flatten those axes and loop over them
-    # (ideally, to optimize memory-efficiency, the additional axes should only
-    # have one element per axis)
-    x_flat = np.reshape(
-        x, newshape=(x.shape[0],) + (np.product(x.shape[1:-2]),) + x.shape[-2:]
-    )
-    ims_fused = []
-    for i in range(x_flat.shape[1]):
-        # assemble tiles into one image
-        im_fused = assemble_fun(x_flat[:, i], positions)
-        ims_fused.append(im_fused)
+    ims_fused = np.empty(x.shape[1:-2] + (ny_tot, nx_tot), dtype=x.dtype)
+    for i in np.ndindex(x.shape[1:-2]):
+        slice_tuple = (slice(None),) + i  # workaround for slicing like [:,*i]
+        ims_fused[i] = assemble_fun(x[slice_tuple], positions)
 
-    ims_fused = np.array(ims_fused, dtype=x.dtype)
-    # put fused images back in correct shape, according to input
-    out_shape = x.shape[1:-2] + ims_fused.shape[-2:]
-    ims_fused = np.reshape(ims_fused, out_shape)
     return ims_fused
 
 
@@ -187,6 +175,148 @@ def fuse_dask(data: da.Array, positions: ArrayLike, assemble_fun: Callable) -> d
         # parameters for _fuse_da:
         assemble_fun=assemble_fun,
         positions=positions,
+        ny_tot=ny_tot,
+        nx_tot=nx_tot,
     )
 
     return imgs_fused_da
+
+
+def create_filename_structure_FCZ(
+    well_files: pd.DataFrame,
+    channels: list[str],
+) -> ArrayLike:
+    """
+    Assemble filenames in a numpy-array with ordering (field,channel,plane).
+    This allows us to later easily map over the filenames to create a
+    dask-array of the images.
+    """
+    planes = sorted(well_files["z"].unique(), key=int)
+    fields = sorted(well_files["field"].unique(), key=int)
+    # legacy: key=lambda s: int(re.findall(r"(\d+)", s)[0])
+
+    # Create an empty np array to store the filenames in the correct structure
+    fn_dtype = f"<U{max([len(fn) for fn in well_files['path']])}"
+    fns_np = np.zeros(
+        (len(fields), len(channels), len(planes)),
+        dtype=fn_dtype,
+    )
+
+    # Store fns in correct position
+    for s, field in enumerate(fields):
+        field_files = well_files[well_files["field"] == field]
+        for c, channel in enumerate(channels):
+            channel_files = field_files[field_files["channel"] == channel]
+            for z, plane in enumerate(planes):
+                plane_files = channel_files[channel_files["z"] == plane]
+                if len(plane_files) == 1:
+                    fns_np[s, c, z] = list(plane_files["path"])[0]
+                elif len(plane_files) > 1:
+                    raise RuntimeError("Multiple files found for one FCZ")
+
+    return fns_np
+
+
+def create_filename_structure_FC(
+    well_files: pd.DataFrame,
+    channels: list[str],
+) -> ArrayLike:
+    """
+    Assemble filenames in a numpy-array with ordering (field,channel).
+    This allows us to later easily map over the filenames to create a
+    dask-array of the images.
+    """
+    fields = sorted(well_files["field"].unique(), key=int)
+    # legacy: key=lambda s: int(re.findall(r"(\d+)", s)[0])
+
+    # Create an empty np array to store the filenames in the correct structure
+    fn_dtype = f"<U{max([len(fn) for fn in well_files['path']])}"
+    fns_np = np.zeros(
+        (len(fields), len(channels)),
+        dtype=fn_dtype,
+    )
+
+    # Store fns in correct position
+    for s, field in enumerate(fields):
+        field_files = well_files[well_files["field"] == field]
+        for c, channel in enumerate(channels):
+            channel_files = field_files[field_files["channel"] == channel]
+            if len(channel_files) == 1:
+                fns_np[s, c] = list(channel_files["path"])[0]
+            elif len(channel_files) > 1:
+                raise RuntimeError("Multiple files found for one FC")
+
+    return fns_np
+
+
+def _read_images(x: ArrayLike, ny: int, nx: int, dtype: type) -> ArrayLike:
+    """
+    read images from filenames in an array
+    x: Array with one or more filenames, in any shape
+    tile_shape: shape of one tile in pixesl (ny, nx)
+    returns: numpy-array of images, arranged in same shape as input array
+    """
+    images = np.zeros(x.shape + (ny, nx), dtype=dtype)
+    for i in np.ndindex(x.shape):
+        filename = x[i]
+        if filename != "":
+            images[i] = tifffile.imread(filename)
+
+    return images
+
+
+def read_FCZYX(
+    well_files: pd.DataFrame, channels: list[str], ny: int, nx: int, dtype: type
+) -> da.Array:
+    """
+    reads images from tiff-files into a dask array of shape (F,C,Z,Y,X)
+    """
+
+    # load filenames into array, so we can easily map over it
+    fns_np = create_filename_structure_FCZ(well_files, channels)
+    fns_da = da.from_array(fns_np, chunks=(1,) * len(fns_np.shape))
+
+    # create dask array of images
+    images_da = da.map_blocks(
+        _read_images,
+        fns_da,
+        chunks=da.core.normalize_chunks(
+            (1,) * len(fns_da.shape) + (ny, nx), fns_da.shape + (ny, nx)
+        ),
+        new_axis=list(range(len(fns_da.shape), len(fns_da.shape) + 2)),
+        meta=np.array((), dtype=dtype),
+        # parameters for _read_images:
+        ny=ny,
+        nx=nx,
+        dtype=dtype,
+    )
+    return images_da
+
+
+def read_FCYX(
+    well_files: pd.DataFrame, channels: list[str], ny: int, nx: int, dtype: type
+) -> da.Array:
+    """
+    reads images from tiff-files into a dask array of shape (F,C,Z,Y,X)
+    """
+    # TODO: maye look into merging read_FCZYX and read FCYX
+
+    # load filenames into array, so we can easily map over it
+    fns_np = create_filename_structure_FC(well_files, channels)
+    fns_da = da.from_array(fns_np, chunks=(1,) * len(fns_np.shape))
+
+    # create dask array of images
+    images_da = da.map_blocks(
+        _read_images,
+        fns_da,
+        chunks=da.core.normalize_chunks(
+            (1,) * len(fns_da.shape) + (ny, nx), fns_da.shape + (ny, nx)
+        ),
+        new_axis=list(range(len(fns_da.shape), len(fns_da.shape) + 2)),
+        meta=np.array((), dtype=dtype),
+        # parameters for _read_images:
+        ny=ny,
+        nx=nx,
+        dtype=dtype,
+    )
+    return images_da
