@@ -50,11 +50,6 @@ def load_metaseries_tiff(path: Path) -> tuple[ArrayLike, dict]:
             "_MagNA_",
             "_MagSetting_",
             "Exposure Time",
-            "Lumencor Cyan Intensity",
-            "Lumencor Green Intensity",
-            "Lumencor Red Intensity",
-            "Lumencor Violet Intensity",
-            "Lumencor Yellow Intensity",
             "ShadingCorrection",
             "stage-label",
             "SiteX",
@@ -66,6 +61,9 @@ def load_metaseries_tiff(path: Path) -> tuple[ArrayLike, dict]:
         ]
         plane_info = tiff.metaseries_metadata["PlaneInfo"]
         metadata = {k: plane_info[k] for k in selected_keys if k in plane_info}
+        for metadata_key in plane_info:
+            if metadata_key.endswith("Intensity"):
+                metadata[metadata_key] = plane_info[metadata_key]
         metadata["PixelType"] = str(data.dtype)
 
     return data, metadata

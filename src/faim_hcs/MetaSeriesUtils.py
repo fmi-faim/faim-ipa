@@ -15,46 +15,36 @@ def _build_ch_metadata(metaseries_ch_metadata: dict):
     """Build channel metadata from metaseries metadata."""
 
     def get_wavelength_power(channel):
-        if channel["Lumencor Cyan Intensity"] > 0.0:
-            wl = "cyan"
-            power = channel["Lumencor Cyan Intensity"]
-            assert channel["Lumencor Green Intensity"] == 0.0
-            assert channel["Lumencor Red Intensity"] == 0.0
-            assert channel["Lumencor Violet Intensity"] == 0.0
-            assert channel["Lumencor Yellow Intensity"] == 0.0
-            return wl, power
-        if channel["Lumencor Green Intensity"] > 0.0:
-            wl = "green"
-            power = channel["Lumencor Green Intensity"]
-            assert channel["Lumencor Cyan Intensity"] == 0.0
-            assert channel["Lumencor Red Intensity"] == 0.0
-            assert channel["Lumencor Violet Intensity"] == 0.0
-            assert channel["Lumencor Yellow Intensity"] == 0.0
-            return wl, power
-        if channel["Lumencor Red Intensity"] > 0.0:
-            wl = "red"
-            power = channel["Lumencor Red Intensity"]
-            assert channel["Lumencor Cyan Intensity"] == 0.0
-            assert channel["Lumencor Green Intensity"] == 0.0
-            assert channel["Lumencor Violet Intensity"] == 0.0
-            assert channel["Lumencor Yellow Intensity"] == 0.0
-            return wl, power
-        if channel["Lumencor Violet Intensity"] > 0.0:
-            wl = "violet"
-            power = channel["Lumencor Violet Intensity"]
-            assert channel["Lumencor Cyan Intensity"] == 0.0
-            assert channel["Lumencor Green Intensity"] == 0.0
-            assert channel["Lumencor Red Intensity"] == 0.0
-            assert channel["Lumencor Yellow Intensity"] == 0.0
-            return wl, power
-        if channel["Lumencor Yellow Intensity"] > 0.0:
-            wl = "yellow"
-            power = channel["Lumencor Yellow Intensity"]
-            assert channel["Lumencor Cyan Intensity"] == 0.0
-            assert channel["Lumencor Green Intensity"] == 0.0
-            assert channel["Lumencor Red Intensity"] == 0.0
-            assert channel["Lumencor Violet Intensity"] == 0.0
-            return wl, power
+        # Custom channel names
+        custom_channel_dict = {
+            "Lumencor Cyan Intensity": "cyan",
+            "Lumencor Green Intensity": "green",
+            "Lumencor Red Intensity": "red",
+            "Lumencor Violet Intensity": "violet",
+            "Lumencor Yellow Intensity": "yellow",
+        }
+
+        # Find the intensity channnels:
+        wavelengths = []
+        for key in channel.keys():
+            if key.endswith("Intensity"):
+                wavelengths.append(key)
+
+        for wavelength in wavelengths:
+            if channel[wavelength] > 0.0:
+                if wavelength in custom_channel_dict.keys():
+                    wl = custom_channel_dict[wavelength]
+                else:
+                    wl = wavelength
+                power = channel[wavelength]
+
+                # Assert all other power values are zero
+                for other_wavelength in wavelengths:
+                    if other_wavelength != wavelength:
+                        assert channel[other_wavelength] == 0.0
+
+                return wl, power
+
         return None, None
 
     def get_exposure_time_unit(ch):

@@ -245,8 +245,8 @@ class TestZarr(unittest.TestCase):
         assert list(df_fov.columns) == roi_columns
         assert len(df_fov) == 2
         target_values = [
-            0.0,
             699.8015747070312,
+            0.0,
             0.0,
             699.8015747070312,
             699.8015747070312,
@@ -416,8 +416,8 @@ class TestZarr(unittest.TestCase):
         assert list(df_fov.columns) == roi_columns
         assert len(df_fov) == 2
         target_values = [
-            0.0,
             699.8015747070312,
+            0.0,
             0.0,
             699.8015747070312,
             699.8015747070312,
