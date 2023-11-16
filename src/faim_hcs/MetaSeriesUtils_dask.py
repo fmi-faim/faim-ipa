@@ -58,7 +58,9 @@ def fuse_mean_gradient(tiles: ArrayLike, positions: ArrayLike) -> ArrayLike:
     return im_fused.astype(tiles.dtype)
 
 
-def fuse_random_gradient(tiles: ArrayLike, positions: ArrayLike) -> ArrayLike:
+def fuse_random_gradient(
+    tiles: ArrayLike, positions: ArrayLike, random_seed=0
+) -> ArrayLike:
     """
     Fuses tiles according to positions.
     Where tiles overlap, it chooses a random pixel, weighted according to  a
@@ -66,6 +68,7 @@ def fuse_random_gradient(tiles: ArrayLike, positions: ArrayLike) -> ArrayLike:
     tiles: ArrayLike, should have shape (tiles, ny, nx)
     positions: ArrayLike, should have shape (tiles, 2)
     """
+    np.random.seed(random_seed)
     ny_tot, nx_tot = positions.max(axis=0) + tiles.shape[-2:]
     im_fused = np.zeros((len(tiles), ny_tot, nx_tot), dtype=tiles.dtype)
     im_weight = np.zeros_like(im_fused, dtype="uint16")
