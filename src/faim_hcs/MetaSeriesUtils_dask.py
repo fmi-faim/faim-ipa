@@ -252,19 +252,19 @@ def create_filename_structure_FC(
     return fns_np
 
 
-def _read_images(x: ArrayLike, ny: int, nx: int, dtype: type) -> ArrayLike:
+def _read_images(x: ArrayLike, ny: int, nx: int, im_dtype: type) -> ArrayLike:
     """
     read images from filenames in an array
     x: Array with one or more filenames, in any shape
-    tile_shape: shape of one tile in pixesl (ny, nx)
+    ny, nx: shape of one tile in pixesl
+    dtype: dtype of image
     returns: numpy-array of images, arranged in same shape as input array
     """
-    images = np.zeros(x.shape + (ny, nx), dtype=dtype)
+    images = np.zeros(x.shape + (ny, nx), dtype=im_dtype)
     for i in np.ndindex(x.shape):
         filename = x[i]
         if filename != "":
             images[i] = tifffile.imread(filename)
-
     return images
 
 
@@ -291,7 +291,7 @@ def read_FCZYX(
         # parameters for _read_images:
         ny=ny,
         nx=nx,
-        dtype=dtype,
+        im_dtype=dtype,
     )
     return images_da
 
@@ -320,6 +320,6 @@ def read_FCYX(
         # parameters for _read_images:
         ny=ny,
         nx=nx,
-        dtype=dtype,
+        im_dtype=dtype,
     )
     return images_da
