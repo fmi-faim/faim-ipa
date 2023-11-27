@@ -110,6 +110,10 @@ class DaskTileStitcher:
         """
         Stitch the tiles into a single image.
 
+        Note: This runs in 'synchronous' mode i.e. single threaded. If you
+        want to use multiple threads, use get_stitched_dask_array() and
+        compute the result using a configured dask scheduler.
+
         Parameters
         ----------
         transform_func :
