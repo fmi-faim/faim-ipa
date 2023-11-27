@@ -12,7 +12,6 @@ from faim_hcs.MetaSeriesUtils_dask import (
     create_filename_structure_FCZ,
     fuse_dask,
     fuse_fw,
-    fuse_mean,
     fuse_mean_gradient,
     fuse_random_gradient,
     fuse_rev,
@@ -201,27 +200,6 @@ def test_fuse_fw(tiles, positions):
     assert fused_result[3, 7] == 3
     assert fused_result[7, 4] == 3
     assert fused_result[7, 7] == 3
-
-
-@pytest.mark.parametrize(
-    "tiles,positions",
-    [
-        (tiles(), positions()),
-    ],
-)
-def test_fuse_mean(tiles, positions):
-    fused_result = fuse_mean(tiles=tiles, positions=positions)
-    # should be the same for all fuse-functions:
-    assert fused_result.shape == (11, 12)
-    assert fused_result[2, 3] == 1
-    assert fused_result[2, 8] == 2
-    assert fused_result[8, 3] == 3
-    assert fused_result[8, 9] == 0
-    # depends on fuse-functions:
-    assert fused_result[3, 4] == 2
-    assert fused_result[3, 7] == 2
-    assert fused_result[7, 4] == 2
-    assert fused_result[7, 7] == 2
 
 
 @pytest.mark.parametrize(

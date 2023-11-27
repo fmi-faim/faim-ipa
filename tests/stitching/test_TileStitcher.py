@@ -2,54 +2,33 @@ import numpy as np
 import pytest
 from numpy.testing import assert_array_equal
 
-from faim_hcs.stitching import BoundingBox, DaskTileStitcher, Tile, stitching_utils
+from faim_hcs.stitching import DaskTileStitcher, Tile, stitching_utils
 
 
 @pytest.fixture
 def tiles():
-    return [
+    tiles = [
         Tile(path="path1", shape=(10, 10), position=(0, 0, 0)),
         Tile(path="path2", shape=(10, 10), position=(0, 0, 10)),
         Tile(path="path3", shape=(10, 10), position=(0, 10, 0)),
         Tile(path="path4", shape=(10, 10), position=(0, 10, 10)),
     ]
 
+    for i, tile in enumerate(tiles):
+        tile.i = i
 
-def test_get_block_coordinates():
-    bbox = BoundingBox(z_start=0, z_end=1, y_start=10, y_end=21, x_start=20, x_end=41)
-    corners = bbox.get_corner_points()
-    expected = [
-        (0, 10, 20),
-        (0, 10, 40),
-        (0, 20, 40),
-        (0, 20, 20),
-        (0, 10, 20),
-        (0, 10, 40),
-        (0, 20, 40),
-        (0, 20, 20),
-    ]
+        def loader(self=tile):
+            return np.ones(self.shape) * self.i
 
-    assert corners == expected
+        tile.load_data = loader
+    return tiles
 
 
-def test_point_inside_block():
-    bbox = BoundingBox(z_start=0, z_end=2, y_start=0, y_end=2, x_start=0, x_end=2)
-    assert bbox.contains((1, 1, 1))
-    assert bbox.contains((0, 1, 1))
-    assert not bbox.contains((0, 2, 1))
-
-
-def test_overlapping():
-    bbox_a = BoundingBox(z_start=0, z_end=1, y_start=0, y_end=10, x_start=0, x_end=10)
-    bbox_b = BoundingBox(z_start=0, z_end=1, y_start=0, y_end=10, x_start=0, x_end=10)
-    bbox_c = BoundingBox(z_start=0, z_end=1, y_start=10, y_end=20, x_start=0, x_end=10)
-    assert bbox_a.overlaps(bbox_b)
-    assert bbox_b.overlaps(bbox_a)
-    assert not bbox_a.overlaps(bbox_c)
-    assert not bbox_c.overlaps(bbox_a)
-
-
-def test_create_tile_map(tiles):
+def test_block_to_tile_map(tiles):
+    """
+    Test mapping of chunk-blocks to tiles if the chunk shape matches exactly
+    the tile shape.
+    """
     ts = DaskTileStitcher(
         tiles=tiles,
         yx_chunk_shape=(10, 10),
@@ -63,7 +42,11 @@ def test_create_tile_map(tiles):
     assert ts._block_to_tile_map[(0, 1, 1)] == [tiles[3]]
 
 
-def test_create_tile_map_large_chunks(tiles):
+def test_block_to_tile_map_large_chunks(tiles):
+    """
+    Test mapping of chunk-blocks to tiles if the chunk shape is larger than
+    the tile shape.
+    """
     ts = DaskTileStitcher(
         tiles=tiles,
         yx_chunk_shape=(15, 15),
@@ -75,6 +58,42 @@ def test_create_tile_map_large_chunks(tiles):
     assert ts._block_to_tile_map[(0, 0, 1)] == [tiles[1], tiles[3]]
     assert ts._block_to_tile_map[(0, 1, 0)] == [tiles[2], tiles[3]]
     assert ts._block_to_tile_map[(0, 1, 1)] == [tiles[3]]
+
+
+def test_block_to_tile_map_small_chunks(tiles):
+    """
+    Test mapping of chunk-blocks to tiles if the chunk shape is smaller than
+    the tile shape.
+    """
+    ts = DaskTileStitcher(
+        tiles=tiles,
+        yx_chunk_shape=(8, 8),
+    )
+
+    assert ts._shape == (1, 20, 20)
+    assert len(ts._block_to_tile_map) == 9
+    assert ts._block_to_tile_map[(0, 0, 0)] == [tiles[0]]
+    assert ts._block_to_tile_map[(0, 0, 1)] == [tiles[0], tiles[1]]
+    assert ts._block_to_tile_map[(0, 0, 2)] == [tiles[1]]
+    assert ts._block_to_tile_map[(0, 1, 0)] == [tiles[0], tiles[2]]
+    assert ts._block_to_tile_map[(0, 1, 1)] == [tiles[0], tiles[1], tiles[2], tiles[3]]
+    assert ts._block_to_tile_map[(0, 1, 2)] == [tiles[1], tiles[3]]
+    assert ts._block_to_tile_map[(0, 2, 0)] == [tiles[2]]
+    assert ts._block_to_tile_map[(0, 2, 1)] == [tiles[2], tiles[3]]
+    assert ts._block_to_tile_map[(0, 2, 2)] == [tiles[3]]
+
+
+def test_stitch_exact(tiles):
+    ts = DaskTileStitcher(tiles=tiles, yx_chunk_shape=(7, 7))
+    stitched = ts.get_stitched_image(
+        transform_func=stitching_utils.translate_tiles_2d,
+        fuse_func=stitching_utils.fuse_sum,
+    )
+    assert_array_equal(stitched[:, :10, :10], np.ones((1, 10, 10)) * 0)
+    assert_array_equal(stitched[:, :10, 10:20], np.ones((1, 10, 10)) * 1)
+    assert_array_equal(stitched[:, 10:20, :10], np.ones((1, 10, 10)) * 2)
+    assert_array_equal(stitched[:, 10:20, 10:20], np.ones((1, 10, 10)) * 3)
+    assert stitched.shape == (1, 20, 20)
 
 
 @pytest.fixture
@@ -96,8 +115,8 @@ def overlapping_tiles():
     return tiles
 
 
-def test_stitch(overlapping_tiles):
-    ts = DaskTileStitcher(tiles=overlapping_tiles, yx_chunk_shape=(10, 10))
+def test_stitch_overlapping(overlapping_tiles):
+    ts = DaskTileStitcher(tiles=overlapping_tiles, yx_chunk_shape=(5, 7))
     stitched = ts.get_stitched_image(
         transform_func=stitching_utils.translate_tiles_2d,
         fuse_func=stitching_utils.fuse_sum,
