@@ -25,6 +25,12 @@ def test_default(acquisition: Plate_Acquisition):
 
     well_acquisitions = acquisition.well_acquisitions()
 
+    channels = acquisition.channels()
+    assert len(channels) == 4
+
+    x_spacing = channels[0]["spatial-calibration-x"]
+    y_spacing = channels[0]["spatial-calibration-y"]
+
     for well_acquisition in well_acquisitions:
         assert isinstance(well_acquisition, Well_Acquisition)
         assert len(well_acquisition.files()) == 48
@@ -38,3 +44,9 @@ def test_default(acquisition: Plate_Acquisition):
 
         assert positions is not None
         assert len(positions) == len(files)
+
+        pixel_positions = well_acquisition.pixel_positions()
+
+        assert pixel_positions.shape == (48, 2)
+        assert pixel_positions[0, 1] == positions["pos_x"].iloc[0] / x_spacing
+        assert pixel_positions[0, 0] == positions["pos_y"].iloc[0] / y_spacing

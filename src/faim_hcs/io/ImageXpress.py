@@ -6,7 +6,11 @@ from typing import Union
 import pandas as pd
 
 from faim_hcs.io.acquisition import Plate_Acquisition, Well_Acquisition
-from faim_hcs.io.MetaSeriesTiff import load_metaseries_tiff_metadata
+from faim_hcs.io.MetaSeriesTiff import (
+    load_metaseries_tiff,
+    load_metaseries_tiff_metadata,
+)
+from faim_hcs.MetaSeriesUtils import _build_ch_metadata
 
 
 class ImageXpress_Plate_Acquisition(Plate_Acquisition):
@@ -22,12 +26,43 @@ class ImageXpress_Plate_Acquisition(Plate_Acquisition):
             self._populate_wells()
         return self._wells
 
-    def well_acquisitions(self):
+    def well_acquisitions(self):  # TODO consider moving this logic in parent class
         for well in self.wells():
-            yield ImageXpress_Well_Acquisition(self._files[self._files["well"] == well])
+            yield ImageXpress_Well_Acquisition(
+                files=self._files[self._files["well"] == well],
+                ch_metadata=self.channels(),
+            )
 
     def channels(self):
-        pass  # TODO
+        ch_metadata = []
+        for ch in self._files["channel"].unique():
+            ch_metadata.append(self._ch_metadata(ch))
+        # also include tile size (ny, nx)
+        return ch_metadata
+
+    def _ch_metadata(self, channel):
+        # Read first image of channel
+        path = self._files[self._files["channel"] == channel]["path"].iloc[0]
+        data, metadata = load_metaseries_tiff(path=path)
+        _channel_metadata = _build_ch_metadata(metadata)
+
+        return {
+            "channel-index": None,
+            "channel-name": channel,
+            "display-color": _channel_metadata["display-color"],
+            "pixel-type": metadata["PixelType"],
+            "spatial-calibration-x": metadata["spatial-calibration-x"],
+            "spatial-calibration-y": metadata["spatial-calibration-y"],
+            "spatial-calibration-units": metadata["spatial-calibration-units"],
+            "z-scaling": None,
+            "unit": None,
+            "wavelength": _channel_metadata["wavelength"],
+            "exposure-time": _channel_metadata["exposure-time"],
+            "exposure-time-unit": _channel_metadata["exposure-time-unit"],
+            "objective": metadata["_MagSetting_"],
+            "tile-size-x": data.shape[-1],
+            "tile-size-y": data.shape[-2],
+        }
 
     def _populate_wells(self):
         if self._files is None:
@@ -77,6 +112,9 @@ class ImageXpress_Well_Acquisition(Well_Acquisition):
         if self._positions is None:
             self._parse_positions()
         return self._positions
+
+    def roi_tables(self) -> list[dict]:
+        pass  # TODO
 
     def _parse_positions(self):
         path = []
