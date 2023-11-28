@@ -2,8 +2,8 @@ from pathlib import Path
 
 import pytest
 
-from faim_hcs.io.acquisition import Plate_Acquisition, Well_Acquisition
-from faim_hcs.io.ImageXpress import ImageXpress_Plate_Acquisition
+from faim_hcs.io.acquisition import PlateAcquisition, WellAcquisition
+from faim_hcs.io.ImageXpress import ImageXpressPlateAcquisition
 
 
 @pytest.fixture
@@ -13,11 +13,11 @@ def acquisition_dir():
 
 @pytest.fixture
 def acquisition(acquisition_dir):
-    return ImageXpress_Plate_Acquisition(acquisition_dir)
+    return ImageXpressPlateAcquisition(acquisition_dir)
 
 
-def test_default(acquisition: Plate_Acquisition):
-    wells = acquisition.wells()
+def test_default(acquisition: PlateAcquisition):
+    wells = acquisition._get_wells()
 
     assert wells is not None
     assert len(wells) == 2
@@ -32,7 +32,7 @@ def test_default(acquisition: Plate_Acquisition):
     y_spacing = channels[0]["spatial-calibration-y"]
 
     for well_acquisition in well_acquisitions:
-        assert isinstance(well_acquisition, Well_Acquisition)
+        assert isinstance(well_acquisition, WellAcquisition)
         assert len(well_acquisition.files()) == 48
         files = well_acquisition.files()
 

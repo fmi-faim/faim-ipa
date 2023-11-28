@@ -8,6 +8,8 @@ def load_metaseries_tiff_metadata(path: Path) -> tuple[ArrayLike, dict]:
     """Load parts of the metadata of a metaseries tiff file.
 
     The following metadata is collected:
+    * pixel-size-x
+    * pixel-size-y
     * _IllumSetting_
     * spatial-calibration-x
     * spatial-calibration-y
@@ -38,6 +40,8 @@ def load_metaseries_tiff_metadata(path: Path) -> tuple[ArrayLike, dict]:
     with tifffile.TiffFile(path) as tiff:
         assert tiff.is_metaseries, f"{path} is not a metamorph file."
         selected_keys = [
+            "pixel-size-x",
+            "pixel-size-y",
             "_IllumSetting_",
             "spatial-calibration-x",
             "spatial-calibration-y",
