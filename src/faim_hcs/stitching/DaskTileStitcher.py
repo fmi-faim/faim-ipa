@@ -50,7 +50,7 @@ class DaskTileStitcher:
             )
             for tile in self.tiles:
                 tile_bbox = BoundingBox.from_pos_and_shape(
-                    position=tile.position,
+                    position=tile.get_zyx_position(),
                     shape=(1,) + tile.shape,
                 )
                 if block_bbox.overlaps(tile_bbox):
