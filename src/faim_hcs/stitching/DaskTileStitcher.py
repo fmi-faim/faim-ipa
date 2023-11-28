@@ -5,8 +5,7 @@ import numpy as np
 from dask import array as da
 from dask.array.core import normalize_chunks
 
-from faim_hcs.stitching import stitching_utils
-from faim_hcs.stitching.BoundingBox import BoundingBox
+from faim_hcs.stitching import BoundingBox5D, stitching_utils
 from faim_hcs.stitching.Tile import Tile
 
 
@@ -21,8 +20,12 @@ class DaskTileStitcher:
         yx_chunk_shape: tuple[int, int],
         dtype: np.dtype = np.uint16,
     ):
-        self.tiles = stitching_utils.shift_to_origin(tiles)
-        self.chunk_shape = (1,) + yx_chunk_shape
+        self.tiles: list[Tile] = stitching_utils.shift_to_origin(tiles)
+        self.chunk_shape = (
+            1,
+            1,
+            1,
+        ) + yx_chunk_shape
         self.dtype = dtype
 
         self._shape = self._compute_output_shape()
@@ -44,14 +47,19 @@ class DaskTileStitcher:
         block_to_tile_map = {}
         for block_position in np.ndindex(self._n_chunks):
             block_to_tile_map[block_position] = []
-            block_bbox = BoundingBox.from_pos_and_shape(
+            block_bbox = BoundingBox5D.from_pos_and_shape(
                 position=tuple(block_position * np.array(self.chunk_shape)),
                 shape=self.chunk_shape,
             )
             for tile in self.tiles:
-                tile_bbox = BoundingBox.from_pos_and_shape(
-                    position=tile.get_zyx_position(),
-                    shape=(1,) + tile.shape,
+                tile_bbox = BoundingBox5D.from_pos_and_shape(
+                    position=tile.get_position(),
+                    shape=(
+                        1,
+                        1,
+                        1,
+                    )
+                    + tile.shape,
                 )
                 if block_bbox.overlaps(tile_bbox):
                     block_to_tile_map[block_position].append(tile)
@@ -64,7 +72,7 @@ class DaskTileStitcher:
         """
         tile_extents = []
         for tile in self.tiles:
-            tile_extents.append(tile.position + np.array((1,) + tile.shape))
+            tile_extents.append(tile.get_position() + np.array((1, 1, 1) + tile.shape))
         return tuple(np.max(tile_extents, axis=0))
 
     def get_stitched_dask_array(

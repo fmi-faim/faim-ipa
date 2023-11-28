@@ -55,8 +55,20 @@ class Tile(BaseModel):
     def __str__(self):
         return self.__repr__()
 
+    def get_yx_position(self) -> tuple[int, int]:
+        return self.position.y, self.position.x
+
     def get_zyx_position(self) -> tuple[int, int, int]:
         return self.position.z, self.position.y, self.position.x
+
+    def get_position(self) -> tuple[int, int, int, int, int]:
+        return (
+            self.position.time,
+            self.position.channel,
+            self.position.z,
+            self.position.y,
+            self.position.x,
+        )
 
     def load_data(self) -> ArrayLike:
         """
