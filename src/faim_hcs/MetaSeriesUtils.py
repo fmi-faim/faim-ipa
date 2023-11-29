@@ -11,6 +11,14 @@ from faim_hcs.UIntHistogram import UIntHistogram
 from faim_hcs.utils import rgb_to_hex, wavelength_to_rgb
 
 
+def extract_z_position(row: pd.Series) -> float:
+    if "z" in row.keys() and row["z"] is not None:
+        return int(row["z"])
+    else:
+        # ImageXpress starts counting at 1.
+        return 1
+
+
 def _build_ch_metadata(metaseries_ch_metadata: dict):
     """Build channel metadata from metaseries metadata."""
 

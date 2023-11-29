@@ -1,26 +1,34 @@
 import os
 import re
 from abc import ABC, abstractmethod
+from collections.abc import Iterable
+from enum import StrEnum
 from pathlib import Path
-from typing import Optional, Union
+from typing import Union
 
-import dask.array as da
-import numpy as np
 import pandas as pd
-from pydantic import BaseModel, NonNegativeInt, PositiveFloat, PositiveInt
 
 from faim_hcs.stitching import Tile
+
+
+class TileAlignmentOptions(StrEnum):
+    """Tile alignment options."""
+
+    STAGE_POSITION = "StageAlignment"
+    GRID = "GridAlignment"
 
 
 class PlateAcquisition(ABC):
     _acquisition_dir = None
     _files = None
-    wells = None
+    _alignment: TileAlignmentOptions = None
 
-    def __init__(self, acquisition_dir: Union[Path, str]) -> None:
+    def __init__(
+        self, acquisition_dir: Union[Path, str], alignment: TileAlignmentOptions
+    ) -> None:
         self._acquisition_dir = acquisition_dir
         self._files = self._parse_files()
-        self.wells = self._get_wells()
+        self._alignment = alignment
         super().__init__()
 
     def _parse_files(self) -> pd.DataFrame:
@@ -68,24 +76,30 @@ class PlateAcquisition(ABC):
         """Regular expression for matching the filename of the acquisition."""
         raise NotImplementedError()
 
-    def _get_wells(self) -> list["WellAcquisition"]:
-        """List of wells."""
-        return sorted(self._files["well"].unique())
-
     @abstractmethod
-    def well_acquisitions(self):
-        """Iterator over Well_Acquisition objects."""
+    def get_well_acquisitions(self) -> list["WellAcquisition"]:
+        """List of wells."""
         raise NotImplementedError()
+
+    def get_well_names(self) -> Iterable[str]:
+        for well in self.get_well_acquisitions():
+            yield well.name
 
 
 class WellAcquisition(ABC):
+    name: str = None
     _files = None
-    _positions: pd.DataFrame = None
-    _channel_metadata = None
+    _alignment: TileAlignmentOptions = None
+    _tiles = None
 
-    def __init__(self, files: pd.DataFrame, ch_metadata: pd.DataFrame) -> None:
+    def __init__(self, files: pd.DataFrame, alignment: TileAlignmentOptions) -> None:
+        assert (
+            files["well"].nunique() == 1
+        ), "WellAcquisition must contain files from a single well."
+        self.name = files["well"].iloc[0]
         self._files = files
-        self._channel_metadata = ch_metadata
+        self._alignment = alignment
+        self._tiles = self._align_tiles(tiles=self._parse_tiles())
         super().__init__()
 
     @abstractmethod
@@ -93,99 +107,47 @@ class WellAcquisition(ABC):
         """Parse all tiles in the well."""
         raise NotImplementedError()
 
-    @abstractmethod
-    def positions(self) -> pd.DataFrame:
-        """Table of stage positions corresponding to files.
+    def _align_tiles(self, tiles: list[Tile]) -> list[Tile]:
+        if self._alignment == TileAlignmentOptions.STAGE_POSITION:
+            from faim_hcs.alignment import StageAlignment
 
-        Dataframe columns:
-          * index
-          * x
-          * y
-          * [z]
-          * [units]
-        """
+            return StageAlignment(tiles=tiles).get_tiles()
 
-    def pixel_positions(self) -> np.ndarray:
-        """Positions of all fields in pixel coordinates.
+        if self._alignment == TileAlignmentOptions.GRID:
+            from faim_hcs.alignment import GridAlignment
 
-        The order corresponds to the order of fields,
-        i.e. the first dimension of read_array()
-        """
-        x_spacing = self._channel_metadata[0]["spatial-calibration-x"]
-        y_spacing = self._channel_metadata[0]["spatial-calibration-y"]
-        x_pos = self._positions["pos_x"] / x_spacing
-        y_pos = self._positions["pos_y"] / y_spacing
-        return np.array((y_pos, x_pos)).T
+            return GridAlignment(tiles=tiles).get_tiles()
 
-    def read_array(self) -> da.Array:
-        """Dask array in FC(Z)YX dimension order.
+        raise ValueError(f"Unknown alignment option: {self._alignment}")
 
-        The order of the field (dimension 0) corresponds to
-        the order of pixel_positions().
-        """
+    def get_tiles(self) -> list[Tile]:
+        """List of tiles."""
+        return self._tiles
 
-    @abstractmethod
-    def roi_tables(self) -> list[dict]:
-        """ROI tables corresponding to the fields in this well.
+    def get_row_col(self) -> tuple[str, str]:
+        return self.name[0], self.name[1:]
 
-        Contains:
-          * well_ROI_table
-          * FOV_ROI_table
+    def get_axes(self) -> list[str]:
+        if "z" in self._files.columns:
+            return ["c", "z", "y", "x"]
+        else:
+            return ["c", "y", "x"]
 
-        each with columns:
-          * x_micrometer
-          * y_micrometer
-          * z_micrometer
-          * len_x_micrometer
-          * len_y_micrometer
-          * len_z_micrometer
-        """
-
-
-class TileMetadata(BaseModel):
-    tile_size_x: PositiveInt
-    tile_size_y: PositiveInt
-
-
-class ChannelMetadata(BaseModel):
-    channel_index: Optional[NonNegativeInt]
-    channel_name: str
-    display_color: str
-    spatial_calibration_x: float
-    spatial_calibration_y: float
-    spatial_calibration_units: str
-    z_scaling: Optional[PositiveFloat]
-    unit: Optional[str]
-    wavelength: PositiveInt
-    exposure_time: PositiveFloat
-    exposure_time_unit: str
-    objective: str
-
-    def __init__(
-        self,
-        channel_index: Optional[NonNegativeInt],
-        channel_name: str,
-        display_color: str,
-        spatial_calibration_x: float,
-        spatial_calibration_y: float,
-        spatial_calibration_units: str,
-        z_scaling: Optional[PositiveFloat],
-        unit: Optional[str],
-        wavelength: PositiveInt,
-        exposure_time: PositiveFloat,
-        exposure_time_unit: str,
-        objective: str,
-    ):
-        super().__init__()
-        self.channel_index = channel_index
-        self.channel_name = channel_name
-        self.display_color = display_color
-        self.spatial_calibration_x = spatial_calibration_x
-        self.spatial_calibration_y = spatial_calibration_y
-        self.spatial_calibration_units = spatial_calibration_units
-        self.z_scaling = z_scaling
-        self.unit = unit
-        self.wavelength = wavelength
-        self.exposure_time = exposure_time
-        self.exposure_time_unit = exposure_time_unit
-        self.objective = objective
+    # TODO: Move in dedicated class.
+    # @abstractmethod
+    # def roi_tables(self) -> list[dict]:
+    #     """ROI tables corresponding to the fields in this well.
+    #
+    #     Contains:
+    #       * well_ROI_table
+    #       * FOV_ROI_table
+    #
+    #     each with columns:
+    #       * x_micrometer
+    #       * y_micrometer
+    #       * z_micrometer
+    #       * len_x_micrometer
+    #       * len_y_micrometer
+    #       * len_z_micrometer
+    #     """
+    #     raise NotImplementedError()

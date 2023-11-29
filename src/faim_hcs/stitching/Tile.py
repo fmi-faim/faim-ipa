@@ -1,8 +1,7 @@
 from typing import Optional
 
 from numpy._typing import ArrayLike
-from pydantic import NonNegativeInt
-from skimage.measure.fit import BaseModel
+from pydantic import BaseModel, NonNegativeInt
 from tifffile import imread
 
 
@@ -13,26 +12,11 @@ class TilePosition(BaseModel):
     y: int
     x: int
 
-    def __init__(
-        self,
-        time: Optional[NonNegativeInt],
-        channel: Optional[NonNegativeInt],
-        z: int,
-        y: int,
-        x: int,
-    ):
-        super().__init__()
-        self.time = time
-        self.channel = channel
-        self.z = z
-        self.y = y
-        self.x = x
-
     def __repr__(self):
         return f"TilePosition(time={self.time}, channel={self.channel}, z={self.z}, y={self.y}, x={self.x})"
 
 
-class Tile(BaseModel):
+class Tile:
     """
     A tile with a path to the image data, shape and position.
     """
