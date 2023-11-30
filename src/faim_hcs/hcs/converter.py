@@ -9,7 +9,7 @@ from ome_zarr.scale import Scaler
 from ome_zarr.writer import write_image, write_plate_metadata, write_well_metadata
 from pydantic import BaseModel
 
-from faim_hcs.io.acquisition import PlateAcquisition, TileAlignmentOptions
+from faim_hcs.io.acquisition import PlateAcquisition
 from faim_hcs.stitching import stitching_utils
 from faim_hcs.Zarr import PlateLayout, _get_row_cols
 
@@ -24,17 +24,14 @@ class NGFFPlate(BaseModel):
 
 class ConvertToNGFFPlate:
     _plate_acquisition: PlateAcquisition
-    _alignment: TileAlignmentOptions
     _ngff_plate: NGFFPlate
 
     def __init__(
         self,
         plate_acquisition: PlateAcquisition,
-        alignment: TileAlignmentOptions,
         ngff_plate: NGFFPlate,
     ):
         self._plate_acquisition = plate_acquisition
-        self._alignment = alignment
         self._ngff_plate = ngff_plate
 
     def _create_zarr_plate(self) -> zarr.Group:
@@ -50,7 +47,7 @@ class ConvertToNGFFPlate:
             plate,
             columns=cols,
             rows=rows,
-            wells=list(self._plate_acquisition.get_well_names()),
+            wells=[f"{w[0]}/{w[1:]}" for w in self._plate_acquisition.get_well_names()],
             name=self._ngff_plate.name,
             field_count=1,
         )
@@ -62,7 +59,7 @@ class ConvertToNGFFPlate:
 
         return plate
 
-    def run(self):
+    def run(self, max_layer: int = 3):
         plate = self._create_zarr_plate()
         for well_acquisition in self._plate_acquisition.get_well_acquisitions():
             row, col = well_acquisition.get_row_col()
@@ -92,5 +89,8 @@ class ConvertToNGFFPlate:
                     dimension_separator="/",
                     compressor=Blosc(cname="zstd", clevel=6, shuffle=Blosc.BITSHUFFLE),
                 ),
-                scaler=Scaler(max_layer=0),
+                scaler=Scaler(max_layer=max_layer),
+                coordinate_transformations=well_acquisition.get_coordinate_transformations(
+                    max_layer=max_layer
+                ),
             )
