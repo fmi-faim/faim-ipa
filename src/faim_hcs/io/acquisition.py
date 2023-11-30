@@ -2,7 +2,7 @@ import os
 import re
 from abc import ABC, abstractmethod
 from collections.abc import Iterable
-from enum import StrEnum
+from enum import Enum
 from pathlib import Path
 from typing import Any, Optional, Union
 
@@ -13,7 +13,7 @@ from faim_hcs.io.metadata import ChannelMetadata
 from faim_hcs.stitching import Tile
 
 
-class TileAlignmentOptions(StrEnum):
+class TileAlignmentOptions(Enum):
     """Tile alignment options."""
 
     STAGE_POSITION = "StageAlignment"
