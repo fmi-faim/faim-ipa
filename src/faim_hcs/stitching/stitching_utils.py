@@ -1,13 +1,13 @@
 from copy import copy
 
 import numpy as np
-from numpy._typing import ArrayLike
+from numpy._typing import NDArray
 from skimage.transform import EuclideanTransform, warp
 
 from faim_hcs.stitching.Tile import Tile, TilePosition
 
 
-def fuse_mean(warped_tiles: ArrayLike, warped_masks: ArrayLike) -> ArrayLike:
+def fuse_mean(warped_tiles: NDArray, warped_masks: NDArray) -> NDArray:
     """
     Fuse transformed tiles and compute the mean of the overlapping pixels.
 
@@ -23,13 +23,14 @@ def fuse_mean(warped_tiles: ArrayLike, warped_masks: ArrayLike) -> ArrayLike:
     Fused image.
     """
     weights = warped_masks.astype(np.float32)
-    weights = weights / weights.sum(axis=0)
+    denominator = weights.sum(axis=0)
+    weights = np.true_divide(weights, denominator, where=denominator != 0)
 
     fused_image = np.sum(warped_tiles * weights, axis=0)
     return fused_image.astype(warped_tiles.dtype)
 
 
-def fuse_sum(warped_tiles: ArrayLike, warped_masks: ArrayLike) -> ArrayLike:
+def fuse_sum(warped_tiles: NDArray, warped_masks: NDArray) -> NDArray:
     """
     Fuse transformed tiles and compute the sum of the overlapping pixels.
 
