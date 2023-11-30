@@ -1,6 +1,6 @@
 from typing import Optional
 
-from numpy._typing import ArrayLike
+from numpy._typing import ArrayLike, NDArray
 from pydantic import BaseModel, NonNegativeInt
 from tifffile import imread
 
@@ -24,12 +24,30 @@ class Tile:
     path: str
     shape: tuple[int, int]
     position: TilePosition
+    background_correction_matrix: Optional[NDArray] = None
+    illumination_correction_matrix: Optional[NDArray] = None
 
-    def __init__(self, path: str, shape: tuple[int, int], position: TilePosition):
+    def __init__(
+        self,
+        path: str,
+        shape: tuple[int, int],
+        position: TilePosition,
+        background_correction_matrix: Optional[NDArray] = None,
+        illumination_correction_matrix: Optional[NDArray] = None,
+    ):
         super().__init__()
         self.path = path
         self.shape = shape
         self.position = position
+        if background_correction_matrix is not None:
+            assert background_correction_matrix.ndim == 2, "Background must " "be 2D."
+            self.background_correction_matrix = background_correction_matrix
+
+        if illumination_correction_matrix is not None:
+            assert illumination_correction_matrix.ndim == 2, (
+                "Illumination " "correction matrix must be 2D."
+            )
+            self.illumination_correction_matrix = illumination_correction_matrix
 
     def __repr__(self):
         return (
@@ -62,4 +80,12 @@ class Tile:
         -------
         Image data
         """
-        return imread(self.path)
+        data = imread(self.path)
+        dtype = data.dtype
+        if self.background_correction_matrix is not None:
+            data = data - self.background_correction_matrix
+
+        if self.illumination_correction_matrix is not None:
+            data = data / self.illumination_correction_matrix
+
+        return data.astype(dtype=dtype)

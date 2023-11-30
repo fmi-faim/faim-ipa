@@ -9,10 +9,26 @@ from faim_hcs.stitching.Tile import TilePosition
 @pytest.fixture
 def tiles():
     tiles = [
-        Tile(path="path1", shape=(10, 10), position=TilePosition(0, 0, 0, 0, 0)),
-        Tile(path="path2", shape=(10, 10), position=TilePosition(0, 0, 0, 0, 10)),
-        Tile(path="path3", shape=(10, 10), position=TilePosition(0, 0, 0, 10, 0)),
-        Tile(path="path4", shape=(10, 10), position=TilePosition(0, 0, 0, 10, 10)),
+        Tile(
+            path="path1",
+            shape=(10, 10),
+            position=TilePosition(time=0, channel=0, z=0, y=0, x=0),
+        ),
+        Tile(
+            path="path2",
+            shape=(10, 10),
+            position=TilePosition(time=0, channel=0, z=0, y=0, x=10),
+        ),
+        Tile(
+            path="path3",
+            shape=(10, 10),
+            position=TilePosition(time=0, channel=0, z=0, y=10, x=0),
+        ),
+        Tile(
+            path="path4",
+            shape=(10, 10),
+            position=TilePosition(time=0, channel=0, z=0, y=10, x=10),
+        ),
     ]
 
     for i, tile in enumerate(tiles):
@@ -111,14 +127,26 @@ def test_stitch_exact(tiles):
 @pytest.fixture
 def overlapping_tiles():
     tiles = [
-        Tile(path="path1", shape=(10, 10), position=TilePosition(0, 0, 0, 0, 0)),
+        Tile(
+            path="path1",
+            shape=(10, 10),
+            position=TilePosition(time=0, channel=0, z=0, y=0, x=0),
+        ),
         Tile(
             path="path2",
             shape=(10, 10),
-            position=TilePosition(0, 0, 0, 0, 5),
+            position=TilePosition(time=0, channel=0, z=0, y=0, x=5),
         ),
-        Tile(path="path3", shape=(10, 10), position=TilePosition(0, 0, 0, 5, 0)),
-        Tile(path="path4", shape=(10, 10), position=TilePosition(0, 0, 0, 5, 5)),
+        Tile(
+            path="path3",
+            shape=(10, 10),
+            position=TilePosition(time=0, channel=0, z=0, y=5, x=0),
+        ),
+        Tile(
+            path="path4",
+            shape=(10, 10),
+            position=TilePosition(time=0, channel=0, z=0, y=5, x=5),
+        ),
     ]
     for i, tile in enumerate(tiles):
         tile.i = i
