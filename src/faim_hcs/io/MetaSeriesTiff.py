@@ -14,8 +14,9 @@ def load_metaseries_tiff_metadata(path: Path) -> tuple[ArrayLike, dict]:
     * spatial-calibration-x
     * spatial-calibration-y
     * spatial-calibration-units
-    * stage-position-x
-    * stage-position-y
+    * ImageXpress Micro X
+    * ImageXpress Micro Y
+    * ImageXpress Micro Z
     * z-position
     * _MagNA_
     * _MagSetting_
@@ -46,9 +47,9 @@ def load_metaseries_tiff_metadata(path: Path) -> tuple[ArrayLike, dict]:
             "spatial-calibration-x",
             "spatial-calibration-y",
             "spatial-calibration-units",
-            "stage-position-x",
-            "stage-position-y",
-            "z-position",
+            "ImageXpress Micro X",
+            "ImageXpress Micro Y",
+            "ImageXpress Micro Z",
             "_MagNA_",
             "_MagSetting_",
             "Exposure Time",
@@ -67,6 +68,13 @@ def load_metaseries_tiff_metadata(path: Path) -> tuple[ArrayLike, dict]:
             for k in plane_info
             if k in selected_keys or k.endswith("Intensity")
         }
+        metadata["stage-position-x"] = metadata["ImageXpress Micro X"]
+        metadata["stage-position-y"] = metadata["ImageXpress Micro Y"]
+        metadata["stage-position-z"] = metadata["ImageXpress Micro Z"]
+
+        metadata.pop("ImageXpress Micro X")
+        metadata.pop("ImageXpress Micro Y")
+        metadata.pop("ImageXpress Micro Z")
 
     return metadata
 

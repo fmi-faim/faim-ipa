@@ -33,7 +33,7 @@ def _get_row_cols(layout: Union[PlateLayout, int]) -> tuple[list[str], list[str]
     """Return rows and columns for requested layout."""
     if layout == PlateLayout.I96:
         rows = ["A", "B", "C", "D", "E", "F", "G", "H"]
-        cols = [str(i) for i in range(1, 13)]
+        cols = [str(i).zfill(2) for i in range(1, 13)]
         assert len(rows) * len(cols) == 96
     elif layout == PlateLayout.I384:
         rows = [
@@ -54,7 +54,7 @@ def _get_row_cols(layout: Union[PlateLayout, int]) -> tuple[list[str], list[str]
             "O",
             "P",
         ]
-        cols = [str(i) for i in range(1, 25)]
+        cols = [str(i).zfill(2) for i in range(1, 25)]
         assert len(rows) * len(cols) == 384
     else:
         raise NotImplementedError(f"{layout} layout not supported.")
@@ -93,7 +93,7 @@ def _create_zarr_plate(
         plate,
         columns=cols,
         rows=rows,
-        wells=[f"{w[0]}/{str(int(w[1:]))}" for w in files["well"].unique()],
+        wells=[f"{w[0]}/{str(int(w[1:])).zfill(2)}" for w in files["well"].unique()],
         name=name,
         field_count=1,
     )

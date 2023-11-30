@@ -80,7 +80,7 @@ def _build_ch_metadata(metaseries_ch_metadata: dict):
 
 
 def _z_metadata(metaseries_ch_metadata: dict):
-    return {"z-position": metaseries_ch_metadata["z-position"]}
+    return {"z-position": metaseries_ch_metadata["stage-position-z"]}
 
 
 def verify_integrity(field_metadata: list[dict]):

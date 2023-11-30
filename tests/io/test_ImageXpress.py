@@ -1,13 +1,15 @@
 from pathlib import Path
 
 import pytest
+from numpy.testing import assert_almost_equal
 
+from faim_hcs.hcs import imagexpress
+from faim_hcs.hcs.imagexpress import SinglePlaneAcquisition, StackAcquisition
 from faim_hcs.io.acquisition import (
     PlateAcquisition,
     TileAlignmentOptions,
     WellAcquisition,
 )
-from faim_hcs.io.ImageXpress import ImageXpressPlateAcquisition
 
 
 @pytest.fixture
@@ -16,20 +18,19 @@ def acquisition_dir():
 
 
 @pytest.fixture
-def top_level_acquisition(acquisition_dir):
-    return ImageXpressPlateAcquisition(
-        acquisition_dir, alignment=TileAlignmentOptions.GRID, mode="top-level"
-    )
+def single_plane_acquisition(acquisition_dir):
+    return SinglePlaneAcquisition(acquisition_dir, alignment=TileAlignmentOptions.GRID)
 
 
-def test_top_level_acquistion(top_level_acquisition: PlateAcquisition):
-    wells = top_level_acquisition.get_well_acquisitions()
+def test_single_plane_acquistion(single_plane_acquisition: PlateAcquisition):
+    wells = single_plane_acquisition.get_well_acquisitions()
 
     assert wells is not None
     assert len(wells) == 2
-    assert len(top_level_acquisition._files) == 12
+    # MIPs: 2 wells * 2 fields * 3 channels = 12 files
+    assert len(single_plane_acquisition._files) == 12
 
-    channels = top_level_acquisition.get_channel_metadata()
+    channels = single_plane_acquisition.get_channel_metadata()
     assert len(channels) == 3
     ch = channels["w1"]
     assert ch.channel_index == 0
@@ -42,7 +43,7 @@ def test_top_level_acquistion(top_level_acquisition: PlateAcquisition):
     assert ch.spatial_calibration_x == 1.3668
     assert ch.spatial_calibration_y == 1.3668
     assert ch.wavelength == "cyan"
-    assert ch.z_scaling is None
+    assert ch.z_spacing is None
 
     ch = channels["w2"]
     assert ch.channel_index == 1
@@ -55,7 +56,7 @@ def test_top_level_acquistion(top_level_acquisition: PlateAcquisition):
     assert ch.spatial_calibration_x == 1.3668
     assert ch.spatial_calibration_y == 1.3668
     assert ch.wavelength == "cyan"
-    assert ch.z_scaling is None
+    assert ch.z_spacing is None
 
     ch = channels["w3"]
     assert ch.channel_index == 2
@@ -68,9 +69,9 @@ def test_top_level_acquistion(top_level_acquisition: PlateAcquisition):
     assert ch.spatial_calibration_x == 1.3668
     assert ch.spatial_calibration_y == 1.3668
     assert ch.wavelength == "cyan"
-    assert ch.z_scaling is None
+    assert ch.z_spacing is None
 
-    for well in top_level_acquisition.get_well_acquisitions():
+    for well in single_plane_acquisition.get_well_acquisitions():
         assert isinstance(well, WellAcquisition)
         assert len(well.get_tiles()) == 6
         for tile in well.get_tiles():
@@ -83,21 +84,24 @@ def test_top_level_acquistion(top_level_acquisition: PlateAcquisition):
 
 
 @pytest.fixture
-def z_step_acquisition(acquisition_dir):
-    return ImageXpressPlateAcquisition(
-        acquisition_dir, alignment=TileAlignmentOptions.GRID, mode="z-step"
-    )
+def stack_acquisition(acquisition_dir):
+    return StackAcquisition(acquisition_dir, alignment=TileAlignmentOptions.GRID)
 
 
-def test_z_step_acquisition(z_step_acquisition: PlateAcquisition):
-    wells = z_step_acquisition.get_well_acquisitions()
+def test_stack_acquistion(stack_acquisition: PlateAcquisition):
+    wells = stack_acquisition.get_well_acquisitions()
 
     assert wells is not None
     assert len(wells) == 2
-    assert len(z_step_acquisition._files) == 96
+    # Full Stacks: 2 wells * 2 fields * 2 channels * 10 planes = 80 files
+    # Single plane in stack: 2 wells * 2 fields * 1 channel * 1 plane = 4 files
+    # Total of 84 files.
+    # There are additionally 12 MIP files in the directory, but these are
+    # ignored in this setup.
+    assert len(stack_acquisition._files) == 84
 
-    channels = z_step_acquisition.get_channel_metadata()
-    assert len(channels) == 4
+    channels = stack_acquisition.get_channel_metadata()
+    assert len(channels) == 3
     ch = channels["w1"]
     assert ch.channel_index == 0
     assert ch.channel_name == "w1"
@@ -109,7 +113,7 @@ def test_z_step_acquisition(z_step_acquisition: PlateAcquisition):
     assert ch.spatial_calibration_x == 1.3668
     assert ch.spatial_calibration_y == 1.3668
     assert ch.wavelength == "cyan"
-    assert ch.z_scaling == 5.0
+    assert_almost_equal(ch.z_spacing, 5.0, decimal=4)
 
     ch = channels["w2"]
     assert ch.channel_index == 1
@@ -122,20 +126,7 @@ def test_z_step_acquisition(z_step_acquisition: PlateAcquisition):
     assert ch.spatial_calibration_x == 1.3668
     assert ch.spatial_calibration_y == 1.3668
     assert ch.wavelength == "cyan"
-    assert ch.z_scaling == 5.0
-
-    ch = channels["w3"]
-    assert ch.channel_index == 2
-    assert ch.channel_name == "w3"
-    assert ch.display_color == "73ff00"
-    assert ch.exposure_time == 15.0
-    assert ch.exposure_time_unit == "ms"
-    assert ch.objective == "20X Plan Apo Lambda"
-    assert ch.spatial_calibration_units == "um"
-    assert ch.spatial_calibration_x == 1.3668
-    assert ch.spatial_calibration_y == 1.3668
-    assert ch.wavelength == "cyan"
-    assert ch.z_scaling is None
+    assert_almost_equal(ch.z_spacing, 5.0, decimal=4)
 
     ch = channels["w4"]
     assert ch.channel_index == 3
@@ -148,11 +139,98 @@ def test_z_step_acquisition(z_step_acquisition: PlateAcquisition):
     assert ch.spatial_calibration_x == 1.3668
     assert ch.spatial_calibration_y == 1.3668
     assert ch.wavelength == "cyan"
-    assert ch.z_scaling is None
+    assert_almost_equal(ch.z_spacing, 5.0, decimal=4)
 
-    for well in z_step_acquisition.get_well_acquisitions():
+    for well in stack_acquisition.get_well_acquisitions():
         assert isinstance(well, WellAcquisition)
-        assert len(well.get_tiles()) == 48
+        assert len(well.get_tiles()) == 42
+        for tile in well.get_tiles():
+            assert tile.position.time == 0
+            assert tile.position.channel in [0, 1, 3]
+            assert tile.position.channel not in [4]
+            assert tile.position.z in [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+            assert tile.position.y in [0]
+            assert tile.position.x in [0, 512]
+            assert tile.shape == (512, 512)
+
+
+@pytest.fixture
+def mixed_acquisition(acquisition_dir):
+    return imagexpress.MixedAcquisition(
+        acquisition_dir,
+        alignment=TileAlignmentOptions.GRID,
+    )
+
+
+def test_mixed_acquisition(mixed_acquisition: PlateAcquisition):
+    wells = mixed_acquisition.get_well_acquisitions()
+
+    assert wells is not None
+    assert len(wells) == 2
+    # Stacks: 2 wells * 2 fields * 2 channels * 10 z-steps = 80 files
+    # Single Plane: 2 wells * 2 fields * 1 channel = 4 files
+    # MIP: 2 wells * 2 fields * 1 channel = 4 files
+    # There are additionally 8 files for the MIPs of the stacks
+    # (2 wells * 2 fields * 2 channels). But these are ignored.
+    assert len(mixed_acquisition._files) == 80 + 4 + 4
+
+    channels = mixed_acquisition.get_channel_metadata()
+    assert len(channels) == 4
+    ch = channels["w1"]
+    assert ch.channel_index == 0
+    assert ch.channel_name == "w1"
+    assert ch.display_color == "73ff00"
+    assert ch.exposure_time == 15.0
+    assert ch.exposure_time_unit == "ms"
+    assert ch.objective == "20X Plan Apo Lambda"
+    assert ch.spatial_calibration_units == "um"
+    assert ch.spatial_calibration_x == 1.3668
+    assert ch.spatial_calibration_y == 1.3668
+    assert ch.wavelength == "cyan"
+    assert_almost_equal(ch.z_spacing, 5.0, decimal=4)
+
+    ch = channels["w2"]
+    assert ch.channel_index == 1
+    assert ch.channel_name == "w2"
+    assert ch.display_color == "73ff00"
+    assert ch.exposure_time == 15.0
+    assert ch.exposure_time_unit == "ms"
+    assert ch.objective == "20X Plan Apo Lambda"
+    assert ch.spatial_calibration_units == "um"
+    assert ch.spatial_calibration_x == 1.3668
+    assert ch.spatial_calibration_y == 1.3668
+    assert ch.wavelength == "cyan"
+    assert_almost_equal(ch.z_spacing, 5.0, decimal=4)
+
+    ch = channels["w3"]
+    assert ch.channel_index == 2
+    assert ch.channel_name == "w3"
+    assert ch.display_color == "73ff00"
+    assert ch.exposure_time == 15.0
+    assert ch.exposure_time_unit == "ms"
+    assert ch.objective == "20X Plan Apo Lambda"
+    assert ch.spatial_calibration_units == "um"
+    assert ch.spatial_calibration_x == 1.3668
+    assert ch.spatial_calibration_y == 1.3668
+    assert ch.wavelength == "cyan"
+    assert_almost_equal(ch.z_spacing, 5.0, decimal=4)
+
+    ch = channels["w4"]
+    assert ch.channel_index == 3
+    assert ch.channel_name == "w4"
+    assert ch.display_color == "73ff00"
+    assert ch.exposure_time == 15.0
+    assert ch.exposure_time_unit == "ms"
+    assert ch.objective == "20X Plan Apo Lambda"
+    assert ch.spatial_calibration_units == "um"
+    assert ch.spatial_calibration_x == 1.3668
+    assert ch.spatial_calibration_y == 1.3668
+    assert ch.wavelength == "cyan"
+    assert_almost_equal(ch.z_spacing, 5.0, decimal=4)
+
+    for well in mixed_acquisition.get_well_acquisitions():
+        assert isinstance(well, WellAcquisition)
+        assert len(well.get_tiles()) == 44
         for tile in well.get_tiles():
             assert tile.position.time == 0
             assert tile.position.channel in [0, 1, 2, 3]

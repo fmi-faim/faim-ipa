@@ -4,10 +4,12 @@ from abc import ABC, abstractmethod
 from collections.abc import Iterable
 from enum import StrEnum
 from pathlib import Path
-from typing import Union
+from typing import Any, Optional, Union
 
 import pandas as pd
+from numpy._typing import NDArray
 
+from faim_hcs.io.metadata import ChannelMetadata
 from faim_hcs.stitching import Tile
 
 
@@ -81,6 +83,11 @@ class PlateAcquisition(ABC):
         """List of wells."""
         raise NotImplementedError()
 
+    @abstractmethod
+    def get_channel_metadata(self) -> dict[str, ChannelMetadata]:
+        """Channel metadata."""
+        raise NotImplementedError()
+
     def get_well_names(self) -> Iterable[str]:
         for well in self.get_well_acquisitions():
             yield well.name
@@ -90,15 +97,25 @@ class WellAcquisition(ABC):
     name: str = None
     _files = None
     _alignment: TileAlignmentOptions = None
+    _background_correction_matrices: Optional[dict[str, NDArray]] = None
+    _illumincation_correction_matrices: Optional[dict[str, NDArray]] = None
     _tiles = None
 
-    def __init__(self, files: pd.DataFrame, alignment: TileAlignmentOptions) -> None:
+    def __init__(
+        self,
+        files: pd.DataFrame,
+        alignment: TileAlignmentOptions,
+        background_correction_matrices: Optional[dict[str, NDArray]] = None,
+        illumination_correction_matrices: Optional[dict[str, NDArray]] = None,
+    ) -> None:
         assert (
             files["well"].nunique() == 1
         ), "WellAcquisition must contain files from a single well."
         self.name = files["well"].iloc[0]
         self._files = files
         self._alignment = alignment
+        self._background_correction_matrices = background_correction_matrices
+        self._illumincation_correction_matrices = illumination_correction_matrices
         self._tiles = self._align_tiles(tiles=self._parse_tiles())
         super().__init__()
 
@@ -132,6 +149,47 @@ class WellAcquisition(ABC):
             return ["c", "z", "y", "x"]
         else:
             return ["c", "y", "x"]
+
+    @abstractmethod
+    def get_yx_spacing(self) -> tuple[float, float]:
+        raise NotImplementedError()
+
+    @abstractmethod
+    def get_z_spacing(self) -> Optional[float]:
+        raise NotImplementedError()
+
+    def get_coordinate_transformations(self, max_layer: int) -> list[dict[str, Any]]:
+        transformations = []
+        for s in range(max_layer + 1):
+            if self.get_z_spacing() is not None:
+                transformations.append(
+                    [
+                        {
+                            "scale": [
+                                1.0,
+                                self.get_z_spacing(),
+                                self.get_yx_spacing()[0] * 2**s,
+                                self.get_yx_spacing()[1] * 2**s,
+                            ],
+                            "type": "scale",
+                        }
+                    ]
+                )
+            else:
+                transformations.append(
+                    [
+                        {
+                            "scale": [
+                                1.0,
+                                self.get_yx_spacing()[0] * 2**s,
+                                self.get_yx_spacing()[1] * 2**s,
+                            ],
+                            "type": "scale",
+                        }
+                    ]
+                )
+
+        return transformations
 
     # TODO: Move in dedicated class.
     # @abstractmethod
