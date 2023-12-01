@@ -165,7 +165,9 @@ class WellAcquisition(ABC):
     def get_z_spacing(self) -> Optional[float]:
         raise NotImplementedError()
 
-    def get_coordinate_transformations(self, max_layer: int) -> list[dict[str, Any]]:
+    def get_coordinate_transformations(
+        self, max_layer: int, yx_binning: int
+    ) -> list[dict[str, Any]]:
         transformations = []
         for s in range(max_layer + 1):
             if self.get_z_spacing() is not None:
@@ -175,8 +177,8 @@ class WellAcquisition(ABC):
                             "scale": [
                                 1.0,
                                 self.get_z_spacing(),
-                                self.get_yx_spacing()[0] * 2**s,
-                                self.get_yx_spacing()[1] * 2**s,
+                                self.get_yx_spacing()[0] * yx_binning * 2**s,
+                                self.get_yx_spacing()[1] * yx_binning * 2**s,
                             ],
                             "type": "scale",
                         }
@@ -188,8 +190,8 @@ class WellAcquisition(ABC):
                         {
                             "scale": [
                                 1.0,
-                                self.get_yx_spacing()[0] * 2**s,
-                                self.get_yx_spacing()[1] * 2**s,
+                                self.get_yx_spacing()[0] * yx_binning * 2**s,
+                                self.get_yx_spacing()[1] * yx_binning * 2**s,
                             ],
                             "type": "scale",
                         }

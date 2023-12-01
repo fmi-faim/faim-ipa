@@ -23,7 +23,11 @@ def main():
         ),
     )
 
-    converter.run()
+    converter.run(
+        yx_binning=2,
+        chunks=(10, 512, 512),
+        max_layer=2,
+    )
 
 
 if __name__ == "__main__":

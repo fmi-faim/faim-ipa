@@ -1,6 +1,8 @@
 import os
 from os.path import join
+from typing import Optional
 
+import dask.array as da
 import numpy as np
 import zarr
 from numcodecs import Blosc
@@ -59,7 +61,16 @@ class ConvertToNGFFPlate:
 
         return plate
 
-    def run(self, max_layer: int = 3):
+    def run(
+        self,
+        yx_binning: int = 1,
+        chunks: tuple[int, int, Optional[int]] = (2048, 2048),
+        max_layer: int = 3,
+    ):
+        assert (
+            isinstance(yx_binning, int) and yx_binning >= 1
+        ), "yx_binning must be an integer >= 1."
+        assert 2 <= len(chunks) <= 3, "Chunks must be 2D or 3D."
         plate = self._create_zarr_plate()
         for well_acquisition in self._plate_acquisition.get_well_acquisitions():
             row, col = well_acquisition.get_row_col()
@@ -72,7 +83,7 @@ class ConvertToNGFFPlate:
 
             stitcher = DaskTileStitcher(
                 tiles=well_acquisition.get_tiles(),
-                yx_chunk_shape=(2048, 2048),
+                yx_chunk_shape=(chunks[-2], chunks[-1]),
                 dtype=np.uint16,
             )
 
@@ -81,16 +92,58 @@ class ConvertToNGFFPlate:
                 fuse_func=stitching_utils.fuse_mean,
             )
 
+            if yx_binning > 1:
+                output_da = da.coarsen(
+                    reduction=self._mean_cast_to(image_da.dtype),
+                    x=image_da,
+                    axes={
+                        0: 1,
+                        1: 1,
+                        2: 1,
+                        3: yx_binning,
+                        4: yx_binning,
+                    },
+                    trim_excess=False,
+                ).squeeze()
+            else:
+                output_da = image_da.squeeze()
+
             write_image(
-                image=image_da.squeeze(),
+                image=output_da,
                 group=well_group["0"],
                 axes=well_acquisition.get_axes(),
+                chunks=self._out_chunks(output_da.shape, chunks),
                 storage_options=dict(
                     dimension_separator="/",
                     compressor=Blosc(cname="zstd", clevel=6, shuffle=Blosc.BITSHUFFLE),
                 ),
                 scaler=Scaler(max_layer=max_layer),
                 coordinate_transformations=well_acquisition.get_coordinate_transformations(
-                    max_layer=max_layer
+                    max_layer=max_layer,
+                    yx_binning=yx_binning,
                 ),
             )
+
+    @staticmethod
+    def _mean_cast_to(target_dtype):
+        def _mean(
+            a,
+            axis=None,
+            dtype=None,
+            out=None,
+            keepdims=np._NoValue,
+            *,
+            where=np._NoValue,
+        ):
+            return np.mean(
+                a=a, axis=axis, dtype=dtype, out=out, keepdims=keepdims, where=where
+            ).astype(target_dtype)
+
+        return _mean
+
+    @staticmethod
+    def _out_chunks(shape, chunks):
+        if len(shape) == len(chunks):
+            return chunks
+        else:
+            return (1,) * (len(shape) - len(chunks)) + chunks
