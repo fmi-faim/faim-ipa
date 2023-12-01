@@ -1,7 +1,14 @@
 from pathlib import Path
 from typing import Optional, Union
 
-from faim_hcs.hcs.acquisition import PlateAcquisition, TileAlignmentOptions
+import pandas as pd
+
+from faim_hcs.hcs.acquisition import (
+    PlateAcquisition,
+    TileAlignmentOptions,
+    WellAcquisition,
+)
+from faim_hcs.io.metadata import ChannelMetadata
 
 
 class StackAcquistion(PlateAcquisition):
@@ -18,3 +25,12 @@ class StackAcquistion(PlateAcquisition):
             background_correction_matrices=background_correction_matrices,
             illumination_correction_matrices=illumination_correction_matrices,
         )
+
+    def get_channel_metadata(self) -> dict[str, ChannelMetadata]:
+        pass
+
+    def get_well_acquisitions(self) -> list[WellAcquisition]:
+        pass
+
+    def _parse_files(self) -> pd.DataFrame:
+        pass

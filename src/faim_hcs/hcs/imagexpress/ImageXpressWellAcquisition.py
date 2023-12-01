@@ -26,7 +26,7 @@ class ImageXpressWellAcquisition(WellAcquisition):
             illumination_correction_matrices=illumination_correction_matrices,
         )
 
-    def _parse_tiles(self) -> list[Tile]:
+    def _assemble_tiles(self) -> list[Tile]:
         tiles = []
         for i, row in self._files.iterrows():
             file = row["path"]
@@ -75,3 +75,9 @@ class ImageXpressWellAcquisition(WellAcquisition):
 
     def get_z_spacing(self) -> Optional[float]:
         return self._z_spacing
+
+    def get_axes(self) -> list[str]:
+        if "z" in self._files.columns:
+            return ["c", "z", "y", "x"]
+        else:
+            return ["c", "y", "x"]

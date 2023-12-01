@@ -87,11 +87,11 @@ class WellAcquisition(ABC):
         self._alignment = alignment
         self._background_correction_matrices = background_correction_matrices
         self._illumincation_correction_matrices = illumination_correction_matrices
-        self._tiles = self._align_tiles(tiles=self._parse_tiles())
+        self._tiles = self._align_tiles(tiles=self._assemble_tiles())
         super().__init__()
 
     @abstractmethod
-    def _parse_tiles(self) -> list[Tile]:
+    def _assemble_tiles(self) -> list[Tile]:
         """Parse all tiles in the well."""
         raise NotImplementedError()
 
@@ -115,11 +115,9 @@ class WellAcquisition(ABC):
     def get_row_col(self) -> tuple[str, str]:
         return self.name[0], self.name[1:]
 
+    @abstractmethod
     def get_axes(self) -> list[str]:
-        if "z" in self._files.columns:
-            return ["c", "z", "y", "x"]
-        else:
-            return ["c", "y", "x"]
+        raise NotImplementedError()
 
     @abstractmethod
     def get_yx_spacing(self) -> tuple[float, float]:
