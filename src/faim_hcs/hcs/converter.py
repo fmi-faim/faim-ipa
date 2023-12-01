@@ -73,40 +73,11 @@ class ConvertToNGFFPlate:
         assert 2 <= len(chunks) <= 3, "Chunks must be 2D or 3D."
         plate = self._create_zarr_plate()
         for well_acquisition in self._plate_acquisition.get_well_acquisitions():
-            row, col = well_acquisition.get_row_col()
-            well_group = plate.require_group(row).require_group(col)
+            well_group = self._create_well_group(plate, well_acquisition)
 
-            well_group.create_group("0")
-            write_well_metadata(well_group, [{"path": "0"}])
+            stitched_well_da = self._stitch_well_image(chunks, well_acquisition)
 
-            from faim_hcs.stitching import DaskTileStitcher
-
-            stitcher = DaskTileStitcher(
-                tiles=well_acquisition.get_tiles(),
-                yx_chunk_shape=(chunks[-2], chunks[-1]),
-                dtype=np.uint16,
-            )
-
-            image_da = stitcher.get_stitched_dask_array(
-                warp_func=stitching_utils.translate_tiles_2d,
-                fuse_func=stitching_utils.fuse_mean,
-            )
-
-            if yx_binning > 1:
-                output_da = da.coarsen(
-                    reduction=self._mean_cast_to(image_da.dtype),
-                    x=image_da,
-                    axes={
-                        0: 1,
-                        1: 1,
-                        2: 1,
-                        3: yx_binning,
-                        4: yx_binning,
-                    },
-                    trim_excess=False,
-                ).squeeze()
-            else:
-                output_da = image_da.squeeze()
+            output_da = self._bin_yx(stitched_well_da, yx_binning)
 
             write_image(
                 image=output_da,
@@ -123,6 +94,45 @@ class ConvertToNGFFPlate:
                     yx_binning=yx_binning,
                 ),
             )
+
+    def _bin_yx(self, image_da, yx_binning):
+        if yx_binning > 1:
+            output_da = da.coarsen(
+                reduction=self._mean_cast_to(image_da.dtype),
+                x=image_da,
+                axes={
+                    0: 1,
+                    1: 1,
+                    2: 1,
+                    3: yx_binning,
+                    4: yx_binning,
+                },
+                trim_excess=False,
+            ).squeeze()
+        else:
+            output_da = image_da.squeeze()
+        return output_da
+
+    def _stitch_well_image(self, chunks, well_acquisition):
+        from faim_hcs.stitching import DaskTileStitcher
+
+        stitcher = DaskTileStitcher(
+            tiles=well_acquisition.get_tiles(),
+            yx_chunk_shape=(chunks[-2], chunks[-1]),
+            dtype=np.uint16,
+        )
+        image_da = stitcher.get_stitched_dask_array(
+            warp_func=stitching_utils.translate_tiles_2d,
+            fuse_func=stitching_utils.fuse_mean,
+        )
+        return image_da
+
+    def _create_well_group(self, plate, well_acquisition):
+        row, col = well_acquisition.get_row_col()
+        well_group = plate.require_group(row).require_group(col)
+        well_group.create_group("0")
+        write_well_metadata(well_group, [{"path": "0"}])
+        return well_group
 
     @staticmethod
     def _mean_cast_to(target_dtype):
