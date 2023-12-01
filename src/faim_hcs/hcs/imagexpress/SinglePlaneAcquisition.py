@@ -1,6 +1,6 @@
 import re
 from pathlib import Path
-from typing import Union
+from typing import Optional, Union
 
 from faim_hcs.io.acquisition import (
     PlateAcquisition,
@@ -17,8 +17,15 @@ class SinglePlaneAcquisition(PlateAcquisition):
         self,
         acquisition_dir: Union[Path, str],
         alignment: TileAlignmentOptions,
+        background_correction_matrices: Optional[dict[str, Union[Path, str]]] = None,
+        illumination_correction_matrices: Optional[dict[str, Union[Path, str]]] = None,
     ):
-        super().__init__(acquisition_dir=acquisition_dir, alignment=alignment)
+        super().__init__(
+            acquisition_dir=acquisition_dir,
+            alignment=alignment,
+            background_correction_matrices=background_correction_matrices,
+            illumination_correction_matrices=illumination_correction_matrices,
+        )
 
     def _get_root_re(self) -> re.Pattern:
         return re.compile(r".*[\/\\](?P<date>\d{4}-\d{2}-\d{2})[\/\\](?P<acq_id>\d+)")

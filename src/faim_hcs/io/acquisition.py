@@ -7,7 +7,6 @@ from pathlib import Path
 from typing import Any, Optional, Union
 
 import pandas as pd
-from numpy._typing import NDArray
 
 from faim_hcs.io.metadata import ChannelMetadata
 from faim_hcs.stitching import Tile
@@ -24,13 +23,21 @@ class PlateAcquisition(ABC):
     _acquisition_dir = None
     _files = None
     _alignment: TileAlignmentOptions = None
+    _background_correction_matrices: Optional[dict[str, Union[Path, str]]]
+    _illumination_correction_matrices: Optional[dict[str, Union[Path, str]]]
 
     def __init__(
-        self, acquisition_dir: Union[Path, str], alignment: TileAlignmentOptions
+        self,
+        acquisition_dir: Union[Path, str],
+        alignment: TileAlignmentOptions,
+        background_correction_matrices: Optional[dict[str, Union[Path, str]]],
+        illumination_correction_matrices: Optional[dict[str, Union[Path, str]]],
     ) -> None:
         self._acquisition_dir = acquisition_dir
         self._files = self._parse_files()
         self._alignment = alignment
+        self._background_correction_matrices = background_correction_matrices
+        self._illumination_correction_matrices = illumination_correction_matrices
         super().__init__()
 
     def _parse_files(self) -> pd.DataFrame:
@@ -97,16 +104,16 @@ class WellAcquisition(ABC):
     name: str = None
     _files = None
     _alignment: TileAlignmentOptions = None
-    _background_correction_matrices: Optional[dict[str, NDArray]] = None
-    _illumincation_correction_matrices: Optional[dict[str, NDArray]] = None
+    _background_correction_matrices: Optional[dict[str, Union[Path, str]]]
+    _illumincation_correction_matrices: Optional[dict[str, Union[Path, str]]]
     _tiles = None
 
     def __init__(
         self,
         files: pd.DataFrame,
         alignment: TileAlignmentOptions,
-        background_correction_matrices: Optional[dict[str, NDArray]] = None,
-        illumination_correction_matrices: Optional[dict[str, NDArray]] = None,
+        background_correction_matrices: Optional[dict[str, Union[Path, str]]],
+        illumination_correction_matrices: Optional[dict[str, Union[Path, str]]],
     ) -> None:
         assert (
             files["well"].nunique() == 1

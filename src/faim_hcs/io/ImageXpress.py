@@ -1,7 +1,7 @@
-from typing import Optional
+from pathlib import Path
+from typing import Optional, Union
 
 import pandas as pd
-from numpy._typing import NDArray
 
 from faim_hcs.io.acquisition import TileAlignmentOptions, WellAcquisition
 from faim_hcs.io.MetaSeriesTiff import load_metaseries_tiff_metadata
@@ -15,8 +15,8 @@ class ImageXpressWellAcquisition(WellAcquisition):
         files: pd.DataFrame,
         alignment: TileAlignmentOptions,
         z_spacing: Optional[float],
-        background_correction_matrices: dict[str, Optional[NDArray]] = None,
-        illumination_correction_matrices: dict[Optional[NDArray]] = None,
+        background_correction_matrices: dict[str, Union[Path, str]] = None,
+        illumination_correction_matrices: dict[str, Union[Path, str]] = None,
     ) -> None:
         self._z_spacing = z_spacing
         super().__init__(
@@ -63,8 +63,8 @@ class ImageXpressWellAcquisition(WellAcquisition):
                             / metadata["spatial-calibration-x"]
                         ),
                     ),
-                    background_correction_matrix=bgcm,
-                    illumination_correction_matrix=icm,
+                    background_correction_matrix_path=bgcm,
+                    illumination_correction_matrix_path=icm,
                 )
             )
         return tiles

@@ -70,6 +70,8 @@ class GridAlignment(AbstractAlignment):
                                     y=y_pos * tile_shape[0],
                                     x=x_pos * tile_shape[1],
                                 ),
+                                background_correction_matrix_path=unaligned_tile.background_correction_matrix_path,
+                                illumination_correction_matrix_path=unaligned_tile.illumination_correction_matrix_path,
                             )
                         )
 

@@ -1,6 +1,8 @@
-from typing import Optional
+from pathlib import Path
+from typing import Optional, Union
 
-from numpy._typing import ArrayLike, NDArray
+import numpy as np
+from numpy._typing import NDArray
 from pydantic import BaseModel, NonNegativeInt
 from tifffile import imread
 
@@ -24,30 +26,23 @@ class Tile:
     path: str
     shape: tuple[int, int]
     position: TilePosition
-    background_correction_matrix: Optional[NDArray] = None
-    illumination_correction_matrix: Optional[NDArray] = None
+    background_correction_matrix_path: Optional[Union[Path, str]] = None
+    illumination_correction_matrix_path: Optional[Union[Path, str]] = None
 
     def __init__(
         self,
         path: str,
         shape: tuple[int, int],
         position: TilePosition,
-        background_correction_matrix: Optional[NDArray] = None,
-        illumination_correction_matrix: Optional[NDArray] = None,
+        background_correction_matrix_path: Optional[Union[Path, str]] = None,
+        illumination_correction_matrix_path: Optional[Union[Path, str]] = None,
     ):
         super().__init__()
         self.path = path
         self.shape = shape
         self.position = position
-        if background_correction_matrix is not None:
-            assert background_correction_matrix.ndim == 2, "Background must " "be 2D."
-            self.background_correction_matrix = background_correction_matrix
-
-        if illumination_correction_matrix is not None:
-            assert illumination_correction_matrix.ndim == 2, (
-                "Illumination " "correction matrix must be 2D."
-            )
-            self.illumination_correction_matrix = illumination_correction_matrix
+        self.background_correction_matrix_path = background_correction_matrix_path
+        self.illumination_correction_matrix_path = illumination_correction_matrix_path
 
     def __repr__(self):
         return (
@@ -72,7 +67,7 @@ class Tile:
             self.position.x,
         )
 
-    def load_data(self) -> ArrayLike:
+    def load_data(self) -> NDArray:
         """
         Load the image data from the path.
 
@@ -82,10 +77,22 @@ class Tile:
         """
         data = imread(self.path)
         dtype = data.dtype
-        if self.background_correction_matrix is not None:
-            data = data - self.background_correction_matrix
+        if self.background_correction_matrix_path is not None:
+            bgcm = imread(self.background_correction_matrix_path)
+            assert bgcm.shape == data.shape, (
+                f"Background correction matrix shape {bgcm.shape} "
+                f"does not match image shape {data.shape}."
+            )
+            mi, ma = np.iinfo(dtype).min, np.iinfo(dtype).max
+            data = np.clip(data - bgcm, a_min=mi, a_max=ma)
 
-        if self.illumination_correction_matrix is not None:
-            data = data / self.illumination_correction_matrix
+        if self.illumination_correction_matrix_path is not None:
+            icm = imread(self.illumination_correction_matrix_path)
+            assert icm.shape == data.shape, (
+                f"Illumination correction matrix shape {icm.shape} "
+                f"does not match image shape {data.shape}."
+            )
+            mi, ma = np.iinfo(dtype).min, np.iinfo(dtype).max
+            data = np.clip(data / icm, a_min=mi, a_max=ma)
 
         return data.astype(dtype=dtype)

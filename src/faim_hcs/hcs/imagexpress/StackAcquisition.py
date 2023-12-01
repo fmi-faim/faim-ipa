@@ -4,7 +4,6 @@ from pathlib import Path
 from typing import Optional, Union
 
 import numpy as np
-from numpy._typing import NDArray
 
 from faim_hcs.io.acquisition import (
     PlateAcquisition,
@@ -21,13 +20,16 @@ class StackAcquisition(PlateAcquisition):
         self,
         acquisition_dir: Union[Path, str],
         alignment: TileAlignmentOptions,
-        background_correction_matrices: Optional[dict[str, NDArray]] = None,
-        illumination_correction_matrices: Optional[NDArray] = None,
+        background_correction_matrices: Optional[dict[str, Union[Path, str]]] = None,
+        illumination_correction_matrices: Optional[dict[str, Union[Path, str]]] = None,
     ):
-        super().__init__(acquisition_dir=acquisition_dir, alignment=alignment)
+        super().__init__(
+            acquisition_dir=acquisition_dir,
+            alignment=alignment,
+            background_correction_matrices=background_correction_matrices,
+            illumination_correction_matrices=illumination_correction_matrices,
+        )
         self._z_spacing = self._compute_z_spacing()
-        self._background_correction_matriecs = background_correction_matrices
-        self._illumination_correction_matrices = illumination_correction_matrices
 
     def _get_root_re(self) -> re.Pattern:
         return re.compile(
@@ -45,7 +47,7 @@ class StackAcquisition(PlateAcquisition):
                 files=self._files[self._files["well"] == well],
                 alignment=self._alignment,
                 z_spacing=self._z_spacing,
-                background_correction_matrices=self._background_correction_matriecs,
+                background_correction_matrices=self._background_correction_matrices,
                 illumination_correction_matrices=self._illumination_correction_matrices,
             )
             for well in self._files["well"].unique()
