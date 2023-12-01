@@ -11,7 +11,7 @@ from ome_zarr.scale import Scaler
 from ome_zarr.writer import write_image, write_plate_metadata, write_well_metadata
 from pydantic import BaseModel
 
-from faim_hcs.io.acquisition import PlateAcquisition
+from faim_hcs.hcs.acquisition import PlateAcquisition
 from faim_hcs.stitching import stitching_utils
 from faim_hcs.Zarr import PlateLayout, _get_row_cols
 

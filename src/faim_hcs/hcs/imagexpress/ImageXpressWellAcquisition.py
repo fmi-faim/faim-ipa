@@ -3,7 +3,7 @@ from typing import Optional, Union
 
 import pandas as pd
 
-from faim_hcs.io.acquisition import TileAlignmentOptions, WellAcquisition
+from faim_hcs.hcs.acquisition import TileAlignmentOptions, WellAcquisition
 from faim_hcs.io.MetaSeriesTiff import load_metaseries_tiff_metadata
 from faim_hcs.stitching import Tile
 from faim_hcs.stitching.Tile import TilePosition

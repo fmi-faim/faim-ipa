@@ -1,8 +1,8 @@
 import shutil
 
+from faim_hcs.hcs.acquisition import TileAlignmentOptions
 from faim_hcs.hcs.converter import ConvertToNGFFPlate, NGFFPlate
 from faim_hcs.hcs.imagexpress import MixedAcquisition
-from faim_hcs.io.acquisition import TileAlignmentOptions
 from faim_hcs.Zarr import PlateLayout
 
 

@@ -4,8 +4,8 @@ from typing import Optional, Union
 
 from numpy._typing import NDArray
 
+from faim_hcs.hcs.acquisition import TileAlignmentOptions
 from faim_hcs.hcs.imagexpress import StackAcquisition
-from faim_hcs.io.acquisition import TileAlignmentOptions
 
 
 class MixedAcquisition(StackAcquisition):

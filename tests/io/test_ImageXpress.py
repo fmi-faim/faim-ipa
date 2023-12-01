@@ -4,12 +4,12 @@ import pytest
 from numpy.testing import assert_almost_equal
 
 from faim_hcs.hcs import imagexpress
-from faim_hcs.hcs.imagexpress import SinglePlaneAcquisition, StackAcquisition
-from faim_hcs.io.acquisition import (
+from faim_hcs.hcs.acquisition import (
     PlateAcquisition,
     TileAlignmentOptions,
     WellAcquisition,
 )
+from faim_hcs.hcs.imagexpress import SinglePlaneAcquisition, StackAcquisition
 
 
 @pytest.fixture

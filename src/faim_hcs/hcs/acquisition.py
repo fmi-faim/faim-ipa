@@ -1,5 +1,3 @@
-import os
-import re
 from abc import ABC, abstractmethod
 from collections.abc import Iterable
 from enum import Enum
@@ -40,6 +38,7 @@ class PlateAcquisition(ABC):
         self._illumination_correction_matrices = illumination_correction_matrices
         super().__init__()
 
+    @abstractmethod
     def _parse_files(self) -> pd.DataFrame:
         """Parse all files in the acquisition directory.
 
@@ -48,41 +47,6 @@ class PlateAcquisition(ABC):
         DataFrame
             Table of all files in the acquisition.
         """
-        return pd.DataFrame(
-            self._list_and_match_files(
-                root_dir=self._acquisition_dir,
-                root_re=self._get_root_re(),
-                filename_re=self._get_filename_re(),
-            )
-        )
-
-    def _list_and_match_files(
-        self,
-        root_dir: Union[Path, str],
-        root_re: re.Pattern,
-        filename_re: re.Pattern,
-    ) -> list[str]:
-        files = []
-        for root, _, filenames in os.walk(root_dir):
-            m_root = root_re.fullmatch(root)
-            if m_root:
-                for f in filenames:
-                    m_filename = filename_re.fullmatch(f)
-                    if m_filename:
-                        row = m_root.groupdict()
-                        row |= m_filename.groupdict()
-                        row["path"] = str(Path(root).joinpath(f))
-                        files.append(row)
-        return files
-
-    @abstractmethod
-    def _get_root_re(self) -> re.Pattern:
-        """Regular expression for matching the root directory of the acquisition."""
-        raise NotImplementedError()
-
-    @abstractmethod
-    def _get_filename_re(self) -> re.Pattern:
-        """Regular expression for matching the filename of the acquisition."""
         raise NotImplementedError()
 
     @abstractmethod

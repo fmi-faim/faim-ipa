@@ -5,17 +5,12 @@ from typing import Optional, Union
 
 import numpy as np
 
-from faim_hcs.io.acquisition import (
-    PlateAcquisition,
-    TileAlignmentOptions,
-    WellAcquisition,
-)
-from faim_hcs.io.ImageXpress import ImageXpressWellAcquisition
-from faim_hcs.io.metadata import ChannelMetadata
+from faim_hcs.hcs.acquisition import TileAlignmentOptions
+from faim_hcs.hcs.imagexpress import ImageXpressPlateAcquisition
 from faim_hcs.io.MetaSeriesTiff import load_metaseries_tiff_metadata
 
 
-class StackAcquisition(PlateAcquisition):
+class StackAcquisition(ImageXpressPlateAcquisition):
     def __init__(
         self,
         acquisition_dir: Union[Path, str],
@@ -41,42 +36,8 @@ class StackAcquisition(PlateAcquisition):
             r"(?P<name>.*)_(?P<well>[A-Z]+\d{2})_(?P<field>s\d+)_(?P<channel>w[1-9]{1})(?!_thumb)(?P<md_id>.*)(?P<ext>.tif)"
         )
 
-    def get_well_acquisitions(self) -> list[WellAcquisition]:
-        return [
-            ImageXpressWellAcquisition(
-                files=self._files[self._files["well"] == well],
-                alignment=self._alignment,
-                z_spacing=self._z_spacing,
-                background_correction_matrices=self._background_correction_matrices,
-                illumination_correction_matrices=self._illumination_correction_matrices,
-            )
-            for well in self._files["well"].unique()
-        ]
-
-    def get_channel_metadata(self) -> dict[str, ChannelMetadata]:
-        ch_metadata = {}
-        for ch in self._files["channel"].unique():
-            channel_files = self._files[self._files["channel"] == ch]
-            path = channel_files["path"].iloc[0]
-            metadata = load_metaseries_tiff_metadata(path=path)
-            from faim_hcs.MetaSeriesUtils import _build_ch_metadata
-
-            channel_metadata = _build_ch_metadata(metadata)
-            ch_metadata[ch] = ChannelMetadata(
-                channel_index=int(ch[1:]) - 1,
-                channel_name=ch,
-                display_color=channel_metadata["display-color"],
-                spatial_calibration_x=metadata["spatial-calibration-x"],
-                spatial_calibration_y=metadata["spatial-calibration-y"],
-                spatial_calibration_units=metadata["spatial-calibration-units"],
-                z_spacing=self._z_spacing,
-                wavelength=channel_metadata["wavelength"],
-                exposure_time=channel_metadata["exposure-time"],
-                exposure_time_unit=channel_metadata["exposure-time-unit"],
-                objective=metadata["_MagSetting_"],
-            )
-
-        return ch_metadata
+    def _get_z_spacing(self) -> Optional[float]:
+        return self._z_spacing
 
     def _compute_z_spacing(
         self,
