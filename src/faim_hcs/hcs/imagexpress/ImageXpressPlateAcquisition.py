@@ -16,6 +16,7 @@ from faim_hcs.hcs.imagexpress.ImageXpressWellAcquisition import (
 )
 from faim_hcs.io.metadata import ChannelMetadata
 from faim_hcs.io.MetaSeriesTiff import load_metaseries_tiff_metadata
+from faim_hcs.utils import rgb_to_hex, wavelength_to_rgb
 
 
 class ImageXpressPlateAcquisition(PlateAcquisition):
@@ -94,26 +95,31 @@ class ImageXpressPlateAcquisition(PlateAcquisition):
     def _get_z_spacing(self) -> Optional[float]:
         raise NotImplementedError()
 
-    def get_channel_metadata(self) -> dict[str, ChannelMetadata]:
+    def get_channel_metadata(self) -> dict[int, ChannelMetadata]:
         ch_metadata = {}
         for ch in self._files["channel"].unique():
             channel_files = self._files[self._files["channel"] == ch]
             path = channel_files["path"].iloc[0]
             metadata = load_metaseries_tiff_metadata(path=path)
-            from faim_hcs.MetaSeriesUtils import _build_ch_metadata
-
-            channel_metadata = _build_ch_metadata(metadata)
-            ch_metadata[ch] = ChannelMetadata(
-                channel_index=int(ch[1:]) - 1,
-                channel_name=ch,
-                display_color=channel_metadata["display-color"],
+            index = int(ch[1:]) - 1
+            if "Z Projection Method" in metadata.keys():
+                name = (
+                    f"{metadata['Z Projection Method'].replace(' ', '-')}-Projection_"
+                    f"{metadata['_IllumSetting_']}"
+                )
+            else:
+                name = metadata["_IllumSetting_"]
+            ch_metadata[index] = ChannelMetadata(
+                channel_index=index,
+                channel_name=name,
+                display_color=rgb_to_hex(*wavelength_to_rgb(metadata["wavelength"])),
                 spatial_calibration_x=metadata["spatial-calibration-x"],
                 spatial_calibration_y=metadata["spatial-calibration-y"],
                 spatial_calibration_units=metadata["spatial-calibration-units"],
                 z_spacing=self._get_z_spacing(),
-                wavelength=channel_metadata["wavelength"],
-                exposure_time=channel_metadata["exposure-time"],
-                exposure_time_unit=channel_metadata["exposure-time-unit"],
+                wavelength=metadata["wavelength"],
+                exposure_time=float(metadata["Exposure Time"].split(" ")[0]),
+                exposure_time_unit=metadata["Exposure Time"].split(" ")[1],
                 objective=metadata["_MagSetting_"],
             )
 

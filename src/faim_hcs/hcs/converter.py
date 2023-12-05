@@ -1,6 +1,6 @@
 import os
 from os.path import join
-from typing import Optional
+from typing import Union
 
 import dask.array as da
 import numpy as np
@@ -25,55 +25,60 @@ class NGFFPlate(BaseModel):
 
 
 class ConvertToNGFFPlate:
-    _plate_acquisition: PlateAcquisition
     _ngff_plate: NGFFPlate
 
     def __init__(
         self,
-        plate_acquisition: PlateAcquisition,
         ngff_plate: NGFFPlate,
     ):
-        self._plate_acquisition = plate_acquisition
         self._ngff_plate = ngff_plate
 
-    def _create_zarr_plate(self) -> zarr.Group:
-        rows, cols = _get_row_cols(layout=self._ngff_plate.layout)
-
+    def _create_zarr_plate(self, plate_acquisition: PlateAcquisition) -> zarr.Group:
         plate_path = join(self._ngff_plate.root_dir, self._ngff_plate.name + ".zarr")
-        os.makedirs(plate_path, exist_ok=False)
+        if not os.path.exists(plate_path):
+            os.makedirs(plate_path, exist_ok=False)
+            store = parse_url(plate_path, mode="w").store
+            plate = zarr.group(store=store)
 
-        store = parse_url(plate_path, mode="w").store
-        plate = zarr.group(store=store)
+            rows, cols = _get_row_cols(layout=self._ngff_plate.layout)
 
-        write_plate_metadata(
-            plate,
-            columns=cols,
-            rows=rows,
-            wells=[f"{w[0]}/{w[1:]}" for w in self._plate_acquisition.get_well_names()],
-            name=self._ngff_plate.name,
-            field_count=1,
-        )
+            write_plate_metadata(
+                plate,
+                columns=cols,
+                rows=rows,
+                wells=[f"{w[0]}/{w[1:]}" for w in plate_acquisition.get_well_names()],
+                name=self._ngff_plate.name,
+                field_count=1,
+            )
 
-        attrs = plate.attrs.asdict()
-        attrs["order_name"] = self._ngff_plate.order_name
-        attrs["barcode"] = self._ngff_plate.barcode
-        plate.attrs.put(attrs)
-
-        return plate
+            attrs = plate.attrs.asdict()
+            attrs["order_name"] = self._ngff_plate.order_name
+            attrs["barcode"] = self._ngff_plate.barcode
+            plate.attrs.put(attrs)
+            return plate
+        else:
+            store = parse_url(plate_path, mode="w").store
+            return zarr.group(store=store)
 
     def run(
         self,
+        plate_acquisition: PlateAcquisition,
+        well_sub_group: str = "0",
         yx_binning: int = 1,
-        chunks: tuple[int, int, Optional[int]] = (2048, 2048),
+        chunks: Union[tuple[int, int], tuple[int, int, int]] = (2048, 2048),
         max_layer: int = 3,
     ):
         assert (
             isinstance(yx_binning, int) and yx_binning >= 1
         ), "yx_binning must be an integer >= 1."
         assert 2 <= len(chunks) <= 3, "Chunks must be 2D or 3D."
-        plate = self._create_zarr_plate()
-        for well_acquisition in self._plate_acquisition.get_well_acquisitions():
-            well_group = self._create_well_group(plate, well_acquisition)
+        plate = self._create_zarr_plate(plate_acquisition)
+        for well_acquisition in plate_acquisition.get_well_acquisitions():
+            well_group = self._create_well_group(
+                plate,
+                well_acquisition,
+                well_sub_group,
+            )
 
             stitched_well_da = self._stitch_well_image(chunks, well_acquisition)
 
@@ -81,7 +86,7 @@ class ConvertToNGFFPlate:
 
             write_image(
                 image=output_da,
-                group=well_group["0"],
+                group=well_group[well_sub_group],
                 axes=well_acquisition.get_axes(),
                 chunks=self._out_chunks(output_da.shape, chunks),
                 storage_options=dict(
@@ -94,6 +99,17 @@ class ConvertToNGFFPlate:
                     yx_binning=yx_binning,
                 ),
             )
+
+            well_group[well_sub_group].attrs["omero"] = {
+                "channels": plate_acquisition.get_omero_channel_metadata()
+            }
+
+            well_group[well_sub_group].attrs["acquisition_metadata"] = {
+                "channels": [
+                    ch_metadata.dict()
+                    for ch_metadata in plate_acquisition.get_channel_metadata().values()
+                ]
+            }
 
     def _bin_yx(self, image_da, yx_binning):
         if yx_binning > 1:
@@ -127,11 +143,11 @@ class ConvertToNGFFPlate:
         )
         return image_da
 
-    def _create_well_group(self, plate, well_acquisition):
+    def _create_well_group(self, plate, well_acquisition, well_sub_group):
         row, col = well_acquisition.get_row_col()
         well_group = plate.require_group(row).require_group(col)
-        well_group.create_group("0")
-        write_well_metadata(well_group, [{"path": "0"}])
+        well_group.require_group(well_sub_group)
+        write_well_metadata(well_group, [{"path": well_sub_group}])
         return well_group
 
     @staticmethod

@@ -4,6 +4,7 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Optional, Union
 
+import numpy as np
 import pandas as pd
 
 from faim_hcs.io.metadata import ChannelMetadata
@@ -55,13 +56,58 @@ class PlateAcquisition(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def get_channel_metadata(self) -> dict[str, ChannelMetadata]:
+    def get_channel_metadata(self) -> dict[int, ChannelMetadata]:
         """Channel metadata."""
         raise NotImplementedError()
 
     def get_well_names(self) -> Iterable[str]:
         for well in self.get_well_acquisitions():
             yield well.name
+
+    def get_omero_channel_metadata(self) -> list[dict]:
+        ome_channels = []
+        ch_metadata = self.get_channel_metadata()
+        max_channel = max(list(ch_metadata.keys()))
+        for index in range(max_channel + 1):
+            if index in ch_metadata.keys():
+                metadata = ch_metadata[index]
+                ome_channels.append(
+                    {
+                        "active": True,
+                        "coefficient": 1,
+                        "color": metadata.display_color,
+                        "family": "linear",
+                        "inverted": False,
+                        "label": metadata.channel_name,
+                        "wavelength_id": f"C" f"{str(metadata.channel_index).zfill(2)}",
+                        "window": {
+                            "min": np.iinfo(np.uint16).min,
+                            "max": np.iinfo(np.uint16).max,
+                            "start": np.iinfo(np.uint16).min,
+                            "end": np.iinfo(np.uint16).max,
+                        },
+                    }
+                )
+            else:
+                ome_channels.append(
+                    {
+                        "active": False,
+                        "coefficient": 1,
+                        "color": "#000000",
+                        "family": "linear",
+                        "inverted": False,
+                        "label": "empty",
+                        "wavelength_id": f"C{str(index).zfill(2)}",
+                        "window": {
+                            "min": np.iinfo(np.uint16).min,
+                            "max": np.iinfo(np.uint16).max,
+                            "start": np.iinfo(np.uint16).min,
+                            "end": np.iinfo(np.uint16).max,
+                        },
+                    }
+                )
+
+        return ome_channels
 
 
 class WellAcquisition(ABC):

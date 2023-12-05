@@ -1,8 +1,6 @@
-from decimal import Decimal
 from pathlib import Path
 from typing import Any, Optional, Union
 
-import numpy as np
 import pandas as pd
 
 from faim_hcs.hcs.acquisition import TileAlignmentOptions, WellAcquisition
@@ -16,11 +14,12 @@ class CellVoyagerWellAcquisition(WellAcquisition):
         files: pd.DataFrame,
         alignment: TileAlignmentOptions,
         metadata: dict[str, Any],
+        z_spacing: Optional[float],
         background_correction_matrices: dict[str, Union[Path, str]] = None,
         illumination_correction_matrices: dict[str, Union[Path, str]] = None,
     ):
-        self._z_spacing = self._compute_z_spacing()
         self._metadata = metadata
+        self._z_spacing = z_spacing
         super().__init__(
             files=files,
             alignment=alignment,
@@ -60,35 +59,27 @@ class CellVoyagerWellAcquisition(WellAcquisition):
                         time=time_point,
                         channel=int(channel),
                         z=z,
-                        y=int(row["Y"] / yx_spacing[0]),
-                        x=int(row["X"] / yx_spacing[1]),
+                        y=int(float(row["Y"]) / yx_spacing[0]),
+                        x=int(float(row["X"]) / yx_spacing[1]),
                     ),
                     background_correction_matrix_path=bgcm,
                     illumination_correction_matrix_path=icm,
                 )
             )
+        return tiles
 
     def get_axes(self) -> list[str]:
         if self._z_spacing is not None:
-            return ["z", "y", "x"]
+            return ["c", "z", "y", "x"]
         else:
-            return ["y", "x"]
+            return ["c", "y", "x"]
 
     def get_yx_spacing(self) -> tuple[float, float]:
         ch_metadata = self._metadata.iloc[0]
         return (
-            ch_metadata["VerticalPixelDimension"],
-            ch_metadata["HorizontalPixelDimension"],
+            float(ch_metadata["VerticalPixelDimension"]),
+            float(ch_metadata["HorizontalPixelDimension"]),
         )
 
     def get_z_spacing(self) -> Optional[float]:
         return self._z_spacing
-
-    def _compute_z_spacing(self) -> Optional[float]:
-        z_steps = np.array(
-            [float(i) for i in self._files.groupby("Z").mean("ZIndex").index]
-        )
-
-        precision = -Decimal(str(z_steps[0])).as_tuple().exponent
-        z_step = np.round(np.mean(np.diff(z_steps)), decimals=precision)
-        self._z_spacing = z_step
