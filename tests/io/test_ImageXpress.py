@@ -32,9 +32,9 @@ def test_single_plane_acquistion(single_plane_acquisition: PlateAcquisition):
 
     channels = single_plane_acquisition.get_channel_metadata()
     assert len(channels) == 3
-    ch = channels["w1"]
+    ch = channels[0]
     assert ch.channel_index == 0
-    assert ch.channel_name == "w1"
+    assert ch.channel_name == "Maximum-Projection_FITC_05"
     assert ch.display_color == "73ff00"
     assert ch.exposure_time == 15.0
     assert ch.exposure_time_unit == "ms"
@@ -42,12 +42,12 @@ def test_single_plane_acquistion(single_plane_acquisition: PlateAcquisition):
     assert ch.spatial_calibration_units == "um"
     assert ch.spatial_calibration_x == 1.3668
     assert ch.spatial_calibration_y == 1.3668
-    assert ch.wavelength == "cyan"
+    assert ch.wavelength == 536
     assert ch.z_spacing is None
 
-    ch = channels["w2"]
+    ch = channels[1]
     assert ch.channel_index == 1
-    assert ch.channel_name == "w2"
+    assert ch.channel_name == "Best-Focus-Projection_FITC_05"
     assert ch.display_color == "73ff00"
     assert ch.exposure_time == 15.0
     assert ch.exposure_time_unit == "ms"
@@ -55,12 +55,12 @@ def test_single_plane_acquistion(single_plane_acquisition: PlateAcquisition):
     assert ch.spatial_calibration_units == "um"
     assert ch.spatial_calibration_x == 1.3668
     assert ch.spatial_calibration_y == 1.3668
-    assert ch.wavelength == "cyan"
+    assert ch.wavelength == 536
     assert ch.z_spacing is None
 
-    ch = channels["w3"]
+    ch = channels[2]
     assert ch.channel_index == 2
-    assert ch.channel_name == "w3"
+    assert ch.channel_name == "Maximum-Projection_FITC_05"
     assert ch.display_color == "73ff00"
     assert ch.exposure_time == 15.0
     assert ch.exposure_time_unit == "ms"
@@ -68,7 +68,7 @@ def test_single_plane_acquistion(single_plane_acquisition: PlateAcquisition):
     assert ch.spatial_calibration_units == "um"
     assert ch.spatial_calibration_x == 1.3668
     assert ch.spatial_calibration_y == 1.3668
-    assert ch.wavelength == "cyan"
+    assert ch.wavelength == 536
     assert ch.z_spacing is None
 
     for well in single_plane_acquisition.get_well_acquisitions():
@@ -102,9 +102,9 @@ def test_stack_acquistion(stack_acquisition: PlateAcquisition):
 
     channels = stack_acquisition.get_channel_metadata()
     assert len(channels) == 3
-    ch = channels["w1"]
+    ch = channels[0]
     assert ch.channel_index == 0
-    assert ch.channel_name == "w1"
+    assert ch.channel_name == "FITC_05"
     assert ch.display_color == "73ff00"
     assert ch.exposure_time == 15.0
     assert ch.exposure_time_unit == "ms"
@@ -112,12 +112,12 @@ def test_stack_acquistion(stack_acquisition: PlateAcquisition):
     assert ch.spatial_calibration_units == "um"
     assert ch.spatial_calibration_x == 1.3668
     assert ch.spatial_calibration_y == 1.3668
-    assert ch.wavelength == "cyan"
+    assert ch.wavelength == 536
     assert_almost_equal(ch.z_spacing, 5.0, decimal=4)
 
-    ch = channels["w2"]
+    ch = channels[1]
     assert ch.channel_index == 1
-    assert ch.channel_name == "w2"
+    assert ch.channel_name == "FITC_05"
     assert ch.display_color == "73ff00"
     assert ch.exposure_time == 15.0
     assert ch.exposure_time_unit == "ms"
@@ -125,12 +125,12 @@ def test_stack_acquistion(stack_acquisition: PlateAcquisition):
     assert ch.spatial_calibration_units == "um"
     assert ch.spatial_calibration_x == 1.3668
     assert ch.spatial_calibration_y == 1.3668
-    assert ch.wavelength == "cyan"
+    assert ch.wavelength == 536
     assert_almost_equal(ch.z_spacing, 5.0, decimal=4)
 
-    ch = channels["w4"]
+    ch = channels[3]
     assert ch.channel_index == 3
-    assert ch.channel_name == "w4"
+    assert ch.channel_name == "FITC_05"
     assert ch.display_color == "73ff00"
     assert ch.exposure_time == 15.0
     assert ch.exposure_time_unit == "ms"
@@ -138,7 +138,7 @@ def test_stack_acquistion(stack_acquisition: PlateAcquisition):
     assert ch.spatial_calibration_units == "um"
     assert ch.spatial_calibration_x == 1.3668
     assert ch.spatial_calibration_y == 1.3668
-    assert ch.wavelength == "cyan"
+    assert ch.wavelength == 536
     assert_almost_equal(ch.z_spacing, 5.0, decimal=4)
 
     for well in stack_acquisition.get_well_acquisitions():
@@ -176,9 +176,9 @@ def test_mixed_acquisition(mixed_acquisition: PlateAcquisition):
 
     channels = mixed_acquisition.get_channel_metadata()
     assert len(channels) == 4
-    ch = channels["w1"]
+    ch = channels[0]
     assert ch.channel_index == 0
-    assert ch.channel_name == "w1"
+    assert ch.channel_name == "FITC_05"
     assert ch.display_color == "73ff00"
     assert ch.exposure_time == 15.0
     assert ch.exposure_time_unit == "ms"
@@ -186,12 +186,12 @@ def test_mixed_acquisition(mixed_acquisition: PlateAcquisition):
     assert ch.spatial_calibration_units == "um"
     assert ch.spatial_calibration_x == 1.3668
     assert ch.spatial_calibration_y == 1.3668
-    assert ch.wavelength == "cyan"
+    assert ch.wavelength == 536
     assert_almost_equal(ch.z_spacing, 5.0, decimal=4)
 
-    ch = channels["w2"]
+    ch = channels[1]
     assert ch.channel_index == 1
-    assert ch.channel_name == "w2"
+    assert ch.channel_name == "FITC_05"
     assert ch.display_color == "73ff00"
     assert ch.exposure_time == 15.0
     assert ch.exposure_time_unit == "ms"
@@ -199,12 +199,12 @@ def test_mixed_acquisition(mixed_acquisition: PlateAcquisition):
     assert ch.spatial_calibration_units == "um"
     assert ch.spatial_calibration_x == 1.3668
     assert ch.spatial_calibration_y == 1.3668
-    assert ch.wavelength == "cyan"
+    assert ch.wavelength == 536
     assert_almost_equal(ch.z_spacing, 5.0, decimal=4)
 
-    ch = channels["w3"]
+    ch = channels[2]
     assert ch.channel_index == 2
-    assert ch.channel_name == "w3"
+    assert ch.channel_name == "Maximum-Projection_FITC_05"
     assert ch.display_color == "73ff00"
     assert ch.exposure_time == 15.0
     assert ch.exposure_time_unit == "ms"
@@ -212,12 +212,12 @@ def test_mixed_acquisition(mixed_acquisition: PlateAcquisition):
     assert ch.spatial_calibration_units == "um"
     assert ch.spatial_calibration_x == 1.3668
     assert ch.spatial_calibration_y == 1.3668
-    assert ch.wavelength == "cyan"
+    assert ch.wavelength == 536
     assert_almost_equal(ch.z_spacing, 5.0, decimal=4)
 
-    ch = channels["w4"]
+    ch = channels[3]
     assert ch.channel_index == 3
-    assert ch.channel_name == "w4"
+    assert ch.channel_name == "FITC_05"
     assert ch.display_color == "73ff00"
     assert ch.exposure_time == 15.0
     assert ch.exposure_time_unit == "ms"
@@ -225,7 +225,7 @@ def test_mixed_acquisition(mixed_acquisition: PlateAcquisition):
     assert ch.spatial_calibration_units == "um"
     assert ch.spatial_calibration_x == 1.3668
     assert ch.spatial_calibration_y == 1.3668
-    assert ch.wavelength == "cyan"
+    assert ch.wavelength == 536
     assert_almost_equal(ch.z_spacing, 5.0, decimal=4)
 
     for well in mixed_acquisition.get_well_acquisitions():
