@@ -3,6 +3,7 @@ from copy import copy
 import numpy as np
 from numpy._typing import NDArray
 from skimage.transform import EuclideanTransform, warp
+from threadpoolctl import threadpool_limits
 
 from faim_hcs.stitching.Tile import Tile, TilePosition
 
@@ -49,6 +50,7 @@ def fuse_sum(warped_tiles: NDArray, warped_masks: NDArray) -> NDArray:
     return fused_image.astype(warped_tiles.dtype)
 
 
+@threadpool_limits.wrap(limits=1, user_api="blas")
 def translate_tiles_2d(block_info, yx_chunk_shape, dtype, tiles):
     array_location = block_info[None]["array-location"]
     chunk_yx_origin = np.array([array_location[3][0], array_location[4][0]])
