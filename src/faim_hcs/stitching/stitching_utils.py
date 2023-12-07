@@ -2,10 +2,49 @@ from copy import copy
 
 import numpy as np
 from numpy._typing import NDArray
+from scipy.ndimage import distance_transform_edt
 from skimage.transform import EuclideanTransform, warp
 from threadpoolctl import threadpool_limits
 
 from faim_hcs.stitching.Tile import Tile, TilePosition
+
+
+def fuse_linear(warped_tiles: NDArray, warped_masks: NDArray) -> NDArray:
+    """
+    Fuse transformed tiles using a linear gradient to compute the weighted
+    average where tiles are overlapping.
+
+    Parameters
+    ----------
+    warped_tiles :
+        Tile images transformed to the final image space.
+    warped_masks :
+        Masks indicating foreground pixels for the transformed tiles.
+
+    Returns
+    -------
+    Fused image.
+    """
+    dtype = warped_tiles.dtype
+    if warped_tiles.shape[0] > 1:
+        weights = np.zeros_like(warped_masks, dtype=np.float32)
+        for i, mask in enumerate(warped_masks):
+            weights[i] = distance_transform_edt(
+                np.pad(warped_masks[i], 1).astype(np.float32),
+            )[1:-1, 1:-1]
+
+        denominator = weights.sum(axis=0)
+        weights = np.true_divide(weights, denominator, where=denominator > 0)
+        weights = np.nan_to_num(weights, nan=0, posinf=1, neginf=0)
+        weights = np.clip(
+            weights,
+            0,
+            1,
+        )
+    else:
+        weights = warped_masks
+
+    return np.sum(warped_tiles * weights, axis=0).astype(dtype)
 
 
 def fuse_mean(warped_tiles: NDArray, warped_masks: NDArray) -> NDArray:
@@ -23,9 +62,13 @@ def fuse_mean(warped_tiles: NDArray, warped_masks: NDArray) -> NDArray:
     -------
     Fused image.
     """
-    weights = warped_masks.astype(np.float32)
-    denominator = weights.sum(axis=0)
-    weights = np.true_divide(weights, denominator, where=denominator != 0)
+    denominator = warped_masks.sum(axis=0)
+    weights = np.true_divide(warped_masks, denominator, where=denominator > 0)
+    weights = np.clip(
+        np.nan_to_num(weights, nan=0, posinf=1, neginf=0),
+        0,
+        1,
+    )
 
     fused_image = np.sum(warped_tiles * weights, axis=0)
     return fused_image.astype(warped_tiles.dtype)
@@ -81,8 +124,10 @@ def translate_tiles_2d(block_info, yx_chunk_shape, dtype, tiles):
             cval=False,
             output_shape=yx_chunk_shape,
             order=0,
-            preserve_range=True,
+            preserve_range=False,
         ).astype(bool)
+
+    warped_masks = np.nan_to_num(warped_masks, nan=False, posinf=True, neginf=False)
     return warped_tiles, warped_masks
 
 
