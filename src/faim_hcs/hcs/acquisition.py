@@ -208,6 +208,15 @@ class WellAcquisition(ABC):
 
         return transformations
 
+    def get_shape(self):
+        """
+        Compute the theoretical shape of the stitched well image.
+        """
+        tile_extents = []
+        for tile in self._tiles:
+            tile_extents.append(tile.get_position() + np.array((1, 1, 1) + tile.shape))
+        return tuple(np.max(tile_extents, axis=0))
+
     # TODO: Move in dedicated class.
     # @abstractmethod
     # def roi_tables(self) -> list[dict]:

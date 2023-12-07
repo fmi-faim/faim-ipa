@@ -80,7 +80,11 @@ class ConvertToNGFFPlate:
                 well_sub_group,
             )
 
-            stitched_well_da = self._stitch_well_image(chunks, well_acquisition)
+            stitched_well_da = self._stitch_well_image(
+                chunks,
+                well_acquisition,
+                output_shape=self.get_well_shape(plate_acquisition),
+            )
 
             output_da = self._bin_yx(stitched_well_da, yx_binning)
 
@@ -88,10 +92,11 @@ class ConvertToNGFFPlate:
                 image=output_da,
                 group=well_group[well_sub_group],
                 axes=well_acquisition.get_axes(),
-                chunks=self._out_chunks(output_da.shape, chunks),
+                # chunks=self._out_chunks(output_da.shape, chunks),
                 storage_options=dict(
                     dimension_separator="/",
                     compressor=Blosc(cname="zstd", clevel=6, shuffle=Blosc.BITSHUFFLE),
+                    chunks=self._out_chunks(output_da.shape, chunks),
                 ),
                 scaler=Scaler(max_layer=max_layer),
                 coordinate_transformations=well_acquisition.get_coordinate_transformations(
@@ -123,23 +128,26 @@ class ConvertToNGFFPlate:
                     3: yx_binning,
                     4: yx_binning,
                 },
-                trim_excess=False,
+                trim_excess=True,
             ).squeeze()
         else:
             output_da = image_da.squeeze()
         return output_da
 
-    def _stitch_well_image(self, chunks, well_acquisition):
+    def _stitch_well_image(
+        self, chunks, well_acquisition, output_shape: tuple[int, int, int, int, int]
+    ):
         from faim_hcs.stitching import DaskTileStitcher
 
         stitcher = DaskTileStitcher(
             tiles=well_acquisition.get_tiles(),
             yx_chunk_shape=(chunks[-2], chunks[-1]),
+            output_shape=output_shape,
             dtype=np.uint16,
         )
         image_da = stitcher.get_stitched_dask_array(
             warp_func=stitching_utils.translate_tiles_2d,
-            fuse_func=stitching_utils.fuse_mean,
+            fuse_func=stitching_utils.fuse_linear,
         )
         return image_da
 
@@ -173,3 +181,10 @@ class ConvertToNGFFPlate:
             return chunks
         else:
             return (1,) * (len(shape) - len(chunks)) + chunks
+
+    def get_well_shape(self, plate_acquisition: PlateAcquisition):
+        well_shapes = []
+        for well in plate_acquisition.get_well_acquisitions():
+            well_shapes.append(well.get_shape())
+
+        return tuple(np.max(well_shapes, axis=0))
