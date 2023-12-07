@@ -1,7 +1,7 @@
 from abc import ABC
+from copy import copy
 
 from faim_hcs.stitching import Tile, stitching_utils
-from faim_hcs.stitching.Tile import TilePosition
 
 
 class AbstractAlignment(ABC):
@@ -59,20 +59,9 @@ class GridAlignment(AbstractAlignment):
             for x_pos in grid_positions_x:
                 if (y_pos, x_pos) in tile_map.keys():
                     for unaligned_tile in tile_map[(y_pos, x_pos)]:
-                        aligned_tiles.append(
-                            Tile(
-                                path=unaligned_tile.path,
-                                shape=unaligned_tile.shape,
-                                position=TilePosition(
-                                    time=unaligned_tile.position.time,
-                                    channel=unaligned_tile.position.channel,
-                                    z=unaligned_tile.position.z,
-                                    y=y_pos * tile_shape[0],
-                                    x=x_pos * tile_shape[1],
-                                ),
-                                background_correction_matrix_path=unaligned_tile.background_correction_matrix_path,
-                                illumination_correction_matrix_path=unaligned_tile.illumination_correction_matrix_path,
-                            )
-                        )
+                        new_tile = copy(unaligned_tile)
+                        new_tile.position.y = y_pos * tile_shape[0]
+                        new_tile.position.x = x_pos * tile_shape[1]
+                        aligned_tiles.append(new_tile)
 
         return aligned_tiles
