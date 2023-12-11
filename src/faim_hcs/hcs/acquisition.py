@@ -141,6 +141,9 @@ class WellAcquisition(ABC):
         """Parse all tiles in the well."""
         raise NotImplementedError()
 
+    def get_dtype(self) -> np.dtype:
+        return self._tiles[0].load_data().dtype
+
     def _align_tiles(self, tiles: list[Tile]) -> list[Tile]:
         if self._alignment == TileAlignmentOptions.STAGE_POSITION:
             from faim_hcs.alignment import StageAlignment

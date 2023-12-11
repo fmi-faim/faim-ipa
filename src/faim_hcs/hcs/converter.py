@@ -143,7 +143,7 @@ class ConvertToNGFFPlate:
             tiles=well_acquisition.get_tiles(),
             yx_chunk_shape=(chunks[-2], chunks[-1]),
             output_shape=output_shape,
-            dtype=np.uint16,
+            dtype=well_acquisition.get_dtype(),
         )
         image_da = stitcher.get_stitched_dask_array(
             warp_func=stitching_utils.translate_tiles_2d,
