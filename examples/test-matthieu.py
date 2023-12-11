@@ -13,6 +13,7 @@ from tifffile import TiffFile, imread
 
 from faim_hcs.hcs.acquisition import (
     PlateAcquisition,
+    PlateLayout,
     TileAlignmentOptions,
     WellAcquisition,
 )
@@ -21,7 +22,6 @@ from faim_hcs.io.metadata import ChannelMetadata
 from faim_hcs.stitching import Tile, stitching_utils
 from faim_hcs.stitching.Tile import TilePosition
 from faim_hcs.utils import rgb_to_hex, wavelength_to_rgb
-from faim_hcs.Zarr import PlateLayout
 
 
 class JohnsonTile(Tile):

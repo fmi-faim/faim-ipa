@@ -1,9 +1,8 @@
 import shutil
 
-from faim_hcs.hcs.acquisition import TileAlignmentOptions
+from faim_hcs.hcs.acquisition import PlateLayout, TileAlignmentOptions
 from faim_hcs.hcs.cellvoyager import StackAcquisition
 from faim_hcs.hcs.converter import ConvertToNGFFPlate, NGFFPlate
-from faim_hcs.Zarr import PlateLayout
 
 
 def main():

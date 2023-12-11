@@ -12,9 +12,8 @@ from ome_zarr.writer import write_image, write_plate_metadata, write_well_metada
 from pydantic import BaseModel
 from tqdm import tqdm
 
-from faim_hcs.hcs.acquisition import PlateAcquisition
+from faim_hcs.hcs.acquisition import PlateAcquisition, PlateLayout, _get_row_cols
 from faim_hcs.stitching import stitching_utils
-from faim_hcs.Zarr import PlateLayout, _get_row_cols
 
 
 class NGFFPlate(BaseModel):

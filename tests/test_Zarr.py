@@ -10,13 +10,13 @@ from pathlib import Path
 
 import anndata as ad
 
+from faim_hcs.hcs.acquisition import PlateLayout
 from faim_hcs.io.MolecularDevicesImageXpress import (
     parse_multi_field_stacks,
     parse_single_plane_multi_fields,
 )
 from faim_hcs.MetaSeriesUtils import get_well_image_CYX, get_well_image_CZYX
 from faim_hcs.Zarr import (
-    PlateLayout,
     build_zarr_scaffold,
     write_cyx_image_to_well,
     write_czyx_image_to_well,
