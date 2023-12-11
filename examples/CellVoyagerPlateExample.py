@@ -21,12 +21,13 @@ def main():
             order_name="order",
             barcode="barcode",
         ),
+        yx_binning=2,
+        dask_chunk_size_factor=2,
     )
 
     converter.run(
         plate_acquisition=plate,
         well_sub_group="0",
-        yx_binning=2,
         chunks=(2, 1000, 1000),
         max_layer=2,
     )

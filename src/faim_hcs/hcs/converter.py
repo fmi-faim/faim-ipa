@@ -1,6 +1,6 @@
 import os
 from os.path import join
-from typing import Union
+from typing import Callable, Union
 
 import dask.array as da
 import numpy as np
@@ -10,6 +10,7 @@ from ome_zarr.io import parse_url
 from ome_zarr.scale import Scaler
 from ome_zarr.writer import write_image, write_plate_metadata, write_well_metadata
 from pydantic import BaseModel
+from tqdm import tqdm
 
 from faim_hcs.hcs.acquisition import PlateAcquisition
 from faim_hcs.stitching import stitching_utils
@@ -30,8 +31,22 @@ class ConvertToNGFFPlate:
     def __init__(
         self,
         ngff_plate: NGFFPlate,
+        yx_binning: int = 1,
+        dask_chunk_size_factor: int = 2,
+        warp_func: Callable = stitching_utils.translate_tiles_2d,
+        fuse_func: Callable = stitching_utils.fuse_mean,
     ):
+        assert (
+            isinstance(yx_binning, int) and yx_binning >= 1
+        ), "yx_binning must be an integer >= 1."
+        assert (
+            isinstance(dask_chunk_size_factor, int) and dask_chunk_size_factor >= 1
+        ), "dask_chunk_size_factor must be an integer >= 1."
         self._ngff_plate = ngff_plate
+        self._yx_binning = yx_binning
+        self._dask_chunk_size_factor = dask_chunk_size_factor
+        self._warp_func = warp_func
+        self._fuse_func = fuse_func
 
     def _create_zarr_plate(self, plate_acquisition: PlateAcquisition) -> zarr.Group:
         plate_path = join(self._ngff_plate.root_dir, self._ngff_plate.name + ".zarr")
@@ -64,16 +79,13 @@ class ConvertToNGFFPlate:
         self,
         plate_acquisition: PlateAcquisition,
         well_sub_group: str = "0",
-        yx_binning: int = 1,
         chunks: Union[tuple[int, int], tuple[int, int, int]] = (2048, 2048),
         max_layer: int = 3,
+        storage_options: dict = None,
     ):
-        assert (
-            isinstance(yx_binning, int) and yx_binning >= 1
-        ), "yx_binning must be an integer >= 1."
         assert 2 <= len(chunks) <= 3, "Chunks must be 2D or 3D."
         plate = self._create_zarr_plate(plate_acquisition)
-        for well_acquisition in plate_acquisition.get_well_acquisitions():
+        for well_acquisition in tqdm(plate_acquisition.get_well_acquisitions()):
             well_group = self._create_well_group(
                 plate,
                 well_acquisition,
@@ -86,22 +98,19 @@ class ConvertToNGFFPlate:
                 output_shape=self.get_well_shape(plate_acquisition),
             )
 
-            output_da = self._bin_yx(stitched_well_da, yx_binning)
+            output_da = self._bin_yx(stitched_well_da)
 
             write_image(
                 image=output_da,
                 group=well_group[well_sub_group],
                 axes=well_acquisition.get_axes(),
-                # chunks=self._out_chunks(output_da.shape, chunks),
-                storage_options=dict(
-                    dimension_separator="/",
-                    compressor=Blosc(cname="zstd", clevel=6, shuffle=Blosc.BITSHUFFLE),
-                    chunks=self._out_chunks(output_da.shape, chunks),
+                storage_options=self._get_storage_options(
+                    storage_options, output_da.shape, chunks
                 ),
                 scaler=Scaler(max_layer=max_layer),
                 coordinate_transformations=well_acquisition.get_coordinate_transformations(
                     max_layer=max_layer,
-                    yx_binning=yx_binning,
+                    yx_binning=self._yx_binning,
                 ),
             )
 
@@ -116,8 +125,8 @@ class ConvertToNGFFPlate:
                 ]
             }
 
-    def _bin_yx(self, image_da, yx_binning):
-        if yx_binning > 1:
+    def _bin_yx(self, image_da):
+        if self._yx_binning > 1:
             output_da = da.coarsen(
                 reduction=self._mean_cast_to(image_da.dtype),
                 x=image_da,
@@ -125,8 +134,8 @@ class ConvertToNGFFPlate:
                     0: 1,
                     1: 1,
                     2: 1,
-                    3: yx_binning,
-                    4: yx_binning,
+                    3: self._yx_binning,
+                    4: self._yx_binning,
                 },
                 trim_excess=True,
             ).squeeze()
@@ -135,19 +144,25 @@ class ConvertToNGFFPlate:
         return output_da
 
     def _stitch_well_image(
-        self, chunks, well_acquisition, output_shape: tuple[int, int, int, int, int]
+        self,
+        chunks,
+        well_acquisition,
+        output_shape: tuple[int, int, int, int, int],
     ):
         from faim_hcs.stitching import DaskTileStitcher
 
         stitcher = DaskTileStitcher(
             tiles=well_acquisition.get_tiles(),
-            yx_chunk_shape=(chunks[-2], chunks[-1]),
+            yx_chunk_shape=(
+                chunks[-2] * self._dask_chunk_size_factor,
+                chunks[-1] * self._dask_chunk_size_factor,
+            ),
             output_shape=output_shape,
             dtype=well_acquisition.get_dtype(),
         )
         image_da = stitcher.get_stitched_dask_array(
-            warp_func=stitching_utils.translate_tiles_2d,
-            fuse_func=stitching_utils.fuse_linear,
+            warp_func=self._warp_func,
+            fuse_func=self._fuse_func,
         )
         return image_da
 
@@ -188,3 +203,19 @@ class ConvertToNGFFPlate:
             well_shapes.append(well.get_shape())
 
         return tuple(np.max(well_shapes, axis=0))
+
+    def _get_storage_options(
+        self,
+        storage_options: dict,
+        output_shape: tuple[int, ...],
+        chunks: tuple[int, ...],
+    ):
+        if storage_options is None:
+            return dict(
+                dimension_separator="/",
+                compressor=Blosc(cname="zstd", clevel=6, shuffle=Blosc.BITSHUFFLE),
+                chunks=self._out_chunks(output_shape, chunks),
+                write_empty_chunks=False,
+            )
+        else:
+            return storage_options

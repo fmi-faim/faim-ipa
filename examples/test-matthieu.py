@@ -18,7 +18,7 @@ from faim_hcs.hcs.acquisition import (
 )
 from faim_hcs.hcs.converter import ConvertToNGFFPlate, NGFFPlate
 from faim_hcs.io.metadata import ChannelMetadata
-from faim_hcs.stitching import Tile
+from faim_hcs.stitching import Tile, stitching_utils
 from faim_hcs.stitching.Tile import TilePosition
 from faim_hcs.utils import rgb_to_hex, wavelength_to_rgb
 from faim_hcs.Zarr import PlateLayout
@@ -214,7 +214,7 @@ def main():
     )
     client = lc.get_client()  # noqa
     plate = JohnsonPlateAcquisition(acquisition_dir="/home/tibuch/Data/matt-test")
-    name = "test-matt"
+    name = "test-matt-bigger-chunks"
     shutil.rmtree(name + ".zarr", ignore_errors=True)
 
     converter = ConvertToNGFFPlate(
@@ -224,13 +224,14 @@ def main():
             layout=PlateLayout.I96,
             order_name="order",
             barcode="barcode",
-        )
+        ),
+        yx_binning=1,
+        fuse_func=stitching_utils.fuse_linear,
     )
     converter.run(
         plate_acquisition=plate,
         well_sub_group="0",
-        yx_binning=1,
-        chunks=(1, 1200, 1200),
+        chunks=(11, 1024, 1024),
         max_layer=3,
     )
 
