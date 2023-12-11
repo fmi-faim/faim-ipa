@@ -97,38 +97,30 @@ def fuse_sum(warped_tiles: NDArray, warped_masks: NDArray) -> NDArray:
 def translate_tiles_2d(block_info, yx_chunk_shape, dtype, tiles):
     array_location = block_info[None]["array-location"]
     chunk_yx_origin = np.array([array_location[3][0], array_location[4][0]])
-    warped_tiles = np.zeros((len(tiles),) + yx_chunk_shape, dtype=dtype)
-    warped_masks = np.zeros_like(warped_tiles, dtype=bool)
-    for i, tile in enumerate(tiles):
+    warped_tiles = []
+    warped_masks = []
+    for tile in tiles:
         tile_origin = np.array(tile.get_yx_position())
         transform = EuclideanTransform(
             translation=(chunk_yx_origin - tile_origin)[::-1]
         )
         tile_data = tile.load_data()
-        mask = np.ones(tile_data.shape, dtype=bool)
-        warped_tiles[
-            i,
-            ...,
-        ] = warp(
-            tile_data,
+        mask = np.ones_like(tile_data)
+        warped = warp(
+            np.stack([tile_data, mask], axis=-1),
             transform,
             cval=0,
             output_shape=yx_chunk_shape,
             order=0,
             preserve_range=True,
-        ).astype(dtype)
+        )
+        warped_tiles.append(warped[..., 0].astype(dtype))
+        warped_masks.append(warped[..., 1].astype(bool))
 
-        warped_masks[i] = warp(
-            mask,
-            transform,
-            cval=False,
-            output_shape=yx_chunk_shape,
-            order=0,
-            preserve_range=False,
-        ).astype(bool)
-
-    warped_masks = np.nan_to_num(warped_masks, nan=False, posinf=True, neginf=False)
-    return warped_tiles, warped_masks
+    warped_masks = np.nan_to_num(
+        np.array(warped_masks), nan=False, posinf=True, neginf=False
+    )
+    return np.array(warped_tiles), warped_masks
 
 
 def assemble_chunk(
