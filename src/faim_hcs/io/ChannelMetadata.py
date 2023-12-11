@@ -3,11 +3,6 @@ from typing import Optional, Union
 from pydantic import BaseModel, NonNegativeInt, PositiveFloat, PositiveInt
 
 
-class TileMetadata(BaseModel):
-    tile_size_x: PositiveInt
-    tile_size_y: PositiveInt
-
-
 class ChannelMetadata(BaseModel):
     channel_index: NonNegativeInt
     channel_name: str

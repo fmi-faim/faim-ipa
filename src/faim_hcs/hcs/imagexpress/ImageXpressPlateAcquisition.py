@@ -14,7 +14,7 @@ from faim_hcs.hcs.acquisition import (
 from faim_hcs.hcs.imagexpress.ImageXpressWellAcquisition import (
     ImageXpressWellAcquisition,
 )
-from faim_hcs.io.metadata import ChannelMetadata
+from faim_hcs.io.ChannelMetadata import ChannelMetadata
 from faim_hcs.io.MetaSeriesTiff import load_metaseries_tiff_metadata
 from faim_hcs.utils import rgb_to_hex, wavelength_to_rgb
 

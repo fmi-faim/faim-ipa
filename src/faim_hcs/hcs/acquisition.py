@@ -7,7 +7,7 @@ from typing import Any, Optional, Union
 import numpy as np
 import pandas as pd
 
-from faim_hcs.io.metadata import ChannelMetadata
+from faim_hcs.io.ChannelMetadata import ChannelMetadata
 from faim_hcs.stitching import Tile
 
 
