@@ -109,6 +109,21 @@ class PlateAcquisition(ABC):
 
         return ome_channels
 
+    def get_common_well_shape(self) -> tuple[int, int, int, int, int]:
+        """
+        Compute the maximum well extent such that each well is covered.
+
+        Returns
+        -------
+        tuple[int, int, int, int, int]
+            (time, channel, z, y, x)
+        """
+        well_shapes = []
+        for well in self.get_well_acquisitions():
+            well_shapes.append(well.get_shape())
+
+        return tuple(np.max(well_shapes, axis=0))
+
 
 class WellAcquisition(ABC):
     name: str = None

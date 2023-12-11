@@ -95,7 +95,7 @@ class ConvertToNGFFPlate:
             stitched_well_da = self._stitch_well_image(
                 chunks,
                 well_acquisition,
-                output_shape=self.get_well_shape(plate_acquisition),
+                output_shape=plate_acquisition.get_common_well_shape(),
             )
 
             output_da = self._bin_yx(stitched_well_da)
@@ -196,13 +196,6 @@ class ConvertToNGFFPlate:
             return chunks
         else:
             return (1,) * (len(shape) - len(chunks)) + chunks
-
-    def get_well_shape(self, plate_acquisition: PlateAcquisition):
-        well_shapes = []
-        for well in plate_acquisition.get_well_acquisitions():
-            well_shapes.append(well.get_shape())
-
-        return tuple(np.max(well_shapes, axis=0))
 
     def _get_storage_options(
         self,
