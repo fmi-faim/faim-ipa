@@ -74,3 +74,10 @@ def test_GridAlignment(tiles):
         assert tile.position.z == 0
         assert tile.position.y in [0, 512, 1024]
         assert tile.position.x in [0, 512]
+
+
+def test_AbstractAlignment(tiles):
+    from faim_hcs.alignment.alignment import AbstractAlignment
+
+    with pytest.raises(NotImplementedError):
+        AbstractAlignment(tiles)
