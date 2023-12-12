@@ -1,7 +1,7 @@
 from decimal import Decimal
 from os.path import exists, join
 from pathlib import Path
-from typing import Any, Optional, Union
+from typing import Optional, Union
 from xml.etree import ElementTree as ET
 
 import numpy as np
@@ -15,7 +15,7 @@ from faim_hcs.hcs.acquisition import (
 from faim_hcs.hcs.cellvoyager.CellVoyagerWellAcquisition import (
     CellVoyagerWellAcquisition,
 )
-from faim_hcs.io.metadata import ChannelMetadata
+from faim_hcs.io.ChannelMetadata import ChannelMetadata
 
 BTS_NS = "{http://www.yokogawa.co.jp/BTS/BTSSchema/1.0}"
 
@@ -83,7 +83,7 @@ class StackAcquisition(PlateAcquisition):
 
         return wells
 
-    def _parse_metadata(self) -> dict[str, Any]:
+    def _parse_metadata(self) -> pd.DataFrame:
         mrf_file = join(self._acquisition_dir, "MeasurementDetail.mrf")
         if not exists(mrf_file):
             raise ValueError(

@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Any, Optional, Union
+from typing import Optional, Union
 
 import pandas as pd
 
@@ -13,7 +13,7 @@ class CellVoyagerWellAcquisition(WellAcquisition):
         self,
         files: pd.DataFrame,
         alignment: TileAlignmentOptions,
-        metadata: dict[str, Any],
+        metadata: pd.DataFrame,
         z_spacing: Optional[float],
         background_correction_matrices: dict[str, Union[Path, str]] = None,
         illumination_correction_matrices: dict[str, Union[Path, str]] = None,
@@ -45,11 +45,11 @@ class CellVoyagerWellAcquisition(WellAcquisition):
 
             bgcm = None
             if self._background_correction_matrices is not None:
-                bgcm = self._background_correction_matrices[channel]
+                bgcm = self._background_correction_matrices[str(channel)]
 
             icm = None
             if self._illumincation_correction_matrices is not None:
-                icm = self._illumincation_correction_matrices[channel]
+                icm = self._illumincation_correction_matrices[str(channel)]
 
             tiles.append(
                 Tile(
