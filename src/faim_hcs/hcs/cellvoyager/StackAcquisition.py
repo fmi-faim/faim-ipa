@@ -56,6 +56,8 @@ class StackAcquisition(PlateAcquisition):
                 objective=row["Objective"],
             )
 
+        assert min(ch_metadata.keys()) == 0, "Channel indices must start at 0."
+
         return ch_metadata
 
     def _compute_z_spacing(self) -> Optional[float]:

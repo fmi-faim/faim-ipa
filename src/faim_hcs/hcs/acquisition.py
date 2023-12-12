@@ -79,7 +79,7 @@ class PlateAcquisition(ABC):
                         "family": "linear",
                         "inverted": False,
                         "label": metadata.channel_name,
-                        "wavelength_id": f"C" f"{str(metadata.channel_index).zfill(2)}",
+                        "wavelength_id": f"C{str(metadata.channel_index + 1).zfill(2)}",
                         "window": {
                             "min": np.iinfo(np.uint16).min,
                             "max": np.iinfo(np.uint16).max,
@@ -88,7 +88,7 @@ class PlateAcquisition(ABC):
                         },
                     }
                 )
-            else:
+            elif index < max_channel:
                 ome_channels.append(
                     {
                         "active": False,
@@ -97,7 +97,7 @@ class PlateAcquisition(ABC):
                         "family": "linear",
                         "inverted": False,
                         "label": "empty",
-                        "wavelength_id": f"C{str(index).zfill(2)}",
+                        "wavelength_id": f"C{str(index + 1).zfill(2)}",
                         "window": {
                             "min": np.iinfo(np.uint16).min,
                             "max": np.iinfo(np.uint16).max,

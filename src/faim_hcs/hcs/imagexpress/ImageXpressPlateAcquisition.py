@@ -123,4 +123,5 @@ class ImageXpressPlateAcquisition(PlateAcquisition):
                 objective=metadata["_MagSetting_"],
             )
 
+        assert min(ch_metadata.keys()) == 0, "Channel indices must start at 0."
         return ch_metadata

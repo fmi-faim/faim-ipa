@@ -31,7 +31,7 @@ class Tile:
 
     def __init__(
         self,
-        path: str,
+        path: Union[Path, str],
         shape: tuple[int, int],
         position: TilePosition,
         background_correction_matrix_path: Optional[Union[Path, str]] = None,
