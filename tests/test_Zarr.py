@@ -10,7 +10,7 @@ from pathlib import Path
 
 import anndata as ad
 
-from faim_hcs.hcs.acquisition import PlateLayout
+from faim_hcs.hcs.plate import PlateLayout
 from faim_hcs.io.MolecularDevicesImageXpress import (
     parse_multi_field_stacks,
     parse_single_plane_multi_fields,
@@ -85,7 +85,7 @@ class TestZarr(unittest.TestCase):
             build_zarr_scaffold,
             root_dir=self.zarr_root,
             files=self.files,
-            layout=24,
+            layout=32,
             order_name="test-order",
             barcode="test-barcode",
         )

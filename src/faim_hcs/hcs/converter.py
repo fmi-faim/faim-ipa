@@ -12,7 +12,8 @@ from ome_zarr.writer import write_image, write_plate_metadata, write_well_metada
 from pydantic import BaseModel
 from tqdm import tqdm
 
-from faim_hcs.hcs.acquisition import PlateAcquisition, PlateLayout, _get_row_cols
+from faim_hcs.hcs.acquisition import PlateAcquisition
+from faim_hcs.hcs.plate import PlateLayout, get_rows_and_columns
 from faim_hcs.stitching import stitching_utils
 
 
@@ -54,7 +55,7 @@ class ConvertToNGFFPlate:
             store = parse_url(plate_path, mode="w").store
             plate = zarr.group(store=store)
 
-            rows, cols = _get_row_cols(layout=self._ngff_plate.layout)
+            rows, cols = get_rows_and_columns(layout=self._ngff_plate.layout)
 
             write_plate_metadata(
                 plate,

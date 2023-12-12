@@ -18,7 +18,7 @@ from ome_zarr.writer import (
 )
 from zarr import Group
 
-from faim_hcs.hcs.acquisition import PlateLayout, _get_row_cols
+from faim_hcs.hcs.plate import PlateLayout, get_rows_and_columns
 from faim_hcs.UIntHistogram import UIntHistogram
 
 
@@ -41,7 +41,7 @@ def _create_zarr_plate(
     :param barcode: plate barcode
     :return: zarr group
     """
-    rows, cols = _get_row_cols(layout=layout)
+    rows, cols = get_rows_and_columns(layout=layout)
 
     plate_path = join(root_dir, name + ".zarr")
     os.makedirs(plate_path, exist_ok=False)

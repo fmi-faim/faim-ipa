@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from collections.abc import Iterable
-from enum import Enum, IntEnum
+from enum import Enum
 from pathlib import Path
 from typing import Any, Optional, Union
 
@@ -234,62 +234,3 @@ class WellAcquisition(ABC):
         for tile in self._tiles:
             tile_extents.append(tile.get_position() + np.array((1, 1, 1) + tile.shape))
         return tuple(np.max(tile_extents, axis=0))
-
-    # TODO: Move in dedicated class.
-    # @abstractmethod
-    # def roi_tables(self) -> list[dict]:
-    #     """ROI tables corresponding to the fields in this well.
-    #
-    #     Contains:
-    #       * well_ROI_table
-    #       * FOV_ROI_table
-    #
-    #     each with columns:
-    #       * x_micrometer
-    #       * y_micrometer
-    #       * z_micrometer
-    #       * len_x_micrometer
-    #       * len_y_micrometer
-    #       * len_z_micrometer
-    #     """
-    #     raise NotImplementedError()
-
-
-class PlateLayout(IntEnum):
-    """Plate layout, 96-well or 384-well."""
-
-    I96 = 96
-    I384 = 384
-
-
-def _get_row_cols(layout: Union[PlateLayout, int]) -> tuple[list[str], list[str]]:
-    """Return rows and columns for requested layout."""
-    if layout == PlateLayout.I96:
-        rows = ["A", "B", "C", "D", "E", "F", "G", "H"]
-        cols = [str(i).zfill(2) for i in range(1, 13)]
-        assert len(rows) * len(cols) == 96
-    elif layout == PlateLayout.I384:
-        rows = [
-            "A",
-            "B",
-            "C",
-            "D",
-            "E",
-            "F",
-            "G",
-            "H",
-            "I",
-            "J",
-            "K",
-            "L",
-            "M",
-            "N",
-            "O",
-            "P",
-        ]
-        cols = [str(i).zfill(2) for i in range(1, 25)]
-        assert len(rows) * len(cols) == 384
-    else:
-        raise NotImplementedError(f"{layout} layout not supported.")
-
-    return rows, cols
