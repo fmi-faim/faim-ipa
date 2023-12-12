@@ -35,7 +35,7 @@ def metadata() -> pd.DataFrame:
     )
 
 
-def test_assemble_tiles(files, metadata):
+def test__assemble_tiles(files, metadata):
     cv_well_acquisition = CellVoyagerWellAcquisition(
         files=files,
         alignment=TileAlignmentOptions.GRID,

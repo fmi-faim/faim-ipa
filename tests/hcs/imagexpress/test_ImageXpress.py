@@ -14,7 +14,7 @@ from faim_hcs.hcs.imagexpress import SinglePlaneAcquisition, StackAcquisition
 
 @pytest.fixture
 def acquisition_dir():
-    return Path(__file__).parent.parent.parent / "resources" / "Projection-Mix"
+    return Path(__file__).parent.parent.parent.parent / "resources" / "Projection-Mix"
 
 
 @pytest.fixture
