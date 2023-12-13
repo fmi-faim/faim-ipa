@@ -16,12 +16,12 @@ from faim_hcs.io.MolecularDevicesImageXpress import (
     parse_single_plane_multi_fields,
 )
 from faim_hcs.MetaSeriesUtils import get_well_image_CYX, get_well_image_CZYX
+from faim_hcs.roitable.FractalROITable import write_roi_table
 from faim_hcs.Zarr import (
     build_zarr_scaffold,
     write_cyx_image_to_well,
     write_czyx_image_to_well,
     write_labels_to_group,
-    write_roi_table,
 )
 
 ROOT_DIR = Path(__file__).parent

@@ -3,7 +3,6 @@ from os.path import join
 from pathlib import Path
 from typing import Union
 
-import anndata as ad
 import numpy as np
 import pandas as pd
 import zarr
@@ -291,33 +290,6 @@ def write_cyx_image_to_well(
         write_empty_chunks=write_empty_chunks,
         **kwargs,
     )
-
-
-def write_roi_table(
-    roi_table: pd.DataFrame,
-    table_name: str,
-    group: Group,
-):
-    """Writes a roi table to an OME-Zarr image. If no table folder exists, it is created."""
-    group_tables = group.require_group("tables")
-
-    # Assign dtype explicitly, to avoid
-    # >> UserWarning: X converted to numpy array with dtype float64
-    # when creating AnnData object
-    df_roi = roi_table.astype(np.float32)
-
-    adata = ad.AnnData(X=df_roi)
-    adata.obs_names = roi_table.index
-    adata.var_names = list(map(str, roi_table.columns))
-    ad._io.specs.write_elem(group_tables, table_name, adata)
-    update_table_metadata(group_tables, table_name)
-
-
-def update_table_metadata(group_tables, table_name):
-    if "tables" not in group_tables.attrs:
-        group_tables.attrs["tables"] = [table_name]
-    elif table_name not in group_tables.attrs["tables"]:
-        group_tables.attrs["tables"] = group_tables.attrs["tables"] + [table_name]
 
 
 def write_czyx_image_to_well(
