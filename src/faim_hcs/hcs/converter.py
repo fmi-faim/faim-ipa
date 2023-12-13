@@ -1,5 +1,6 @@
 import os
 from os.path import join
+from pathlib import Path
 from typing import Callable, Union
 
 import dask.array as da
@@ -18,7 +19,7 @@ from faim_hcs.stitching import stitching_utils
 
 
 class NGFFPlate(BaseModel):
-    root_dir: str
+    root_dir: Union[Path, str]
     name: str
     layout: PlateLayout
     order_name: str
@@ -82,7 +83,7 @@ class ConvertToNGFFPlate:
         chunks: Union[tuple[int, int], tuple[int, int, int]] = (2048, 2048),
         max_layer: int = 3,
         storage_options: dict = None,
-    ):
+    ) -> zarr.Group:
         assert 2 <= len(chunks) <= 3, "Chunks must be 2D or 3D."
         plate = self._create_zarr_plate(plate_acquisition)
         for well_acquisition in tqdm(plate_acquisition.get_well_acquisitions()):
@@ -99,6 +100,8 @@ class ConvertToNGFFPlate:
             )
 
             output_da = self._bin_yx(stitched_well_da)
+
+            output_da = output_da.squeeze()
 
             write_image(
                 image=output_da,
@@ -124,10 +127,11 @@ class ConvertToNGFFPlate:
                     for ch_metadata in plate_acquisition.get_channel_metadata().values()
                 ]
             }
+        return plate
 
     def _bin_yx(self, image_da):
         if self._yx_binning > 1:
-            output_da = da.coarsen(
+            return da.coarsen(
                 reduction=self._mean_cast_to(image_da.dtype),
                 x=image_da,
                 axes={
@@ -138,10 +142,9 @@ class ConvertToNGFFPlate:
                     4: self._yx_binning,
                 },
                 trim_excess=True,
-            ).squeeze()
+            )
         else:
-            output_da = image_da.squeeze()
-        return output_da
+            return image_da
 
     def _stitch_well_image(
         self,
@@ -191,14 +194,7 @@ class ConvertToNGFFPlate:
         return _mean
 
     @staticmethod
-    def _out_chunks(shape, chunks):
-        if len(shape) == len(chunks):
-            return chunks
-        else:
-            return (1,) * (len(shape) - len(chunks)) + chunks
-
     def _get_storage_options(
-        self,
         storage_options: dict,
         output_shape: tuple[int, ...],
         chunks: tuple[int, ...],
@@ -207,8 +203,15 @@ class ConvertToNGFFPlate:
             return dict(
                 dimension_separator="/",
                 compressor=Blosc(cname="zstd", clevel=6, shuffle=Blosc.BITSHUFFLE),
-                chunks=self._out_chunks(output_shape, chunks),
+                chunks=ConvertToNGFFPlate._out_chunks(output_shape, chunks),
                 write_empty_chunks=False,
             )
         else:
             return storage_options
+
+    @staticmethod
+    def _out_chunks(shape, chunks):
+        if len(shape) == len(chunks):
+            return chunks
+        else:
+            return (1,) * (len(shape) - len(chunks)) + chunks
