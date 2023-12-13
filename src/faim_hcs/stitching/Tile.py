@@ -17,6 +17,9 @@ class TilePosition(BaseModel):
     def __repr__(self):
         return f"TilePosition(time={self.time}, channel={self.channel}, z={self.z}, y={self.y}, x={self.x})"
 
+    def __str__(self):
+        return self.__repr__()
+
 
 class Tile:
     """
@@ -46,7 +49,8 @@ class Tile:
 
     def __repr__(self):
         return (
-            f"Tile(path={self.path}, shape={self.shape}, " f"position={self.position})"
+            f"Tile(path='{self.path}', shape={self.shape}, "
+            f"position={self.position})"
         )
 
     def __str__(self):
