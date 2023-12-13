@@ -30,8 +30,8 @@ def fuse_linear(warped_tiles: NDArray, warped_masks: NDArray) -> NDArray:
         weights = np.zeros_like(warped_masks, dtype=np.float32)
         for i, mask in enumerate(warped_masks):
             weights[i] = distance_transform_edt(
-                np.pad(warped_masks[i], 1).astype(np.float32),
-            )[1:-1, 1:-1]
+                warped_masks[i].astype(np.float32),
+            )
 
         denominator = weights.sum(axis=0)
         weights = np.true_divide(weights, denominator, where=denominator > 0)
