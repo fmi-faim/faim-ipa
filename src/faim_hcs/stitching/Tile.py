@@ -1,8 +1,9 @@
-from typing import Optional
+from pathlib import Path
+from typing import Optional, Union
 
-from numpy._typing import ArrayLike
-from pydantic import NonNegativeInt
-from skimage.measure.fit import BaseModel
+import numpy as np
+from numpy._typing import NDArray
+from pydantic import BaseModel, NonNegativeInt
 from tifffile import imread
 
 
@@ -13,26 +14,14 @@ class TilePosition(BaseModel):
     y: int
     x: int
 
-    def __init__(
-        self,
-        time: Optional[NonNegativeInt],
-        channel: Optional[NonNegativeInt],
-        z: int,
-        y: int,
-        x: int,
-    ):
-        super().__init__()
-        self.time = time
-        self.channel = channel
-        self.z = z
-        self.y = y
-        self.x = x
-
     def __repr__(self):
         return f"TilePosition(time={self.time}, channel={self.channel}, z={self.z}, y={self.y}, x={self.x})"
 
+    def __str__(self):
+        return self.__repr__()
 
-class Tile(BaseModel):
+
+class Tile:
     """
     A tile with a path to the image data, shape and position.
     """
@@ -40,16 +29,28 @@ class Tile(BaseModel):
     path: str
     shape: tuple[int, int]
     position: TilePosition
+    background_correction_matrix_path: Optional[Union[Path, str]] = None
+    illumination_correction_matrix_path: Optional[Union[Path, str]] = None
 
-    def __init__(self, path: str, shape: tuple[int, int], position: TilePosition):
+    def __init__(
+        self,
+        path: Union[Path, str],
+        shape: tuple[int, int],
+        position: TilePosition,
+        background_correction_matrix_path: Optional[Union[Path, str]] = None,
+        illumination_correction_matrix_path: Optional[Union[Path, str]] = None,
+    ):
         super().__init__()
         self.path = path
         self.shape = shape
         self.position = position
+        self.background_correction_matrix_path = background_correction_matrix_path
+        self.illumination_correction_matrix_path = illumination_correction_matrix_path
 
     def __repr__(self):
         return (
-            f"Tile(path={self.path}, shape={self.shape}, " f"position={self.position})"
+            f"Tile(path='{self.path}', shape={self.shape}, "
+            f"position={self.position})"
         )
 
     def __str__(self):
@@ -70,7 +71,7 @@ class Tile(BaseModel):
             self.position.x,
         )
 
-    def load_data(self) -> ArrayLike:
+    def load_data(self) -> NDArray:
         """
         Load the image data from the path.
 
@@ -78,4 +79,24 @@ class Tile(BaseModel):
         -------
         Image data
         """
-        return imread(self.path)
+        data = imread(self.path)
+        dtype = data.dtype
+        if self.background_correction_matrix_path is not None:
+            bgcm = imread(self.background_correction_matrix_path)
+            assert bgcm.shape == data.shape, (
+                f"Background correction matrix shape {bgcm.shape} "
+                f"does not match image shape {data.shape}."
+            )
+            mi, ma = np.iinfo(dtype).min, np.iinfo(dtype).max
+            data = np.clip(data - bgcm, a_min=mi, a_max=ma)
+
+        if self.illumination_correction_matrix_path is not None:
+            icm = imread(self.illumination_correction_matrix_path)
+            assert icm.shape == data.shape, (
+                f"Illumination correction matrix shape {icm.shape} "
+                f"does not match image shape {data.shape}."
+            )
+            mi, ma = np.iinfo(dtype).min, np.iinfo(dtype).max
+            data = np.clip(data / icm, a_min=mi, a_max=ma)
+
+        return data.astype(dtype=dtype)

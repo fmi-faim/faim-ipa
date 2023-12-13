@@ -1,5 +1,5 @@
 from functools import partial
-from typing import Callable
+from typing import Callable, Optional
 
 import numpy as np
 from dask import array as da
@@ -18,8 +18,21 @@ class DaskTileStitcher:
         self,
         tiles: list[Tile],
         yx_chunk_shape: tuple[int, int],
+        output_shape: Optional[tuple[int, int, int, int, int]] = None,
         dtype: np.dtype = np.uint16,
     ):
+        """
+        Parameters
+        ----------
+        tiles :
+            Tiles to stitch.
+        yx_chunk_shape :
+            Chunk shape in y and x.
+        output_shape :
+            Shape of the output image. If None, the shape is computed from the tiles.
+        dtype :
+            Data type of the output image.
+        """
         self.tiles: list[Tile] = stitching_utils.shift_to_origin(tiles)
         self.chunk_shape = (
             1,
@@ -28,7 +41,10 @@ class DaskTileStitcher:
         ) + yx_chunk_shape
         self.dtype = dtype
 
-        self._shape = self._compute_output_shape()
+        if output_shape is None:
+            self._shape = self._compute_output_shape()
+        else:
+            self._shape = output_shape
         self._n_chunks = self._compute_number_of_chunks()
         self._block_to_tile_map = self._compute_block_to_tile_map()
 
@@ -92,7 +108,7 @@ class DaskTileStitcher:
 
         Returns
         -------
-
+            Dask array of the stitched image.
         """
         func = partial(
             stitching_utils.assemble_chunk,
