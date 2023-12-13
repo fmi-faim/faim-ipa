@@ -43,15 +43,15 @@ class ImageXpressPlateAcquisition(PlateAcquisition):
             Table of all files in the acquisition.
         """
         return pd.DataFrame(
-            self._list_and_match_files(
+            ImageXpressPlateAcquisition._list_and_match_files(
                 root_dir=self._acquisition_dir,
                 root_re=self._get_root_re(),
                 filename_re=self._get_filename_re(),
             )
         )
 
+    @staticmethod
     def _list_and_match_files(
-        self,
         root_dir: Union[Path, str],
         root_re: re.Pattern,
         filename_re: re.Pattern,

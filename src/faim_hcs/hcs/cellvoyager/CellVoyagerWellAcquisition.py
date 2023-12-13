@@ -9,6 +9,10 @@ from faim_hcs.stitching.Tile import TilePosition
 
 
 class CellVoyagerWellAcquisition(WellAcquisition):
+    """
+    Data structure for a CellVoyager well acquisition.
+    """
+
     def __init__(
         self,
         files: pd.DataFrame,

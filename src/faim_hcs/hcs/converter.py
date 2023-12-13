@@ -27,6 +27,10 @@ class NGFFPlate(BaseModel):
 
 
 class ConvertToNGFFPlate:
+    """
+    Convert a plate acquisition to an NGFF plate.
+    """
+
     _ngff_plate: NGFFPlate
 
     def __init__(
@@ -37,6 +41,21 @@ class ConvertToNGFFPlate:
         warp_func: Callable = stitching_utils.translate_tiles_2d,
         fuse_func: Callable = stitching_utils.fuse_mean,
     ):
+        """
+        Parameters
+        ----------
+        ngff_plate :
+            NGFF plate information.
+        yx_binning :
+            YX binning factor.
+        dask_chunk_size_factor :
+            Dask chunk size factor. Increasing this will increase the memory
+            usage.
+        warp_func :
+            Function used to warp tile images.
+        fuse_func :
+            Function used to fuse tile images.
+        """
         assert (
             isinstance(yx_binning, int) and yx_binning >= 1
         ), "yx_binning must be an integer >= 1."
@@ -84,6 +103,26 @@ class ConvertToNGFFPlate:
         max_layer: int = 3,
         storage_options: dict = None,
     ) -> zarr.Group:
+        """
+        Convert a plate acquisition to an NGFF plate.
+
+        Parameters
+        ----------
+        plate_acquisition :
+            A single plate acquisition.
+        well_sub_group :
+            Name of the well sub-group.
+        chunks :
+            Chunk size in (Z)YX.
+        max_layer :
+            Maximum layer of the resolution pyramid layers.
+        storage_options :
+            Zarr storage options.
+
+        Returns
+        -------
+            zarr.Group of the plate.
+        """
         assert 2 <= len(chunks) <= 3, "Chunks must be 2D or 3D."
         plate = self._create_zarr_plate(plate_acquisition)
         for well_acquisition in tqdm(plate_acquisition.get_well_acquisitions()):

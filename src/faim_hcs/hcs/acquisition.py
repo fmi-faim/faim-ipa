@@ -61,10 +61,20 @@ class PlateAcquisition(ABC):
         raise NotImplementedError()
 
     def get_well_names(self) -> Iterable[str]:
+        """
+        Get the names of all wells in the acquisition.
+        """
         for well in self.get_well_acquisitions():
             yield well.name
 
     def get_omero_channel_metadata(self) -> list[dict]:
+        """
+        Get the channel metadata in OMERO format.
+
+        Returns
+        -------
+            List of channel metadata.
+        """
         ome_channels = []
         ch_metadata = self.get_channel_metadata()
         max_channel = max(list(ch_metadata.keys()))
@@ -115,7 +125,6 @@ class PlateAcquisition(ABC):
 
         Returns
         -------
-        tuple[int, int, int, int, int]
             (time, channel, z, y, x)
         """
         well_shapes = []
@@ -126,6 +135,10 @@ class PlateAcquisition(ABC):
 
 
 class WellAcquisition(ABC):
+    """
+    A single well of a plate acquisition.
+    """
+
     name: str = None
     _files = None
     _alignment: TileAlignmentOptions = None
@@ -157,6 +170,13 @@ class WellAcquisition(ABC):
         raise NotImplementedError()
 
     def get_dtype(self) -> np.dtype:
+        """
+        Get the data type of the well acquisition.
+
+        Returns
+        -------
+            type
+        """
         return self._tiles[0].load_data().dtype
 
     def _align_tiles(self, tiles: list[Tile]) -> list[Tile]:
@@ -177,23 +197,52 @@ class WellAcquisition(ABC):
         return self._tiles
 
     def get_row_col(self) -> tuple[str, str]:
+        """
+        Get the row and column of the well acquisition.
+
+        Returns
+        -------
+            row, column
+        """
         return self.name[0], self.name[1:]
 
     @abstractmethod
     def get_axes(self) -> list[str]:
+        """
+        Get the axes of the well acquisition.
+        """
         raise NotImplementedError()
 
     @abstractmethod
     def get_yx_spacing(self) -> tuple[float, float]:
+        """
+        Get the yx spacing of the well acquisition.
+        """
         raise NotImplementedError()
 
     @abstractmethod
     def get_z_spacing(self) -> Optional[float]:
+        """
+        Get the z spacing of the well acquisition.
+        """
         raise NotImplementedError()
 
     def get_coordinate_transformations(
         self, max_layer: int, yx_binning: int
     ) -> list[dict[str, Any]]:
+        """
+        Get the NGFF conform coordinate transformations for the well
+        acquisition.
+
+        Parameters
+        ----------
+        max_layer : Maximum layer of the resolution pyramid.
+        yx_binning : Bin factor of the yx resolution.
+
+        Returns
+        -------
+            List of coordinate transformations.
+        """
         transformations = []
         for s in range(max_layer + 1):
             if self.get_z_spacing() is not None:

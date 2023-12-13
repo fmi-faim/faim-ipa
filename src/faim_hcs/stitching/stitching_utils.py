@@ -95,6 +95,24 @@ def fuse_sum(warped_tiles: NDArray, warped_masks: NDArray) -> NDArray:
 
 @threadpool_limits.wrap(limits=1, user_api="blas")
 def translate_tiles_2d(block_info, yx_chunk_shape, dtype, tiles):
+    """
+    Translate tiles to their relative position inside the given block.
+
+    Parameters
+    ----------
+    block_info :
+        da.map_blocks block_info.
+    yx_chunk_shape :
+        shape of the chunk in yx.
+    dtype :
+        dtype of the tiles.
+    tiles :
+        list of tiles.
+
+    Returns
+    -------
+        translated tiles, translated masks
+    """
     array_location = block_info[None]["array-location"]
     chunk_yx_origin = np.array([array_location[3][0], array_location[4][0]])
     warped_tiles = []
@@ -126,6 +144,26 @@ def translate_tiles_2d(block_info, yx_chunk_shape, dtype, tiles):
 def assemble_chunk(
     block_info=None, tile_map=None, warp_func=None, fuse_func=None, dtype=None
 ):
+    """
+    Assemble a chunk of the stitched image.
+
+    Parameters
+    ----------
+    block_info :
+        da.map_blocks block_info.
+    tile_map :
+        map of block positions to tiles.
+    warp_func :
+        function used to warp tiles.
+    fuse_func :
+        function used to fuse tiles.
+    dtype :
+        tile data type.
+
+    Returns
+    -------
+        fused tiles corresponding to this block/chunk
+    """
     chunk_location = block_info[None]["chunk-location"]
     chunk_shape = block_info[None]["chunk-shape"]
     tiles = tile_map[chunk_location]

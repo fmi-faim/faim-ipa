@@ -17,11 +17,6 @@ class StackAcquisition(ImageXpressPlateAcquisition):
     MIP-2P-2sub-Stack --> {name} [Optional]
     └── 2023-02-21 --> {date}
         └── 1334 --> {acquisition id}
-            ├── Projection-Mix_E07_s1_w1E94C24BD-45E4-450A-9919-257C714278F7.tif
-            ├── Projection-Mix_E07_s1_w1_thumb4BFD4018-E675-475E-B5AB-2E959E6B6DA1.tif
-            ├── ...
-            ├── Projection-Mix_E08_s2_w3CCE83D85-0912-429E-9F18-716A085BB5BC.tif
-            ├── Projection-Mix_E08_s2_w3_thumb4D88636E-181E-4AF6-BC53-E7A435959C8F.tif
             ├── ZStep_1
             │   ├── Projection-Mix_E07_s1_w1E78EB128-BD0D-4D94-A6AD-3FF28BB1B105.tif
             │   ├── Projection-Mix_E07_s1_w1_thumb187DE64B-038A-4671-BF6B-683721723769.tif
