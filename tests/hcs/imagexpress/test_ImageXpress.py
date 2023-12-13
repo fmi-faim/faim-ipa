@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from pathlib import Path
 
 import pytest
@@ -9,7 +10,11 @@ from faim_hcs.hcs.acquisition import (
     TileAlignmentOptions,
     WellAcquisition,
 )
-from faim_hcs.hcs.imagexpress import SinglePlaneAcquisition, StackAcquisition
+from faim_hcs.hcs.imagexpress import (
+    ImageXpressPlateAcquisition,
+    SinglePlaneAcquisition,
+    StackAcquisition,
+)
 
 
 @pytest.fixture
@@ -238,3 +243,25 @@ def test_mixed_acquisition(mixed_acquisition: PlateAcquisition):
             assert tile.position.y in [0]
             assert tile.position.x in [0, 512]
             assert tile.shape == (512, 512)
+
+
+@pytest.fixture
+def dummy_plate():
+    ImageXpressPlateAcquisition.__abstractmethods__ = set()
+
+    @dataclass
+    class Plate(ImageXpressPlateAcquisition):
+        pass
+
+    return Plate()
+
+
+def test_raise_not_implemented_error(dummy_plate):
+    with pytest.raises(NotImplementedError):
+        dummy_plate._get_root_re()
+
+    with pytest.raises(NotImplementedError):
+        dummy_plate._get_filename_re()
+
+    with pytest.raises(NotImplementedError):
+        dummy_plate._get_z_spacing()
