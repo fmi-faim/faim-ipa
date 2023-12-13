@@ -1,22 +1,32 @@
 import shutil
+from pathlib import Path
 
 from faim_hcs.hcs.acquisition import TileAlignmentOptions
+from faim_hcs.hcs.cellvoyager import StackAcquisition
 from faim_hcs.hcs.converter import ConvertToNGFFPlate, NGFFPlate
-from faim_hcs.hcs.imagexpress import StackAcquisition
 from faim_hcs.hcs.plate import PlateLayout
 from faim_hcs.stitching import stitching_utils
 
 
 def main():
+    # Remove existing zarr.
+    shutil.rmtree("cv-stack.zarr", ignore_errors=True)
+
+    # Parse CV plate acquisition.
     plate = StackAcquisition(
-        acquisition_dir="/home/tibuch/Gitrepos/faim-hcs/resources/Projection" "-Mix",
+        acquisition_dir=Path(__file__).parent.parent
+        / "resources"
+        / "CV8000"
+        / "CV8000-Minimal-DataSet-2C-3W-4S-FP2-stack_20230918_135839"
+        / "CV8000-Minimal-DataSet-2C-3W-4S-FP2-stack",
         alignment=TileAlignmentOptions.GRID,
     )
-    shutil.rmtree("test-plate.zarr", ignore_errors=True)
+
+    # Create converter.
     converter = ConvertToNGFFPlate(
         ngff_plate=NGFFPlate(
             root_dir=".",
-            name="test-plate",
+            name="cv-stack",
             layout=PlateLayout.I384,
             order_name="order",
             barcode="barcode",
@@ -27,24 +37,13 @@ def main():
         fuse_func=stitching_utils.fuse_mean,
     )
 
+    # Run conversion.
     converter.run(
         plate_acquisition=plate,
         well_sub_group="0",
-        chunks=(1, 512, 512),
+        chunks=(2, 1000, 1000),
         max_layer=2,
     )
-
-    # mips = SinglePlaneAcquisition(
-    #     acquisition_dir="/home/tibuch/Gitrepos/faim-hcs/resources/Projection" "-Mix",
-    #     alignment=TileAlignmentOptions.GRID,
-    # )
-    # converter.run(
-    #     plate_acquisition=mips,
-    #     well_sub_group="0",
-    #     yx_binning=1,
-    #     chunks=(512, 512),
-    #     max_layer=2,
-    # )
 
 
 if __name__ == "__main__":
