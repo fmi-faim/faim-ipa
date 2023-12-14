@@ -241,7 +241,7 @@ class ConvertToNGFFPlate:
         if storage_options is None:
             return dict(
                 dimension_separator="/",
-                compressor=Blosc(cname="zstd", clevel=6, shuffle=Blosc.BITSHUFFLE),
+                compressor=Blosc(cname="zstd", clevel=3, shuffle=Blosc.SHUFFLE),
                 chunks=ConvertToNGFFPlate._out_chunks(output_shape, chunks),
                 write_empty_chunks=False,
             )

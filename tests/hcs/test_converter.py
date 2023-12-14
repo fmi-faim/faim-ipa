@@ -107,7 +107,7 @@ def test__get_storage_options():
     )
     assert storage_options == {
         "dimension_separator": "/",
-        "compressor": Blosc(cname="zstd", clevel=6, shuffle=Blosc.BITSHUFFLE),
+        "compressor": Blosc(cname="zstd", clevel=3, shuffle=Blosc.SHUFFLE),
         "chunks": (1, 1, 5, 10, 5),
         "write_empty_chunks": False,
     }
