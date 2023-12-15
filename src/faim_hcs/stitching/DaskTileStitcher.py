@@ -152,4 +152,4 @@ class DaskTileStitcher:
         stitched = self.get_stitched_dask_array(
             warp_func=transform_func, fuse_func=fuse_func
         )
-        return stitched.compute(scheduler="synchronous")
+        return stitched.compute()

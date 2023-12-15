@@ -6,12 +6,12 @@ from typing import Callable, Union
 import dask.array as da
 import numpy as np
 import zarr
+from dask.distributed import Client
 from numcodecs import Blosc
 from ome_zarr.io import parse_url
 from ome_zarr.scale import Scaler
 from ome_zarr.writer import write_image, write_plate_metadata, write_well_metadata
 from pydantic import BaseModel
-from tqdm import tqdm
 
 from faim_hcs.hcs.acquisition import PlateAcquisition
 from faim_hcs.hcs.plate import PlateLayout, get_rows_and_columns
@@ -102,6 +102,7 @@ class ConvertToNGFFPlate:
         chunks: Union[tuple[int, int], tuple[int, int, int]] = (2048, 2048),
         max_layer: int = 3,
         storage_options: dict = None,
+        client: Client = None,
     ) -> zarr.Group:
         """
         Convert a plate acquisition to an NGFF plate.
@@ -111,7 +112,7 @@ class ConvertToNGFFPlate:
         plate_acquisition :
             A single plate acquisition.
         well_sub_group :
-            Name of the well sub-group.
+            Name of the well subgroup.
         chunks :
             Chunk size in (Z)YX.
         max_layer :
@@ -124,8 +125,10 @@ class ConvertToNGFFPlate:
             zarr.Group of the plate.
         """
         assert 2 <= len(chunks) <= 3, "Chunks must be 2D or 3D."
+        client = client or Client()
+        well_futures = []
         plate = self._create_zarr_plate(plate_acquisition)
-        for well_acquisition in tqdm(plate_acquisition.get_well_acquisitions()):
+        for well_acquisition in plate_acquisition.get_well_acquisitions():
             well_group = self._create_well_group(
                 plate,
                 well_acquisition,
@@ -142,31 +145,49 @@ class ConvertToNGFFPlate:
 
             output_da = output_da.squeeze()
 
-            write_image(
-                image=output_da,
-                group=well_group[well_sub_group],
-                axes=well_acquisition.get_axes(),
-                storage_options=self._get_storage_options(
-                    storage_options, output_da.shape, chunks
-                ),
-                scaler=Scaler(max_layer=max_layer),
-                coordinate_transformations=well_acquisition.get_coordinate_transformations(
-                    max_layer=max_layer,
-                    yx_binning=self._yx_binning,
-                ),
+            group = well_group[well_sub_group]
+            well_futures.append(
+                (
+                    group,
+                    client.compute(
+                        write_image(
+                            image=output_da,
+                            group=group,
+                            axes=well_acquisition.get_axes(),
+                            storage_options=self._get_storage_options(
+                                storage_options, output_da.shape, chunks
+                            ),
+                            scaler=Scaler(max_layer=max_layer),
+                            coordinate_transformations=well_acquisition.get_coordinate_transformations(
+                                max_layer=max_layer,
+                                yx_binning=self._yx_binning,
+                            ),
+                            compute=False,
+                        )
+                    ),
+                )
             )
 
-            well_group[well_sub_group].attrs["omero"] = {
+        for group, futures in well_futures:
+            self._wait_for(futures)
+
+            group.attrs["omero"] = {
                 "channels": plate_acquisition.get_omero_channel_metadata()
             }
 
-            well_group[well_sub_group].attrs["acquisition_metadata"] = {
+            group.attrs["acquisition_metadata"] = {
                 "channels": [
                     ch_metadata.dict()
                     for ch_metadata in plate_acquisition.get_channel_metadata().values()
                 ]
             }
+
         return plate
+
+    @staticmethod
+    def _wait_for(futures):
+        for future in futures:
+            future.result()
 
     def _bin_yx(self, image_da):
         if self._yx_binning > 1:
