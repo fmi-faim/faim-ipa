@@ -68,17 +68,18 @@ class StackAcquisition(ImageXpressPlateAcquisition):
         self,
     ) -> Optional[float]:
         if "z" in self._files.columns:
-            channels_with_stack = self._files[self._files["z"] == "2"][
+            channel_with_stack = self._files[self._files["z"] == "2"][
                 "channel"
-            ].unique()
+            ].unique()[0]
+            subset = self._files[self._files["channel"] == channel_with_stack]
+            subset = subset[subset["well"] == subset["well"].unique()[0]]
+            subset = subset[subset["field"] == subset["field"].unique()[0]]
         else:
             return None
 
         plane_positions = {}
 
-        for i, row in self._files[
-            self._files["channel"].isin(channels_with_stack)
-        ].iterrows():
+        for i, row in subset.iterrows():
             file = row["path"]
             if "z" in row.keys() and row["z"] is not None:
                 z = int(row["z"])
