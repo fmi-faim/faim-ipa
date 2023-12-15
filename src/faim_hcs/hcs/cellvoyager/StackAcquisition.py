@@ -1,3 +1,4 @@
+from collections.abc import Iterator
 from decimal import Decimal
 from os.path import exists, join
 from pathlib import Path
@@ -69,21 +70,23 @@ class StackAcquisition(PlateAcquisition):
         z_step = np.round(np.mean(np.diff(z_steps)), decimals=precision)
         return z_step
 
-    def get_well_acquisitions(self) -> list[WellAcquisition]:
-        wells = []
-        for well in self._files["well"].unique():
-            wells.append(
-                CellVoyagerWellAcquisition(
-                    files=self._files[self._files["well"] == well],
-                    alignment=self._alignment,
-                    metadata=self._parse_metadata(),
-                    z_spacing=self._z_spacing,
-                    background_correction_matrices=self._background_correction_matrices,
-                    illumination_correction_matrices=self._illumination_correction_matrices,
-                )
-            )
+    def get_well_acquisitions(
+        self, selection: Optional[list[str]] = None
+    ) -> Iterator[WellAcquisition]:
+        if selection is not None:
+            wells = [well for well in self._files["well"].unique() if well in selection]
+        else:
+            wells = self._files["well"].unique()
 
-        return wells
+        for well in wells:
+            yield CellVoyagerWellAcquisition(
+                files=self._files[self._files["well"] == well],
+                alignment=self._alignment,
+                metadata=self._parse_metadata(),
+                z_spacing=self._z_spacing,
+                background_correction_matrices=self._background_correction_matrices,
+                illumination_correction_matrices=self._illumination_correction_matrices,
+            )
 
     def _parse_metadata(self) -> pd.DataFrame:
         mrf_file = join(self._acquisition_dir, "MeasurementDetail.mrf")

@@ -28,7 +28,7 @@ def single_plane_acquisition(acquisition_dir):
 
 
 def test_single_plane_acquistion(single_plane_acquisition: PlateAcquisition):
-    wells = single_plane_acquisition.get_well_acquisitions()
+    wells = list(single_plane_acquisition.get_well_acquisitions())
 
     assert wells is not None
     assert len(wells) == 2
@@ -94,7 +94,7 @@ def stack_acquisition(acquisition_dir):
 
 
 def test_stack_acquistion(stack_acquisition: PlateAcquisition):
-    wells = stack_acquisition.get_well_acquisitions()
+    wells = list(stack_acquisition.get_well_acquisitions())
 
     assert wells is not None
     assert len(wells) == 2
@@ -168,7 +168,7 @@ def mixed_acquisition(acquisition_dir):
 
 
 def test_mixed_acquisition(mixed_acquisition: PlateAcquisition):
-    wells = mixed_acquisition.get_well_acquisitions()
+    wells = list(mixed_acquisition.get_well_acquisitions())
 
     assert wells is not None
     assert len(wells) == 2

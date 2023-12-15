@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from collections.abc import Iterable
+from collections.abc import Iterable, Iterator
 from enum import Enum
 from pathlib import Path
 from typing import Any, Optional, Union
@@ -51,7 +51,9 @@ class PlateAcquisition(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def get_well_acquisitions(self) -> list["WellAcquisition"]:
+    def get_well_acquisitions(
+        self, selection: Optional[list[str]] = None
+    ) -> Iterator["WellAcquisition"]:
         """List of wells."""
         raise NotImplementedError()
 

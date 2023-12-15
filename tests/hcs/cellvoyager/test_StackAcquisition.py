@@ -118,7 +118,7 @@ def test_get_well_acquisitions(cv_acquisition):
         alignment=TileAlignmentOptions.GRID,
     )
 
-    wells = plate.get_well_acquisitions()
+    wells = list(plate.get_well_acquisitions())
     assert len(wells) == 3
     for well in wells:
         for tile in well.get_tiles():

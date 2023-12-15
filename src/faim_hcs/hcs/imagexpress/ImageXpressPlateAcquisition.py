@@ -1,6 +1,7 @@
 import os
 import re
 from abc import abstractmethod
+from collections.abc import Iterator
 from pathlib import Path
 from typing import Optional, Union
 
@@ -79,17 +80,22 @@ class ImageXpressPlateAcquisition(PlateAcquisition):
         """Regular expression for matching the filename of the acquisition."""
         raise NotImplementedError()
 
-    def get_well_acquisitions(self) -> list[WellAcquisition]:
-        return [
-            ImageXpressWellAcquisition(
+    def get_well_acquisitions(
+        self, selection: Optional[list[str]] = None
+    ) -> Iterator[WellAcquisition]:
+        if selection is not None:
+            wells = [well for well in self._files["well"].unique() if well in selection]
+        else:
+            wells = self._files["well"].unique()
+
+        for well in wells:
+            yield ImageXpressWellAcquisition(
                 files=self._files[self._files["well"] == well],
                 alignment=self._alignment,
                 z_spacing=self._get_z_spacing(),
                 background_correction_matrices=self._background_correction_matrices,
                 illumination_correction_matrices=self._illumination_correction_matrices,
             )
-            for well in self._files["well"].unique()
-        ]
 
     @abstractmethod
     def _get_z_spacing(self) -> Optional[float]:

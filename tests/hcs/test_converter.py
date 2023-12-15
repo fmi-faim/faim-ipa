@@ -137,7 +137,7 @@ def test__create_well_group(tmp_dir, plate_acquisition, hcs_plate):
     zarr_plate = converter._create_zarr_plate(plate_acquisition)
     well_group = converter._create_well_group(
         plate=zarr_plate,
-        well_acquisition=plate_acquisition.get_well_acquisitions()[0],
+        well_acquisition=next(plate_acquisition.get_well_acquisitions()),
         well_sub_group="0",
     )
     assert exists(join(tmp_dir, "plate_name.zarr", "D", "08", "0"))
@@ -146,7 +146,7 @@ def test__create_well_group(tmp_dir, plate_acquisition, hcs_plate):
 
 def test__stitch_well_image(tmp_dir, plate_acquisition, hcs_plate):
     converter = ConvertToNGFFPlate(hcs_plate)
-    well_acquisition = plate_acquisition.get_well_acquisitions()[0]
+    well_acquisition = next(plate_acquisition.get_well_acquisitions())
     well_img_da = converter._stitch_well_image(
         chunks=(1, 1, 10, 1000, 1000),
         well_acquisition=well_acquisition,
@@ -162,7 +162,7 @@ def test__bin_yx(tmp_dir, plate_acquisition, hcs_plate):
         hcs_plate,
         yx_binning=2,
     )
-    well_acquisition = plate_acquisition.get_well_acquisitions()[0]
+    well_acquisition = next(plate_acquisition.get_well_acquisitions())
     well_img_da = converter._stitch_well_image(
         chunks=(1, 1, 10, 1000, 1000),
         well_acquisition=well_acquisition,
