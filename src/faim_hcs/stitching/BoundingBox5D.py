@@ -80,38 +80,30 @@ class BoundingBox5D(BaseModel):
             x_end=position[4] + shape[4],
         )
 
-    def get_corner_points(self) -> set[tuple[int, int, int, int, int]]:
-        """
-        Get the corner points of this bounding box.
+    def overlaps_in_time(self, bbox: "BoundingBox5D") -> bool:
+        start_overlap = self.time_start <= bbox.time_start < self.time_end
+        end_overlap = self.time_start <= bbox.time_end - 1 < self.time_end
+        return start_overlap or end_overlap
 
-        Returns
-        -------
-        list of corner points.
-        """
-        points = set()
-        for t in [self.time_start, self.time_end - 1]:
-            for c in [self.channel_start, self.channel_end - 1]:
-                for z in [self.z_start, self.z_end - 1]:
-                    for y in [self.y_start, self.y_end - 1]:
-                        for x in [self.x_start, self.x_end - 1]:
-                            points.add((t, c, z, y, x))
-        return points
+    def overlaps_in_channel(self, bbox: "BoundingBox5D") -> bool:
+        start_overlap = self.channel_start <= bbox.channel_start < self.channel_end
+        end_overlap = self.channel_start <= bbox.channel_end - 1 < self.channel_end
+        return start_overlap or end_overlap
 
-    def contains(self, point: tuple[int, int, int, int, int]) -> bool:
-        """
-        Check if a point is inside this bounding box.
+    def overlaps_in_z(self, bbox: "BoundingBox5D") -> bool:
+        start_overlap = self.z_start <= bbox.z_start < self.z_end
+        end_overlap = self.z_start <= bbox.z_end - 1 < self.z_end
+        return start_overlap or end_overlap
 
-        Parameters
-        ----------
-        point :
-            Point to check.
-        """
-        inside_t = point[0] >= self.time_start and point[0] < self.time_end
-        inside_c = point[1] >= self.channel_start and point[1] < self.channel_end
-        inside_z = point[2] >= self.z_start and point[2] < self.z_end
-        inside_y = point[3] >= self.y_start and point[3] < self.y_end
-        inside_x = point[4] >= self.x_start and point[4] < self.x_end
-        return inside_t and inside_c and inside_z and inside_y and inside_x
+    def overlaps_in_y(self, bbox: "BoundingBox5D") -> bool:
+        start_overlap = self.y_start <= bbox.y_start < self.y_end
+        end_overlap = self.y_start <= bbox.y_end - 1 < self.y_end
+        return start_overlap or end_overlap
+
+    def overlaps_in_x(self, bbox: "BoundingBox5D") -> bool:
+        start_overlap = self.x_start <= bbox.x_start < self.x_end
+        end_overlap = self.x_start <= bbox.x_end - 1 < self.x_end
+        return start_overlap or end_overlap
 
     def overlaps(self, bbox: "BoundingBox5D") -> bool:
         """
@@ -122,11 +114,19 @@ class BoundingBox5D(BaseModel):
         bbox :
             Bounding box to check.
         """
-        inside = False
-        for point in self.get_corner_points():
-            inside = inside or bbox.contains(point)
+        if not (self.overlaps_in_time(bbox) or bbox.overlaps_in_time(self)):
+            return False
 
-        for point in bbox.get_corner_points():
-            inside = inside or self.contains(point)
+        if not (self.overlaps_in_channel(bbox) or bbox.overlaps_in_channel(self)):
+            return False
 
-        return inside
+        if not (self.overlaps_in_z(bbox) or bbox.overlaps_in_z(self)):
+            return False
+
+        if not (self.overlaps_in_y(bbox) or bbox.overlaps_in_y(self)):
+            return False
+
+        if not (self.overlaps_in_x(bbox) or bbox.overlaps_in_x(self)):
+            return False
+
+        return True
