@@ -1,7 +1,6 @@
 import os
 import re
 from abc import abstractmethod
-from collections.abc import Iterator
 from pathlib import Path
 from typing import Optional, Union
 
@@ -56,7 +55,7 @@ class ImageXpressPlateAcquisition(PlateAcquisition):
         root_dir: Union[Path, str],
         root_re: re.Pattern,
         filename_re: re.Pattern,
-    ) -> list[str]:
+    ) -> list[[dict[dict, str]]]:
         files = []
         for root, _, filenames in os.walk(root_dir):
             m_root = root_re.fullmatch(root)
@@ -80,22 +79,20 @@ class ImageXpressPlateAcquisition(PlateAcquisition):
         """Regular expression for matching the filename of the acquisition."""
         raise NotImplementedError()
 
-    def get_well_acquisitions(
-        self, selection: Optional[list[str]] = None
-    ) -> Iterator[WellAcquisition]:
-        if selection is not None:
-            wells = [well for well in self._files["well"].unique() if well in selection]
-        else:
-            wells = self._files["well"].unique()
-
-        for well in wells:
-            yield ImageXpressWellAcquisition(
-                files=self._files[self._files["well"] == well],
-                alignment=self._alignment,
-                z_spacing=self._get_z_spacing(),
-                background_correction_matrices=self._background_correction_matrices,
-                illumination_correction_matrices=self._illumination_correction_matrices,
+    def _build_well_acquisitions(self, files: pd.DataFrame) -> list[WellAcquisition]:
+        wells = []
+        for well in files["well"].unique():
+            wells.append(
+                ImageXpressWellAcquisition(
+                    files=files[files["well"] == well],
+                    alignment=self._alignment,
+                    z_spacing=self._get_z_spacing(),
+                    background_correction_matrices=self._background_correction_matrices,
+                    illumination_correction_matrices=self._illumination_correction_matrices,
+                )
             )
+
+        return wells
 
     @abstractmethod
     def _get_z_spacing(self) -> Optional[float]:
@@ -103,8 +100,9 @@ class ImageXpressPlateAcquisition(PlateAcquisition):
 
     def get_channel_metadata(self) -> dict[int, ChannelMetadata]:
         ch_metadata = {}
-        for ch in self._files["channel"].unique():
-            channel_files = self._files[self._files["channel"] == ch]
+        _files = self._wells[0]._files
+        for ch in _files["channel"].unique():
+            channel_files = _files[_files["channel"] == ch]
             path = channel_files["path"].iloc[0]
             metadata = load_metaseries_tiff_metadata(path=path)
             index = int(ch[1:]) - 1

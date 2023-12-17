@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Optional, Union
 
 import numpy as np
+import pandas as pd
 
 from faim_hcs.hcs.acquisition import TileAlignmentOptions
 from faim_hcs.hcs.imagexpress import ImageXpressPlateAcquisition
@@ -36,6 +37,8 @@ class StackAcquisition(ImageXpressPlateAcquisition):
     The *_thumb*.tif files, used by Molecular Devices as preview, are ignored.
     """
 
+    _z_spacing: float = None
+
     def __init__(
         self,
         acquisition_dir: Union[Path, str],
@@ -49,7 +52,11 @@ class StackAcquisition(ImageXpressPlateAcquisition):
             background_correction_matrices=background_correction_matrices,
             illumination_correction_matrices=illumination_correction_matrices,
         )
-        self._z_spacing = self._compute_z_spacing()
+
+    def _parse_files(self) -> pd.DataFrame:
+        files = super()._parse_files()
+        self._z_spacing = self._compute_z_spacing(files)
+        return files
 
     def _get_root_re(self) -> re.Pattern:
         return re.compile(
@@ -64,14 +71,10 @@ class StackAcquisition(ImageXpressPlateAcquisition):
     def _get_z_spacing(self) -> Optional[float]:
         return self._z_spacing
 
-    def _compute_z_spacing(
-        self,
-    ) -> Optional[float]:
-        if "z" in self._files.columns:
-            channel_with_stack = self._files[self._files["z"] == "2"][
-                "channel"
-            ].unique()[0]
-            subset = self._files[self._files["channel"] == channel_with_stack]
+    def _compute_z_spacing(self, files: pd.DataFrame) -> Optional[float]:
+        if "z" in files.columns:
+            channel_with_stack = files[files["z"] == "2"]["channel"].unique()[0]
+            subset = files[files["channel"] == channel_with_stack]
             subset = subset[subset["well"] == subset["well"].unique()[0]]
             subset = subset[subset["field"] == subset["field"].unique()[0]]
         else:

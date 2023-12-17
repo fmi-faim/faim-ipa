@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from collections.abc import Iterable, Iterator
+from collections.abc import Iterable
 from enum import Enum
 from pathlib import Path
 from typing import Any, Optional, Union
@@ -20,10 +20,11 @@ class TileAlignmentOptions(Enum):
 
 class PlateAcquisition(ABC):
     _acquisition_dir = None
-    _files = None
+    _wells = None
     _alignment: TileAlignmentOptions = None
     _background_correction_matrices: Optional[dict[str, Union[Path, str]]]
     _illumination_correction_matrices: Optional[dict[str, Union[Path, str]]]
+    _common_well_shape: tuple[int, int, int, int, int] = None
 
     def __init__(
         self,
@@ -33,10 +34,10 @@ class PlateAcquisition(ABC):
         illumination_correction_matrices: Optional[dict[str, Union[Path, str]]],
     ) -> None:
         self._acquisition_dir = acquisition_dir
-        self._files = self._parse_files()
         self._alignment = alignment
         self._background_correction_matrices = background_correction_matrices
         self._illumination_correction_matrices = illumination_correction_matrices
+        self._wells = self._build_well_acquisitions(self._parse_files())
         super().__init__()
 
     @abstractmethod
@@ -51,11 +52,17 @@ class PlateAcquisition(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def get_well_acquisitions(
-        self, selection: Optional[list[str]] = None
-    ) -> Iterator["WellAcquisition"]:
+    def _build_well_acquisitions(self, files: pd.DataFrame) -> list["WellAcquisition"]:
         """List of wells."""
         raise NotImplementedError()
+
+    def get_well_acquisitions(
+        self, selection: Optional[list[str]] = None
+    ) -> list["WellAcquisition"]:
+        if selection is None:
+            return self._wells
+        else:
+            return [well for well in self._wells if well.name in selection]
 
     @abstractmethod
     def get_channel_metadata(self) -> dict[int, ChannelMetadata]:
@@ -129,11 +136,14 @@ class PlateAcquisition(ABC):
         -------
             (time, channel, z, y, x)
         """
-        well_shapes = []
-        for well in self.get_well_acquisitions():
-            well_shapes.append(well.get_shape())
+        if self._common_well_shape is None:
+            well_shapes = []
+            for well in self.get_well_acquisitions():
+                well_shapes.append(well.get_shape())
 
-        return tuple(np.max(well_shapes, axis=0))
+            self._common_well_shape = tuple(np.max(well_shapes, axis=0))
+
+        return self._common_well_shape
 
 
 class WellAcquisition(ABC):
@@ -147,6 +157,8 @@ class WellAcquisition(ABC):
     _background_correction_matrices: Optional[dict[str, Union[Path, str]]]
     _illumincation_correction_matrices: Optional[dict[str, Union[Path, str]]]
     _tiles = None
+    _shape: tuple[int, int] = None
+    _dtype: np.dtype = None
 
     def __init__(
         self,
@@ -179,7 +191,10 @@ class WellAcquisition(ABC):
         -------
             type
         """
-        return self._tiles[0].load_data().dtype
+        if self._dtype is None:
+            self._dtype = self._tiles[0].load_data().dtype
+
+        return self._dtype
 
     def _align_tiles(self, tiles: list[Tile]) -> list[Tile]:
         if self._alignment == TileAlignmentOptions.STAGE_POSITION:
@@ -281,7 +296,12 @@ class WellAcquisition(ABC):
         """
         Compute the theoretical shape of the stitched well image.
         """
-        tile_extents = []
-        for tile in self._tiles:
-            tile_extents.append(tile.get_position() + np.array((1, 1, 1) + tile.shape))
-        return tuple(np.max(tile_extents, axis=0))
+        if self._shape is None:
+            tile_extents = []
+            for tile in self._tiles:
+                tile_extents.append(
+                    tile.get_position() + np.array((1, 1, 1) + tile.shape)
+                )
+            self._shape = tuple(np.max(tile_extents, axis=0))
+
+        return self._shape

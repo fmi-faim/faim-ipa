@@ -28,12 +28,13 @@ def single_plane_acquisition(acquisition_dir):
 
 
 def test_single_plane_acquistion(single_plane_acquisition: PlateAcquisition):
-    wells = list(single_plane_acquisition.get_well_acquisitions())
+    wells = single_plane_acquisition.get_well_acquisitions()
 
     assert wells is not None
     assert len(wells) == 2
-    # MIPs: 2 wells * 2 fields * 3 channels = 12 files
-    assert len(single_plane_acquisition._files) == 12
+    # MIPs: 1 well has 2 fields * 3 channels = 6 files
+    assert len(wells[0]._files) == 6
+    assert len(wells[0]._files) == 6
 
     channels = single_plane_acquisition.get_channel_metadata()
     assert len(channels) == 3
@@ -94,7 +95,7 @@ def stack_acquisition(acquisition_dir):
 
 
 def test_stack_acquistion(stack_acquisition: PlateAcquisition):
-    wells = list(stack_acquisition.get_well_acquisitions())
+    wells = stack_acquisition.get_well_acquisitions()
 
     assert wells is not None
     assert len(wells) == 2
@@ -103,7 +104,7 @@ def test_stack_acquistion(stack_acquisition: PlateAcquisition):
     # Total of 84 files.
     # There are additionally 12 MIP files in the directory, but these are
     # ignored in this setup.
-    assert len(stack_acquisition._files) == 84
+    assert len(wells[0]._files) + len(wells[0]._files) == 84
 
     channels = stack_acquisition.get_channel_metadata()
     assert len(channels) == 3
@@ -168,7 +169,7 @@ def mixed_acquisition(acquisition_dir):
 
 
 def test_mixed_acquisition(mixed_acquisition: PlateAcquisition):
-    wells = list(mixed_acquisition.get_well_acquisitions())
+    wells = mixed_acquisition.get_well_acquisitions()
 
     assert wells is not None
     assert len(wells) == 2
@@ -177,7 +178,7 @@ def test_mixed_acquisition(mixed_acquisition: PlateAcquisition):
     # MIP: 2 wells * 2 fields * 1 channel = 4 files
     # There are additionally 8 files for the MIPs of the stacks
     # (2 wells * 2 fields * 2 channels). But these are ignored.
-    assert len(mixed_acquisition._files) == 80 + 4 + 4
+    assert len(wells[0]._files) + len(wells[1]._files) == 80 + 4 + 4
 
     channels = mixed_acquisition.get_channel_metadata()
     assert len(channels) == 4

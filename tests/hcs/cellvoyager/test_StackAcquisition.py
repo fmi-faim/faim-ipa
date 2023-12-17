@@ -73,16 +73,6 @@ def test_get_channel_metadata(cv_acquisition):
     assert ch_metadata[3].objective == "20x v2"
 
 
-def test__compute_z_spacing(cv_acquisition):
-    plate = StackAcquisition(
-        acquisition_dir=cv_acquisition,
-        alignment=TileAlignmentOptions.GRID,
-    )
-
-    z_spacing = plate._compute_z_spacing()
-    assert z_spacing == 3.0
-
-
 def test__parse_files(cv_acquisition):
     plate = StackAcquisition(
         acquisition_dir=cv_acquisition,
@@ -118,7 +108,7 @@ def test_get_well_acquisitions(cv_acquisition):
         alignment=TileAlignmentOptions.GRID,
     )
 
-    wells = list(plate.get_well_acquisitions())
+    wells = plate.get_well_acquisitions()
     assert len(wells) == 3
     for well in wells:
         for tile in well.get_tiles():

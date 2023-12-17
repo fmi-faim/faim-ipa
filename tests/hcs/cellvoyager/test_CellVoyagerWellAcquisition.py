@@ -40,7 +40,6 @@ def test__assemble_tiles(files, metadata):
         files=files,
         alignment=TileAlignmentOptions.GRID,
         metadata=metadata,
-        z_spacing=5.0,
     )
 
     tiles = cv_well_acquisition._assemble_tiles()
@@ -60,16 +59,14 @@ def test_get_axes(files, metadata):
         files=files,
         alignment=TileAlignmentOptions.GRID,
         metadata=metadata,
-        z_spacing=5.0,
     )
     axes = cv_well_acquisition.get_axes()
     assert axes == ["c", "z", "y", "x"]
 
     cv_well_acquisition = CellVoyagerWellAcquisition(
-        files=files,
+        files=files.drop(["Z", "ZIndex"], axis=1),
         alignment=TileAlignmentOptions.GRID,
         metadata=metadata,
-        z_spacing=None,
     )
     axes = cv_well_acquisition.get_axes()
     assert axes == ["c", "y", "x"]
@@ -80,8 +77,17 @@ def test_get_yx_spacing(files, metadata):
         files=files,
         alignment=TileAlignmentOptions.GRID,
         metadata=metadata,
-        z_spacing=5.0,
     )
+    yx_spacing = cv_well_acquisition.get_yx_spacing()
+    assert yx_spacing == (0.65, 0.65)
+
+
+def test__compute_z_spacing(files, metadata):
+    cv_well_acquisition = CellVoyagerWellAcquisition(
+        files=files, alignment=TileAlignmentOptions.GRID, metadata=metadata
+    )
+    z_spacing = cv_well_acquisition._compute_z_spacing(files)
+    assert z_spacing == 3.0
 
     yx_spacing = cv_well_acquisition.get_yx_spacing()
     assert yx_spacing == (0.65, 0.65)
@@ -92,11 +98,10 @@ def test_get_z_spacing(files, metadata):
         files=files,
         alignment=TileAlignmentOptions.GRID,
         metadata=metadata,
-        z_spacing=5.0,
     )
 
     z_spacing = cv_well_acquisition.get_z_spacing()
-    assert z_spacing == 5.0
+    assert z_spacing == 3.0
 
 
 def test_bgcm(files, metadata):
@@ -104,7 +109,6 @@ def test_bgcm(files, metadata):
         files=files,
         alignment=TileAlignmentOptions.GRID,
         metadata=metadata,
-        z_spacing=5.0,
         background_correction_matrices={"1": "bgcm1", "2": "bgcm2"},
     )
 
@@ -122,7 +126,6 @@ def test_icm(files, metadata):
         files=files,
         alignment=TileAlignmentOptions.GRID,
         metadata=metadata,
-        z_spacing=5.0,
         illumination_correction_matrices={"1": "icm1", "2": "icm2"},
     )
 

@@ -27,7 +27,7 @@ def plate_acquisition():
 
 
 def test_create_fov_ROI_table(plate_acquisition):
-    tiles = next(plate_acquisition.get_well_acquisitions()).get_tiles()
+    tiles = plate_acquisition.get_well_acquisitions()[0].get_tiles()
     roi_table = create_fov_ROI_table(
         tiles=tiles,
         columns=[
@@ -66,7 +66,7 @@ def test_create_fov_ROI_table(plate_acquisition):
 
 
 def test_create_well_ROI_table(plate_acquisition):
-    well_acquisition = next(plate_acquisition.get_well_acquisitions())
+    well_acquisition = plate_acquisition.get_well_acquisitions()[0]
     roi_table = create_well_ROI_table(
         well_acquisition=well_acquisition,
         columns=[

@@ -2,6 +2,7 @@ import re
 from pathlib import Path
 from typing import Optional, Union
 
+import pandas as pd
 from numpy._typing import NDArray
 
 from faim_hcs.hcs.acquisition import TileAlignmentOptions
@@ -52,7 +53,25 @@ class MixedAcquisition(StackAcquisition):
             background_correction_matrices=background_correction_matrix,
             illumination_correction_matrices=illumination_correction_matrix,
         )
-        self._filter_mips()
+
+    def _parse_files(self) -> pd.DataFrame:
+        files = super()._parse_files()
+        return self._filter_mips(files)
+
+    def _filter_mips(self, files: pd.DataFrame) -> pd.DataFrame:
+        """Remove MIP files if the whole stack was acquired."""
+        _files = files.copy()
+        for ch in _files["channel"].unique():
+            channel_files = _files[_files["channel"] == ch]
+            z_positions = channel_files["z"].unique()
+            has_mip = None in z_positions
+            has_stack = len(z_positions) > 1
+            if has_mip and has_stack:
+                _files.drop(
+                    _files[(_files["channel"] == ch) & (_files["z"].isna())].index,
+                    inplace=True,
+                )
+        return _files
 
     def _get_root_re(self) -> re.Pattern:
         return re.compile(
@@ -63,18 +82,3 @@ class MixedAcquisition(StackAcquisition):
         return re.compile(
             r"(?P<name>.*)_(?P<well>[A-Z]+\d{2})_(?P<field>s\d+)_(?P<channel>w[1-9]{1})(?!_thumb)(?P<md_id>.*)(?P<ext>.tif)"
         )
-
-    def _filter_mips(self):
-        """Remove MIP files if the whole stack was acquired."""
-        for ch in self._files["channel"].unique():
-            channel_files = self._files[self._files["channel"] == ch]
-            z_positions = channel_files["z"].unique()
-            has_mip = None in z_positions
-            has_stack = len(z_positions) > 1
-            if has_mip and has_stack:
-                self._files.drop(
-                    self._files[
-                        (self._files["channel"] == ch) & (self._files["z"].isna())
-                    ].index,
-                    inplace=True,
-                )

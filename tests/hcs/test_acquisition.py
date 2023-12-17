@@ -35,7 +35,7 @@ def test_raise_not_implemented_error(dummy):
         dummy._parse_files()
 
     with pytest.raises(NotImplementedError):
-        dummy.get_well_acquisitions()
+        dummy._build_well_acquisitions(files=pd.DataFrame())
 
     with pytest.raises(NotImplementedError):
         dummy.get_channel_metadata()
@@ -45,27 +45,22 @@ def test_get_well_names(dummy):
     WellAcquisition.__abstractmethods__ = set()
 
     class DummyWell(WellAcquisition):
-        name = "A01"
-
         def _align_tiles(self, tiles: list[Tile]) -> list[Tile]:
             pass
 
         def _assemble_tiles(self) -> list[Tile]:
             pass
 
-    def func():
-        return [
-            DummyWell(
-                files=pd.read_csv(
-                    Path(__file__).parent / "imagexpress" / "files.csv", index_col=0
-                ),
-                alignment=TileAlignmentOptions.GRID,
-                background_correction_matrices=None,
-                illumination_correction_matrices=None,
-            )
-        ]
-
-    dummy.get_well_acquisitions = func
+    dummy._wells = [
+        DummyWell(
+            files=pd.read_csv(
+                Path(__file__).parent / "imagexpress" / "files.csv", index_col=0
+            ),
+            alignment=TileAlignmentOptions.GRID,
+            background_correction_matrices=None,
+            illumination_correction_matrices=None,
+        )
+    ]
 
     assert list(dummy.get_well_names()) == ["E07"]
 
@@ -176,27 +171,24 @@ def test_get_common_well_shape(dummy):
         def get_shape(self):
             return (1, 1, 3, 10, 23)
 
-    def func():
-        return [
-            DummyWellA(
-                files=pd.read_csv(
-                    Path(__file__).parent / "imagexpress" / "files.csv", index_col=0
-                ),
-                alignment=TileAlignmentOptions.GRID,
-                background_correction_matrices=None,
-                illumination_correction_matrices=None,
+    dummy._wells = [
+        DummyWellA(
+            files=pd.read_csv(
+                Path(__file__).parent / "imagexpress" / "files.csv", index_col=0
             ),
-            DummyWellB(
-                files=pd.read_csv(
-                    Path(__file__).parent / "imagexpress" / "files.csv", index_col=0
-                ),
-                alignment=TileAlignmentOptions.GRID,
-                background_correction_matrices=None,
-                illumination_correction_matrices=None,
+            alignment=TileAlignmentOptions.GRID,
+            background_correction_matrices=None,
+            illumination_correction_matrices=None,
+        ),
+        DummyWellB(
+            files=pd.read_csv(
+                Path(__file__).parent / "imagexpress" / "files.csv", index_col=0
             ),
-        ]
-
-    dummy.get_well_acquisitions = func
+            alignment=TileAlignmentOptions.GRID,
+            background_correction_matrices=None,
+            illumination_correction_matrices=None,
+        ),
+    ]
 
     assert dummy.get_common_well_shape() == (1, 1, 3, 11, 23)
 

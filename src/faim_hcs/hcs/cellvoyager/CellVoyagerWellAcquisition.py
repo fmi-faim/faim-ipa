@@ -1,6 +1,8 @@
+from decimal import Decimal
 from pathlib import Path
 from typing import Optional, Union
 
+import numpy as np
 import pandas as pd
 
 from faim_hcs.hcs.acquisition import TileAlignmentOptions, WellAcquisition
@@ -18,12 +20,11 @@ class CellVoyagerWellAcquisition(WellAcquisition):
         files: pd.DataFrame,
         alignment: TileAlignmentOptions,
         metadata: pd.DataFrame,
-        z_spacing: Optional[float],
         background_correction_matrices: dict[str, Union[Path, str]] = None,
         illumination_correction_matrices: dict[str, Union[Path, str]] = None,
     ):
         self._metadata = metadata
-        self._z_spacing = z_spacing
+        self._z_spacing = self._compute_z_spacing(files)
         super().__init__(
             files=files,
             alignment=alignment,
@@ -31,13 +32,28 @@ class CellVoyagerWellAcquisition(WellAcquisition):
             illumination_correction_matrices=illumination_correction_matrices,
         )
 
+    def _compute_z_spacing(self, files: pd.DataFrame) -> Optional[float]:
+        if "Z" in files.columns:
+            z_steps = np.array(
+                [float(i) for i in files.groupby("Z").mean("ZIndex").index]
+            )
+
+            precision = -Decimal(str(z_steps[0])).as_tuple().exponent
+            z_step = np.round(np.mean(np.diff(z_steps)), decimals=precision)
+            return z_step
+        else:
+            return None
+
     def _assemble_tiles(self) -> list[Tile]:
         tiles = []
         for i, row in self._files.iterrows():
             file = row["path"]
             time_point = row["TimePoint"]
             channel = row["Ch"]
-            z = row["ZIndex"]
+            if "ZIndex" in row.keys():
+                z = row["ZIndex"]
+            else:
+                z = 0
 
             ch_metadata = self._metadata[self._metadata["Ch"] == channel].iloc[0]
             shape = (
