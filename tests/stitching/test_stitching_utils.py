@@ -12,6 +12,7 @@ from faim_hcs.stitching.stitching_utils import (
     fuse_sum,
     shift_to_origin,
     translate_tiles_2d,
+    warp_yx,
 )
 from faim_hcs.stitching.Tile import TilePosition
 
@@ -188,3 +189,59 @@ def test_translate_tiles_2d(tiles):
 
     assert_array_equal(warped_tiles[0], tiles[0])
     assert_array_equal(warped_tiles[1], tiles[1])
+
+
+def test_warp_yx():
+    tile_data = np.ones((3, 3))
+    yx_chunk_shape = (3, 3)
+    warped_tile, warped_mask = warp_yx(
+        chunk_yx_origin=np.array((0, 0)),
+        tile_data=tile_data,
+        tile_origin=np.array((0, 0)),
+        yx_chunk_shape=yx_chunk_shape,
+    )
+    assert_array_equal(warped_tile, tile_data)
+    assert_array_equal(warped_mask, np.ones((3, 3), dtype=bool))
+
+    warped_tile, warped_mask = warp_yx(
+        chunk_yx_origin=np.array((0, 0)),
+        tile_data=tile_data,
+        tile_origin=np.array((-1, -1)),
+        yx_chunk_shape=yx_chunk_shape,
+    )
+    expected_warped_tile = np.zeros_like(tile_data)
+    expected_warped_tile[:-1, :-1] = 1
+    assert_array_equal(warped_tile, expected_warped_tile)
+    assert_array_equal(warped_mask, expected_warped_tile == 1)
+
+    warped_tile, warped_mask = warp_yx(
+        chunk_yx_origin=np.array((0, 0)),
+        tile_data=tile_data,
+        tile_origin=np.array((1, 1)),
+        yx_chunk_shape=yx_chunk_shape,
+    )
+    expected_warped_tile = np.zeros_like(tile_data)
+    expected_warped_tile[1:, 1:] = 1
+    assert_array_equal(warped_tile, expected_warped_tile)
+    assert_array_equal(warped_mask, expected_warped_tile == 1)
+
+    warped_tile, warped_mask = warp_yx(
+        chunk_yx_origin=np.array((0, 0)),
+        tile_data=np.ones((1, 1)),
+        tile_origin=np.array((1, 1)),
+        yx_chunk_shape=yx_chunk_shape,
+    )
+    expected_warped_tile = np.zeros((3, 3))
+    expected_warped_tile[1, 1] = 1
+    assert_array_equal(warped_tile, expected_warped_tile)
+    assert_array_equal(warped_mask, expected_warped_tile == 1)
+
+    warped_tile, warped_mask = warp_yx(
+        chunk_yx_origin=np.array((0, 0)),
+        tile_data=np.ones((5, 5)),
+        tile_origin=np.array((-1, -1)),
+        yx_chunk_shape=yx_chunk_shape,
+    )
+    expected_warped_tile = np.ones((3, 3))
+    assert_array_equal(warped_tile, expected_warped_tile)
+    assert_array_equal(warped_mask, expected_warped_tile == 1)

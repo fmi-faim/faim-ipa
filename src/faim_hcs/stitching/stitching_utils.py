@@ -3,8 +3,6 @@ from copy import copy
 import numpy as np
 from numpy._typing import NDArray
 from scipy.ndimage import distance_transform_edt
-from skimage.transform import EuclideanTransform, warp
-from threadpoolctl import threadpool_limits
 
 from faim_hcs.stitching.Tile import Tile, TilePosition
 
@@ -93,7 +91,6 @@ def fuse_sum(warped_tiles: NDArray, warped_masks: NDArray) -> NDArray:
     return fused_image.astype(warped_tiles.dtype)
 
 
-@threadpool_limits.wrap(limits=1, user_api="blas")
 def translate_tiles_2d(block_info, yx_chunk_shape, dtype, tiles):
     """
     Translate tiles to their relative position inside the given block.
@@ -119,26 +116,46 @@ def translate_tiles_2d(block_info, yx_chunk_shape, dtype, tiles):
     warped_masks = []
     for tile in tiles:
         tile_origin = np.array(tile.get_yx_position())
-        transform = EuclideanTransform(
-            translation=(chunk_yx_origin - tile_origin)[::-1]
-        )
         tile_data = tile.load_data()
-        mask = np.ones_like(tile_data)
-        warped = warp(
-            np.stack([tile_data, mask], axis=-1),
-            transform,
-            cval=0,
-            output_shape=yx_chunk_shape,
-            order=0,
-            preserve_range=True,
+        warped_mask, warped_tile = warp_yx(
+            chunk_yx_origin, tile_data, tile_origin, yx_chunk_shape
         )
-        warped_tiles.append(warped[..., 0].astype(dtype))
-        warped_masks.append(warped[..., 1].astype(bool))
 
-    warped_masks = np.nan_to_num(
-        np.array(warped_masks), nan=False, posinf=True, neginf=False
-    )
-    return np.array(warped_tiles), warped_masks
+        warped_tiles.append(warped_tile)
+        warped_masks.append(warped_mask)
+
+    return np.array(warped_tiles), np.array(warped_masks)
+
+
+def warp_yx(chunk_yx_origin, tile_data, tile_origin, yx_chunk_shape):
+    warped_tile = np.zeros(yx_chunk_shape, dtype=tile_data.dtype)
+    warped_mask = np.zeros(yx_chunk_shape, dtype=bool)
+    shift = tile_origin - chunk_yx_origin
+    if shift[0] < 0:
+        tile_start_y = abs(shift[0])
+        tile_end_y = min(tile_start_y + yx_chunk_shape[0], tile_data.shape[0])
+    else:
+        tile_start_y = 0
+        tile_end_y = min(
+            tile_start_y + yx_chunk_shape[0] - shift[0], tile_data.shape[0]
+        )
+    if shift[1] < 0:
+        tile_start_x = abs(shift[1])
+        tile_end_x = min(tile_start_x + yx_chunk_shape[1], tile_data.shape[1])
+    else:
+        tile_start_x = 0
+        tile_end_x = min(
+            tile_start_x + yx_chunk_shape[1] - shift[1], tile_data.shape[1]
+        )
+    tile_data = tile_data[tile_start_y:tile_end_y, tile_start_x:tile_end_x]
+    if tile_data.size > 0:
+        start_y = max(0, shift[0])
+        end_y = start_y + tile_data.shape[0]
+        start_x = max(0, shift[1])
+        end_x = start_x + tile_data.shape[1]
+        warped_tile[start_y:end_y, start_x:end_x] = tile_data
+        warped_mask[start_y:end_y, start_x:end_x] = True
+    return warped_mask, warped_tile
 
 
 def assemble_chunk(
