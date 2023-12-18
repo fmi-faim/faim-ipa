@@ -88,7 +88,7 @@ class Tile:
                 f"does not match image shape {data.shape}."
             )
             mi, ma = np.iinfo(dtype).min, np.iinfo(dtype).max
-            data = np.clip(data - bgcm, a_min=mi, a_max=ma)
+            data = np.clip(data - bgcm, a_min=mi, a_max=ma).astype(dtype)
 
         if self.illumination_correction_matrix_path is not None:
             icm = imread(self.illumination_correction_matrix_path)
@@ -97,6 +97,6 @@ class Tile:
                 f"does not match image shape {data.shape}."
             )
             mi, ma = np.iinfo(dtype).min, np.iinfo(dtype).max
-            data = np.clip(data / icm, a_min=mi, a_max=ma)
+            data = np.clip(data / icm, a_min=mi, a_max=ma).astype(dtype)
 
-        return data.astype(dtype=dtype)
+        return data
