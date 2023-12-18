@@ -98,6 +98,7 @@ class ConvertToNGFFPlate:
     def run(
         self,
         plate_acquisition: PlateAcquisition,
+        wells: list[str] = None,
         well_sub_group: str = "0",
         chunks: Union[tuple[int, int], tuple[int, int, int]] = (2048, 2048),
         max_layer: int = 3,
@@ -128,7 +129,7 @@ class ConvertToNGFFPlate:
         client = client or Client()
         well_futures = []
         plate = self._create_zarr_plate(plate_acquisition)
-        for well_acquisition in plate_acquisition.get_well_acquisitions():
+        for well_acquisition in plate_acquisition.get_well_acquisitions(wells):
             well_group = self._create_well_group(
                 plate,
                 well_acquisition,
