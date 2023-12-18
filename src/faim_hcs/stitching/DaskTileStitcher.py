@@ -1,3 +1,4 @@
+from copy import copy
 from functools import partial
 from typing import Callable, Optional
 
@@ -112,10 +113,10 @@ class DaskTileStitcher:
         """
         func = partial(
             stitching_utils.assemble_chunk,
-            tile_map=self._block_to_tile_map,
+            tile_map=copy(self._block_to_tile_map),
             warp_func=warp_func,
             fuse_func=fuse_func,
-            dtype=self.dtype,
+            dtype=copy(self.dtype),
         )
 
         return da.map_blocks(
