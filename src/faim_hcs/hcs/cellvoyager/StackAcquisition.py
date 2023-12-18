@@ -4,6 +4,7 @@ from typing import Optional, Union
 from xml.etree import ElementTree as ET
 
 import pandas as pd
+from tqdm import tqdm
 
 from faim_hcs.hcs.acquisition import (
     PlateAcquisition,
@@ -62,7 +63,7 @@ class StackAcquisition(PlateAcquisition):
 
     def _build_well_acquisitions(self, files: pd.DataFrame) -> list[WellAcquisition]:
         wells = []
-        for well in files["well"].unique():
+        for well in tqdm(files["well"].unique()):
             wells.append(
                 CellVoyagerWellAcquisition(
                     files=files[files["well"] == well],
