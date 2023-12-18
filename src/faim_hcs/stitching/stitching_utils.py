@@ -190,11 +190,14 @@ def assemble_chunk(
             block_info, chunk_shape[-2:], dtype, tiles
         )
 
-        stitched_img = fuse_func(
-            warped_tiles,
-            warped_masks,
-        ).astype(dtype=dtype)
-        stitched_img = stitched_img[np.newaxis, np.newaxis, np.newaxis, ...]
+        if len(tiles) > 1:
+            stitched_img = fuse_func(
+                warped_tiles,
+                warped_masks,
+            )
+            stitched_img = stitched_img[np.newaxis, np.newaxis, np.newaxis, ...]
+        else:
+            stitched_img = warped_tiles[np.newaxis, np.newaxis, ...]
     else:
         stitched_img = np.zeros(chunk_shape, dtype=dtype)
 
