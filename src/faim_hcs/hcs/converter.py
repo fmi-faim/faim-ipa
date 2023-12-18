@@ -129,7 +129,9 @@ class ConvertToNGFFPlate:
         client = client or Client()
         well_futures = []
         plate = self._create_zarr_plate(plate_acquisition)
-        for well_acquisition in plate_acquisition.get_well_acquisitions(wells):
+        well_acquisitions = plate_acquisition.get_well_acquisitions(wells)
+        max_priority = len(well_acquisitions) + 1
+        for i, well_acquisition in enumerate(well_acquisitions):
             well_group = self._create_well_group(
                 plate,
                 well_acquisition,
@@ -164,7 +166,8 @@ class ConvertToNGFFPlate:
                                 yx_binning=self._yx_binning,
                             ),
                             compute=False,
-                        )
+                        ),
+                        priority=max_priority - i,
                     ),
                 )
             )
