@@ -113,15 +113,14 @@ class DaskTileStitcher:
         """
         func = partial(
             stitching_utils.assemble_chunk,
-            tile_map=copy(self._block_to_tile_map),
             warp_func=warp_func,
             fuse_func=fuse_func,
-            dtype=copy(self.dtype),
         )
 
         return da.map_blocks(
             func=func,
-            dtype=self.dtype,
+            tile_map=copy(self._block_to_tile_map),
+            dtype=copy(self.dtype),
             chunks=normalize_chunks(
                 chunks=self.chunk_shape, shape=self._shape, dtype=self.dtype
             ),
