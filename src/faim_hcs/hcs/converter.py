@@ -105,6 +105,7 @@ class ConvertToNGFFPlate:
         max_layer: int = 3,
         storage_options: dict = None,
         client: Client = None,
+        process_wells_sequentially: bool = False,
     ) -> zarr.Group:
         """
         Convert a plate acquisition to an NGFF plate.
@@ -121,6 +122,11 @@ class ConvertToNGFFPlate:
             Maximum layer of the resolution pyramid layers.
         storage_options :
             Zarr storage options.
+        client :
+            Dask client.
+        process_wells_sequentially :
+            With large well acquisitions it can be quicker to process wells
+            sequentially.
 
         Returns
         -------
@@ -166,7 +172,7 @@ class ConvertToNGFFPlate:
                                 max_layer=max_layer,
                                 yx_binning=self._yx_binning,
                             ),
-                            compute=False,
+                            compute=process_wells_sequentially,
                         ),
                         priority=max_priority - i,
                     ),
