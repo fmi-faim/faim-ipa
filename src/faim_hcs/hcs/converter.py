@@ -37,7 +37,7 @@ class ConvertToNGFFPlate:
         self,
         ngff_plate: NGFFPlate,
         yx_binning: int = 1,
-        dask_chunk_size_factor: int = 2,
+        stitching_yx_chunk_size_factor: int = 1,
         warp_func: Callable = stitching_utils.translate_tiles_2d,
         fuse_func: Callable = stitching_utils.fuse_mean,
     ):
@@ -48,9 +48,9 @@ class ConvertToNGFFPlate:
             NGFF plate information.
         yx_binning :
             YX binning factor.
-        dask_chunk_size_factor :
-            Dask chunk size factor. Increasing this will increase the memory
-            usage.
+        stitching_yx_chunk_size_factor :
+            Stitching chunk size factor. Increasing this will increase the
+            memory usage, but reduce the dask computation graph size.
         warp_func :
             Function used to warp tile images.
         fuse_func :
@@ -60,11 +60,12 @@ class ConvertToNGFFPlate:
             isinstance(yx_binning, int) and yx_binning >= 1
         ), "yx_binning must be an integer >= 1."
         assert (
-            isinstance(dask_chunk_size_factor, int) and dask_chunk_size_factor >= 1
+            isinstance(stitching_yx_chunk_size_factor, int)
+            and stitching_yx_chunk_size_factor >= 1
         ), "dask_chunk_size_factor must be an integer >= 1."
         self._ngff_plate = ngff_plate
         self._yx_binning = yx_binning
-        self._dask_chunk_size_factor = dask_chunk_size_factor
+        self._stitching_yx_chunk_size_factor = stitching_yx_chunk_size_factor
         self._warp_func = warp_func
         self._fuse_func = fuse_func
 
@@ -221,8 +222,8 @@ class ConvertToNGFFPlate:
         stitcher = DaskTileStitcher(
             tiles=well_acquisition.get_tiles(),
             yx_chunk_shape=(
-                chunks[-2] * self._dask_chunk_size_factor,
-                chunks[-1] * self._dask_chunk_size_factor,
+                chunks[-2] * self._stitching_yx_chunk_size_factor,
+                chunks[-1] * self._stitching_yx_chunk_size_factor,
             ),
             output_shape=output_shape,
             dtype=well_acquisition.get_dtype(),

@@ -32,7 +32,7 @@ def main():
             barcode="barcode",
         ),
         yx_binning=2,
-        dask_chunk_size_factor=2,
+        stitching_yx_chunk_size_factor=2,
         warp_func=stitching_utils.translate_tiles_2d,
         fuse_func=stitching_utils.fuse_mean,
     )
