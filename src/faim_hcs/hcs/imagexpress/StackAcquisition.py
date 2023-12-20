@@ -72,13 +72,11 @@ class StackAcquisition(ImageXpressPlateAcquisition):
         return self._z_spacing
 
     def _compute_z_spacing(self, files: pd.DataFrame) -> Optional[float]:
-        if "z" in files.columns:
-            channel_with_stack = files[files["z"] == "2"]["channel"].unique()[0]
-            subset = files[files["channel"] == channel_with_stack]
-            subset = subset[subset["well"] == subset["well"].unique()[0]]
-            subset = subset[subset["field"] == subset["field"].unique()[0]]
-        else:
-            return None
+        assert "z" in files.columns, "No z column in files DataFrame."
+        channel_with_stack = files[files["z"] == "2"]["channel"].unique()[0]
+        subset = files[files["channel"] == channel_with_stack]
+        subset = subset[subset["well"] == subset["well"].unique()[0]]
+        subset = subset[subset["field"] == subset["field"].unique()[0]]
 
         plane_positions = []
 
