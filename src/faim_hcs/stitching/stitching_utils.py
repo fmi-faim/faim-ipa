@@ -136,8 +136,8 @@ def warp_yx(chunk_yx_origin, tile_data, tile_origin, yx_chunk_shape):
         tile_end_y = min(tile_start_y + yx_chunk_shape[0], tile_data.shape[0])
     else:
         tile_start_y = 0
-        tile_end_y = min(
-            tile_start_y + yx_chunk_shape[0] - shift[0], tile_data.shape[0]
+        tile_end_y = max(
+            0, min(tile_start_y + yx_chunk_shape[0] - shift[0], tile_data.shape[0])
         )
     if shift[1] < 0:
         tile_start_x = abs(shift[1])

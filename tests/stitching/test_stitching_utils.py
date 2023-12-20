@@ -139,6 +139,34 @@ def test_assemble_chunk(tiles):
     assert stitched_img.shape == (1, 1, 1, 10, 20)
     assert_array_equal(stitched_img[0, 0, 0], np.zeros_like(tiles[0], dtype=np.uint16))
 
+    tile_map = {
+        (0, 0, 0, 0, 0): [
+            DummyTile(yx_position=(0, 0), data=tiles[0][..., :15]),
+        ],
+        (1, 0, 0, 0, 0): [],
+    }
+
+    block_info = {
+        None: {
+            "array-location": [(0, 1), (0, 1), (0, 1), (0, 10), (0, 20)],
+            "chunk-location": (0, 0, 0, 0, 0),
+            "chunk-shape": (1, 1, 1, 10, 20),
+            "dtype": "uint16",
+            "num-chunks": (1, 1, 1, 1, 1),
+            "shape": (1, 1, 1, 10, 20),
+        }
+    }
+
+    stitched_img = assemble_chunk(
+        block_info=block_info,
+        tile_map=tile_map,
+        warp_func=translate_tiles_2d,
+        fuse_func=fuse_sum,
+        dtype=np.uint16,
+    )
+    assert stitched_img.shape == (1, 1, 1, 10, 20)
+    assert_array_equal(stitched_img[0, 0, 0], tiles[0])
+
 
 def test_shift_to_origin():
     result = shift_to_origin(
@@ -243,5 +271,15 @@ def test_warp_yx():
         yx_chunk_shape=yx_chunk_shape,
     )
     expected_warped_tile = np.ones((3, 3))
+    assert_array_equal(warped_tile, expected_warped_tile)
+    assert_array_equal(warped_mask, expected_warped_tile == 1)
+
+    warped_tile, warped_mask = warp_yx(
+        chunk_yx_origin=np.array((0, 0)),
+        tile_data=np.ones((5, 5)),
+        tile_origin=np.array((6, 0)),
+        yx_chunk_shape=yx_chunk_shape,
+    )
+    expected_warped_tile = np.zeros((3, 3))
     assert_array_equal(warped_tile, expected_warped_tile)
     assert_array_equal(warped_mask, expected_warped_tile == 1)

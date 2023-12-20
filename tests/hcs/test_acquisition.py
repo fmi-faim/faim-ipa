@@ -30,6 +30,18 @@ def dummy():
     return Plate()
 
 
+def test_get_well_acquisitions(dummy):
+    class DummyWell(WellAcquisition):
+        name = "E07"
+
+    dummy._wells = [DummyWell]
+    wells = dummy.get_well_acquisitions()
+    assert len(wells) == 1
+    assert wells[0].name == "E07"
+    wells = dummy.get_well_acquisitions(["E08"])
+    assert len(wells) == 0
+
+
 def test_raise_not_implemented_error(dummy):
     with pytest.raises(NotImplementedError):
         dummy._parse_files()

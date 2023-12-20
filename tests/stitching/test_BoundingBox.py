@@ -118,3 +118,17 @@ def test_no_overlap():
 
     assert not bbox_a.overlaps(bbox_b)
     assert not bbox_b.overlaps(bbox_a)
+
+    bbox_c = BoundingBox5D(
+        time_start=1,
+        time_end=2,
+        channel_start=1,
+        channel_end=2,
+        z_start=1,
+        z_end=2,
+        y_start=2,
+        y_end=8,
+        x_start=2,
+        x_end=8,
+    )
+    assert not bbox_a.overlaps(bbox_c)

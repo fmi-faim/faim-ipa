@@ -80,27 +80,17 @@ class StackAcquisition(ImageXpressPlateAcquisition):
         else:
             return None
 
-        plane_positions = {}
+        plane_positions = []
 
         for i, row in subset.iterrows():
             file = row["path"]
             if "z" in row.keys() and row["z"] is not None:
-                z = int(row["z"])
                 metadata = load_metaseries_tiff_metadata(file)
                 z_position = metadata["stage-position-z"]
-                if z in plane_positions.keys():
-                    plane_positions[z].append(z_position)
-                else:
-                    plane_positions[z] = [z_position]
+                plane_positions.append(z_position)
 
-        if len(plane_positions) > 1:
-            plane_positions = dict(sorted(plane_positions.items()))
-            average_z_positions = []
-            for z, positions in plane_positions.items():
-                average_z_positions.append(np.mean(positions))
+        plane_positions = sorted(plane_positions)
 
-            precision = -Decimal(str(plane_positions[1][0])).as_tuple().exponent
-            z_step = np.round(np.mean(np.diff(average_z_positions)), decimals=precision)
-            return z_step
-        else:
-            return None
+        precision = -Decimal(str(plane_positions[0])).as_tuple().exponent
+        z_step = np.round(np.mean(np.diff(plane_positions)), decimals=precision)
+        return z_step
