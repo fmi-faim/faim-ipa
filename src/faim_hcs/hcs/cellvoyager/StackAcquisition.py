@@ -1,11 +1,10 @@
-from decimal import Decimal
 from os.path import exists, join
 from pathlib import Path
 from typing import Optional, Union
 from xml.etree import ElementTree as ET
 
-import numpy as np
 import pandas as pd
+from tqdm import tqdm
 
 from faim_hcs.hcs.acquisition import (
     PlateAcquisition,
@@ -34,7 +33,6 @@ class StackAcquisition(PlateAcquisition):
             background_correction_matrices=background_correction_matrices,
             illumination_correction_matrices=illumination_correction_matrices,
         )
-        self._z_spacing = self._compute_z_spacing()
 
     def get_channel_metadata(self) -> dict[int, ChannelMetadata]:
         metadata = self._parse_metadata()
@@ -49,7 +47,7 @@ class StackAcquisition(PlateAcquisition):
                 spatial_calibration_x=row["HorizontalPixelDimension"],
                 spatial_calibration_y=row["VerticalPixelDimension"],
                 spatial_calibration_units="um",
-                z_spacing=self._z_spacing,
+                z_spacing=self.get_z_spacing(),
                 wavelength=row["Target"],
                 exposure_time=row["ExposureTime"],
                 exposure_time_unit="ms",
@@ -60,29 +58,21 @@ class StackAcquisition(PlateAcquisition):
 
         return ch_metadata
 
-    def _compute_z_spacing(self) -> Optional[float]:
-        z_steps = np.array(
-            [float(i) for i in self._files.groupby("Z").mean("ZIndex").index]
-        )
+    def get_z_spacing(self) -> float:
+        return self._wells[0].get_z_spacing()
 
-        precision = -Decimal(str(z_steps[0])).as_tuple().exponent
-        z_step = np.round(np.mean(np.diff(z_steps)), decimals=precision)
-        return z_step
-
-    def get_well_acquisitions(self) -> list[WellAcquisition]:
+    def _build_well_acquisitions(self, files: pd.DataFrame) -> list[WellAcquisition]:
         wells = []
-        for well in self._files["well"].unique():
+        for well in tqdm(files["well"].unique()):
             wells.append(
                 CellVoyagerWellAcquisition(
-                    files=self._files[self._files["well"] == well],
+                    files=files[files["well"] == well],
                     alignment=self._alignment,
                     metadata=self._parse_metadata(),
-                    z_spacing=self._z_spacing,
                     background_correction_matrices=self._background_correction_matrices,
                     illumination_correction_matrices=self._illumination_correction_matrices,
                 )
             )
-
         return wells
 
     def _parse_metadata(self) -> pd.DataFrame:

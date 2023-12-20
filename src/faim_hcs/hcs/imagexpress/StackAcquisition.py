@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Optional, Union
 
 import numpy as np
+import pandas as pd
 
 from faim_hcs.hcs.acquisition import TileAlignmentOptions
 from faim_hcs.hcs.imagexpress import ImageXpressPlateAcquisition
@@ -36,6 +37,8 @@ class StackAcquisition(ImageXpressPlateAcquisition):
     The *_thumb*.tif files, used by Molecular Devices as preview, are ignored.
     """
 
+    _z_spacing: float = None
+
     def __init__(
         self,
         acquisition_dir: Union[Path, str],
@@ -49,7 +52,11 @@ class StackAcquisition(ImageXpressPlateAcquisition):
             background_correction_matrices=background_correction_matrices,
             illumination_correction_matrices=illumination_correction_matrices,
         )
-        self._z_spacing = self._compute_z_spacing()
+
+    def _parse_files(self) -> pd.DataFrame:
+        files = super()._parse_files()
+        self._z_spacing = self._compute_z_spacing(files)
+        return files
 
     def _get_root_re(self) -> re.Pattern:
         return re.compile(
@@ -64,39 +71,24 @@ class StackAcquisition(ImageXpressPlateAcquisition):
     def _get_z_spacing(self) -> Optional[float]:
         return self._z_spacing
 
-    def _compute_z_spacing(
-        self,
-    ) -> Optional[float]:
-        if "z" in self._files.columns:
-            channels_with_stack = self._files[self._files["z"] == "2"][
-                "channel"
-            ].unique()
-        else:
-            return None
+    def _compute_z_spacing(self, files: pd.DataFrame) -> Optional[float]:
+        assert "z" in files.columns, "No z column in files DataFrame."
+        channel_with_stack = files[files["z"] == "2"]["channel"].unique()[0]
+        subset = files[files["channel"] == channel_with_stack]
+        subset = subset[subset["well"] == subset["well"].unique()[0]]
+        subset = subset[subset["field"] == subset["field"].unique()[0]]
 
-        plane_positions = {}
+        plane_positions = []
 
-        for i, row in self._files[
-            self._files["channel"].isin(channels_with_stack)
-        ].iterrows():
+        for i, row in subset.iterrows():
             file = row["path"]
             if "z" in row.keys() and row["z"] is not None:
-                z = int(row["z"])
                 metadata = load_metaseries_tiff_metadata(file)
                 z_position = metadata["stage-position-z"]
-                if z in plane_positions.keys():
-                    plane_positions[z].append(z_position)
-                else:
-                    plane_positions[z] = [z_position]
+                plane_positions.append(z_position)
 
-        if len(plane_positions) > 1:
-            plane_positions = dict(sorted(plane_positions.items()))
-            average_z_positions = []
-            for z, positions in plane_positions.items():
-                average_z_positions.append(np.mean(positions))
+        plane_positions = sorted(plane_positions)
 
-            precision = -Decimal(str(plane_positions[1][0])).as_tuple().exponent
-            z_step = np.round(np.mean(np.diff(average_z_positions)), decimals=precision)
-            return z_step
-        else:
-            return None
+        precision = -Decimal(str(plane_positions[0])).as_tuple().exponent
+        z_step = np.round(np.mean(np.diff(plane_positions)), decimals=precision)
+        return z_step

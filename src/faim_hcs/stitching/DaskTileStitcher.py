@@ -1,3 +1,4 @@
+from copy import copy
 from functools import partial
 from typing import Callable, Optional
 
@@ -112,15 +113,14 @@ class DaskTileStitcher:
         """
         func = partial(
             stitching_utils.assemble_chunk,
-            tile_map=self._block_to_tile_map,
             warp_func=warp_func,
             fuse_func=fuse_func,
-            dtype=self.dtype,
         )
 
         return da.map_blocks(
             func=func,
-            dtype=self.dtype,
+            tile_map=copy(self._block_to_tile_map),
+            dtype=copy(self.dtype),
             chunks=normalize_chunks(
                 chunks=self.chunk_shape, shape=self._shape, dtype=self.dtype
             ),
@@ -152,4 +152,4 @@ class DaskTileStitcher:
         stitched = self.get_stitched_dask_array(
             warp_func=transform_func, fuse_func=fuse_func
         )
-        return stitched.compute(scheduler="synchronous")
+        return stitched.compute()
