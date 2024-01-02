@@ -13,6 +13,7 @@ from ome_zarr.scale import Scaler
 from ome_zarr.writer import write_image, write_plate_metadata, write_well_metadata
 from pydantic import BaseModel
 
+from faim_hcs.dask_utils import LocalClusterFactory
 from faim_hcs.hcs.acquisition import PlateAcquisition
 from faim_hcs.hcs.plate import PlateLayout, get_rows_and_columns
 from faim_hcs.stitching import stitching_utils
@@ -40,6 +41,7 @@ class ConvertToNGFFPlate:
         stitching_yx_chunk_size_factor: int = 1,
         warp_func: Callable = stitching_utils.translate_tiles_2d,
         fuse_func: Callable = stitching_utils.fuse_mean,
+        client: Client = None,
     ):
         """
         Parameters
@@ -55,6 +57,8 @@ class ConvertToNGFFPlate:
             Function used to warp tile images.
         fuse_func :
             Function used to fuse tile images.
+        client :
+            Dask client used for the conversion.
         """
         assert (
             isinstance(yx_binning, int) and yx_binning >= 1
@@ -68,6 +72,12 @@ class ConvertToNGFFPlate:
         self._stitching_yx_chunk_size_factor = stitching_yx_chunk_size_factor
         self._warp_func = warp_func
         self._fuse_func = fuse_func
+        if client is None:
+            self._cluster_factory = LocalClusterFactory()
+            self._client = self._cluster_factory.get_client()
+        else:
+            self._cluster_factory = None
+            self._client = client
 
     def _create_zarr_plate(self, plate_acquisition: PlateAcquisition) -> zarr.Group:
         plate_path = join(self._ngff_plate.root_dir, self._ngff_plate.name + ".zarr")
@@ -104,7 +114,6 @@ class ConvertToNGFFPlate:
         chunks: Union[tuple[int, int], tuple[int, int, int]] = (2048, 2048),
         max_layer: int = 3,
         storage_options: dict = None,
-        client: Client = None,
         process_wells_sequentially: bool = False,
     ) -> zarr.Group:
         """
@@ -122,8 +131,6 @@ class ConvertToNGFFPlate:
             Maximum layer of the resolution pyramid layers.
         storage_options :
             Zarr storage options.
-        client :
-            Dask client.
         process_wells_sequentially :
             With large well acquisitions it can be quicker to process wells
             sequentially.
@@ -133,7 +140,6 @@ class ConvertToNGFFPlate:
             zarr.Group of the plate.
         """
         assert 2 <= len(chunks) <= 3, "Chunks must be 2D or 3D."
-        client = client or Client()
         well_futures = []
         plate = self._create_zarr_plate(plate_acquisition)
         well_acquisitions = plate_acquisition.get_well_acquisitions(wells)
@@ -159,7 +165,7 @@ class ConvertToNGFFPlate:
             well_futures.append(
                 (
                     group,
-                    client.compute(
+                    self._client.compute(
                         write_image(
                             image=output_da,
                             group=group,
@@ -281,3 +287,7 @@ class ConvertToNGFFPlate:
             return chunks
         else:
             return (1,) * (len(shape) - len(chunks)) + chunks
+
+    def __del__(self):
+        if self._cluster_factory is not None:
+            self._cluster_factory.__del__()
