@@ -5,6 +5,7 @@ import dask
 import numpy as np
 import pytest
 import zarr
+from distributed import Client
 from numcodecs import Blosc
 
 from faim_hcs.hcs.acquisition import TileAlignmentOptions
@@ -205,3 +206,13 @@ def test_run(tmp_dir, plate_acquisition, hcs_plate):
 
         assert plate[row][col]["0"]["0"].shape == (2, 4, 1000, 1000)
         assert plate[row][col]["0"]["1"].shape == (2, 4, 500, 500)
+
+
+def test_provide_client(tmp_dir, plate_acquisition, hcs_plate):
+    converter = ConvertToNGFFPlate(
+        hcs_plate,
+        yx_binning=2,
+        client=Client(),
+    )
+    assert converter._client is not None
+    assert converter._cluster_factory is None
