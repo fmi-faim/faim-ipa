@@ -6,7 +6,7 @@ from typing import Callable, Union
 import dask.array as da
 import numpy as np
 import zarr
-from dask.distributed import Client
+from dask.distributed import Client, wait
 from numcodecs import Blosc
 from ome_zarr.io import parse_url
 from ome_zarr.scale import Scaler
@@ -180,7 +180,7 @@ class ConvertToNGFFPlate:
             )
 
         for group, futures in well_futures:
-            self._wait_for(futures)
+            wait(futures)
 
             group.attrs["omero"] = {
                 "channels": plate_acquisition.get_omero_channel_metadata()
@@ -194,11 +194,6 @@ class ConvertToNGFFPlate:
             }
 
         return plate
-
-    @staticmethod
-    def _wait_for(futures):
-        for future in futures:
-            future.result()
 
     def _bin_yx(self, image_da):
         if self._yx_binning > 1:
