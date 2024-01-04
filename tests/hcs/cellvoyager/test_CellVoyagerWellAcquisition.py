@@ -50,7 +50,7 @@ def test__assemble_tiles(files, metadata):
         assert tile.position.channel in [1, 2]
         assert tile.position.time == 1
         assert tile.position.z in [1, 2, 3, 4]
-        assert tile.position.y in list((files["Y"].unique() / 0.65).astype(int))
+        assert tile.position.y in list(-(files["Y"].unique() / 0.65).astype(int))
         assert tile.position.x in list((files["X"].unique() / 0.65).astype(int))
 
 
