@@ -1,6 +1,8 @@
 from abc import ABC
 from copy import copy
 
+import numpy as np
+
 from faim_hcs.stitching import Tile, stitching_utils
 
 
@@ -44,8 +46,8 @@ class GridAlignment(AbstractAlignment):
         tile_map = {}
         for tile in tiles:
             assert tile.shape == tile_shape, "All tiles must have the same shape."
-            y_pos = tile.position.y // tile_shape[0]
-            x_pos = tile.position.x // tile_shape[1]
+            y_pos = int(np.round(tile.position.y / tile_shape[0]))
+            x_pos = int(np.round(tile.position.x / tile_shape[1]))
             if (y_pos, x_pos) in tile_map.keys():
                 tile_map[(y_pos, x_pos)].append(tile)
             else:

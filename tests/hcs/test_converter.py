@@ -154,7 +154,7 @@ def test__stitch_well_image(tmp_dir, plate_acquisition, hcs_plate):
         output_shape=plate_acquisition.get_common_well_shape(),
     )
     assert isinstance(well_img_da, dask.array.core.Array)
-    assert well_img_da.shape == (1, 2, 4, 2000, 2000)
+    assert well_img_da.shape == (1, 2, 4, 4000, 4000)
     assert well_img_da.dtype == np.uint16
 
 
@@ -171,13 +171,13 @@ def test__bin_yx(tmp_dir, plate_acquisition, hcs_plate):
     )
     binned_yx = converter._bin_yx(well_img_da)
     assert isinstance(binned_yx, dask.array.core.Array)
-    assert binned_yx.shape == (1, 2, 4, 1000, 1000)
+    assert binned_yx.shape == (1, 2, 4, 2000, 2000)
     assert binned_yx.dtype == np.uint16
 
     converter._yx_binning = 1
     binned_yx = converter._bin_yx(well_img_da)
     assert isinstance(binned_yx, dask.array.core.Array)
-    assert binned_yx.shape == (1, 2, 4, 2000, 2000)
+    assert binned_yx.shape == (1, 2, 4, 4000, 4000)
     assert binned_yx.dtype == np.uint16
 
 
@@ -212,8 +212,8 @@ def test_run(tmp_dir, plate_acquisition, hcs_plate):
         assert exists(join(path, "0", ".zarray"))
         assert exists(join(path, "1", ".zarray"))
 
-        assert plate[row][col]["0"]["0"].shape == (2, 4, 1000, 1000)
-        assert plate[row][col]["0"]["1"].shape == (2, 4, 500, 500)
+        assert plate[row][col]["0"]["0"].shape == (2, 4, 2000, 2000)
+        assert plate[row][col]["0"]["1"].shape == (2, 4, 1000, 1000)
 
 
 def test_run_selection(tmp_dir, plate_acquisition, hcs_plate):
