@@ -69,11 +69,11 @@ class PlateAcquisition(ABC):
         """Channel metadata."""
         raise NotImplementedError()
 
-    def get_well_names(self) -> Iterable[str]:
+    def get_well_names(self, wells: Optional[list[str]] = None) -> Iterable[str]:
         """
         Get the names of all wells in the acquisition.
         """
-        for well in self.get_well_acquisitions():
+        for well in self.get_well_acquisitions(selection=wells):
             yield well.name
 
     def get_omero_channel_metadata(self) -> list[dict]:
