@@ -79,7 +79,7 @@ class CellVoyagerWellAcquisition(WellAcquisition):
                         time=time_point,
                         channel=int(channel),
                         z=z,
-                        y=int(float(row["Y"]) / yx_spacing[0]),
+                        y=int(-float(row["Y"]) / yx_spacing[0]),
                         x=int(float(row["X"]) / yx_spacing[1]),
                     ),
                     background_correction_matrix_path=bgcm,

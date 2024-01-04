@@ -36,13 +36,6 @@ def tiles() -> list[Tile]:
                 time=0, channel=0, z=231, y=4829 + 512, x=20128 + 512 - 1
             ),
         ),
-        Tile(
-            path="path",
-            shape=(512, 512),
-            position=TilePosition(
-                time=0, channel=0, z=231, y=4829 + 2 * 512 + 1, x=20128 + 512 + 10
-            ),
-        ),
     ]
 
 

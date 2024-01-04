@@ -75,6 +75,8 @@ def test_get_well_names(dummy):
     ]
 
     assert list(dummy.get_well_names()) == ["E07"]
+    assert list(dummy.get_well_names(["E07"])) == ["E07"]
+    assert list(dummy.get_well_names(["E08"])) == []
 
 
 def test_get_omero_channel_metadata(dummy):

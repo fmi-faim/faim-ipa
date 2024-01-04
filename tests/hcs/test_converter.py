@@ -5,7 +5,7 @@ import dask
 import numpy as np
 import pytest
 import zarr
-from distributed import Client
+from distributed import Client, LocalCluster
 from numcodecs import Blosc
 
 from faim_hcs.hcs.acquisition import TileAlignmentOptions
@@ -64,7 +64,7 @@ def plate_acquisition():
 
 def test__create_zarr_plate(tmp_dir, plate_acquisition, hcs_plate):
     converter = ConvertToNGFFPlate(hcs_plate)
-    zarr_plate = converter._create_zarr_plate(plate_acquisition)
+    zarr_plate = converter._create_zarr_plate(plate_acquisition, wells=None)
 
     assert exists(join(tmp_dir, "plate_name.zarr"))
     assert zarr_plate.attrs["plate"]["name"] == "plate_name"
@@ -154,7 +154,7 @@ def test__stitch_well_image(tmp_dir, plate_acquisition, hcs_plate):
         output_shape=plate_acquisition.get_common_well_shape(),
     )
     assert isinstance(well_img_da, dask.array.core.Array)
-    assert well_img_da.shape == (1, 2, 4, 2000, 2000)
+    assert well_img_da.shape == (1, 2, 4, 4000, 4000)
     assert well_img_da.dtype == np.uint16
 
 
@@ -171,13 +171,13 @@ def test__bin_yx(tmp_dir, plate_acquisition, hcs_plate):
     )
     binned_yx = converter._bin_yx(well_img_da)
     assert isinstance(binned_yx, dask.array.core.Array)
-    assert binned_yx.shape == (1, 2, 4, 1000, 1000)
+    assert binned_yx.shape == (1, 2, 4, 2000, 2000)
     assert binned_yx.dtype == np.uint16
 
     converter._yx_binning = 1
     binned_yx = converter._bin_yx(well_img_da)
     assert isinstance(binned_yx, dask.array.core.Array)
-    assert binned_yx.shape == (1, 2, 4, 2000, 2000)
+    assert binned_yx.shape == (1, 2, 4, 4000, 4000)
     assert binned_yx.dtype == np.uint16
 
 
@@ -185,8 +185,16 @@ def test_run(tmp_dir, plate_acquisition, hcs_plate):
     converter = ConvertToNGFFPlate(
         hcs_plate,
         yx_binning=2,
+        client=LocalCluster(
+            n_workers=1, threads_per_worker=4, processes=False
+        ).get_client(),
     )
     plate = converter.run(plate_acquisition, max_layer=2)
+    plate.attrs["plate"]["wells"] == [
+        {"columnIndex": 7, "path": "D/08", "rowIndex": 3},
+        {"columnIndex": 2, "path": "E/03", "rowIndex": 4},
+        {"columnIndex": 7, "path": "F/08", "rowIndex": 5},
+    ]
     for well in ["D08", "E03", "F08"]:
         row, col = well[0], well[1:]
         path = join(tmp_dir, "plate_name.zarr", row, col, "0")
@@ -204,8 +212,39 @@ def test_run(tmp_dir, plate_acquisition, hcs_plate):
         assert exists(join(path, "0", ".zarray"))
         assert exists(join(path, "1", ".zarray"))
 
-        assert plate[row][col]["0"]["0"].shape == (2, 4, 1000, 1000)
-        assert plate[row][col]["0"]["1"].shape == (2, 4, 500, 500)
+        assert plate[row][col]["0"]["0"].shape == (2, 4, 2000, 2000)
+        assert plate[row][col]["0"]["1"].shape == (2, 4, 1000, 1000)
+
+
+def test_run_selection(tmp_dir, plate_acquisition, hcs_plate):
+    converter = ConvertToNGFFPlate(
+        hcs_plate,
+        yx_binning=2,
+        client=LocalCluster(
+            n_workers=1, threads_per_worker=4, processes=False
+        ).get_client(),
+    )
+    plate = converter.run(plate_acquisition, max_layer=2, wells=["D08"])
+    plate.attrs["plate"]["wells"] == [{"columnIndex": 7, "path": "D/08", "rowIndex": 3}]
+    for well in ["D08"]:
+        row, col = well[0], well[1:]
+        path = join(tmp_dir, "plate_name.zarr", row, col, "0")
+        assert exists(path)
+
+        assert exists(join(path, "0"))
+        assert exists(join(path, "1"))
+        assert exists(join(path, ".zattrs"))
+        assert exists(join(path, ".zgroup"))
+
+        assert "acquisition_metadata" in plate[row][col]["0"].attrs.keys()
+        assert "multiscales" in plate[row][col]["0"].attrs.keys()
+        assert "omero" in plate[row][col]["0"].attrs.keys()
+
+        assert exists(join(path, "0", ".zarray"))
+        assert exists(join(path, "1", ".zarray"))
+
+        assert plate[row][col]["0"]["0"].shape == (2, 4, 2000, 2000)
+        assert plate[row][col]["0"]["1"].shape == (2, 4, 1000, 1000)
 
 
 def test_provide_client(tmp_dir, plate_acquisition, hcs_plate):

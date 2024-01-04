@@ -124,6 +124,8 @@ def test_get_well_acquisitions(cv_acquisition):
             assert tile.shape == imread(tile.path).shape
             assert tile.illumination_correction_matrix_path is None
             assert tile.background_correction_matrix_path is None
+            assert tile.position.x in [0, 2000]
+            assert tile.position.y in [0, 2000]
 
 
 def test_raise_value_errors(cv_acquisition):

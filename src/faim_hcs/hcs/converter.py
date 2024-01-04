@@ -1,7 +1,7 @@
 import os
 from os.path import join
 from pathlib import Path
-from typing import Callable, Union
+from typing import Callable, Optional, Union
 
 import dask.array as da
 import numpy as np
@@ -79,7 +79,9 @@ class ConvertToNGFFPlate:
             self._cluster_factory = None
             self._client = client
 
-    def _create_zarr_plate(self, plate_acquisition: PlateAcquisition) -> zarr.Group:
+    def _create_zarr_plate(
+        self, plate_acquisition: PlateAcquisition, wells: Optional[list[str]] = None
+    ) -> zarr.Group:
         plate_path = join(self._ngff_plate.root_dir, self._ngff_plate.name + ".zarr")
         if not os.path.exists(plate_path):
             os.makedirs(plate_path, exist_ok=False)
@@ -92,7 +94,9 @@ class ConvertToNGFFPlate:
                 plate,
                 columns=cols,
                 rows=rows,
-                wells=[f"{w[0]}/{w[1:]}" for w in plate_acquisition.get_well_names()],
+                wells=[
+                    f"{w[0]}/{w[1:]}" for w in plate_acquisition.get_well_names(wells)
+                ],
                 name=self._ngff_plate.name,
                 field_count=1,
             )
@@ -141,7 +145,7 @@ class ConvertToNGFFPlate:
         """
         assert 2 <= len(chunks) <= 3, "Chunks must be 2D or 3D."
         well_futures = []
-        plate = self._create_zarr_plate(plate_acquisition)
+        plate = self._create_zarr_plate(plate_acquisition, wells=wells)
         well_acquisitions = plate_acquisition.get_well_acquisitions(wells)
         max_priority = len(well_acquisitions) + 1
         for i, well_acquisition in enumerate(well_acquisitions):
