@@ -35,6 +35,7 @@ class DaskTileStitcher:
             Data type of the output image.
         """
         self.tiles: list[Tile] = stitching_utils.shift_to_origin(tiles)
+
         self.chunk_shape = (
             1,
             1,
@@ -49,6 +50,21 @@ class DaskTileStitcher:
         self._n_chunks = self._compute_number_of_chunks()
         self._block_to_tile_map = self._compute_block_to_tile_map()
 
+    def _build_tiles_lut(self):
+        lut = {}
+        for tile in self.tiles:
+            tcz_pos = (
+                tile.position.time,
+                tile.position.channel,
+                tile.position.z,
+            )
+            if tcz_pos in lut.keys():
+                lut[tcz_pos].append(tile)
+            else:
+                lut[tcz_pos] = [tile]
+
+        return lut
+
     def _compute_number_of_chunks(self):
         """
         Compute the number of chunks (blocks) in the stitched image.
@@ -61,6 +77,7 @@ class DaskTileStitcher:
         """
         Compute a map from block position to tiles that overlap with the block.
         """
+        tiles_lut = self._build_tiles_lut()
         block_to_tile_map = {}
         for block_position in np.ndindex(self._n_chunks):
             block_to_tile_map[block_position] = []
@@ -68,7 +85,9 @@ class DaskTileStitcher:
                 position=tuple(block_position * np.array(self.chunk_shape)),
                 shape=self.chunk_shape,
             )
-            for tile in self.tiles:
+            for tile in tiles_lut[
+                (block_bbox.time_start, block_bbox.channel_start, block_bbox.z_start)
+            ]:
                 tile_bbox = BoundingBox5D.from_pos_and_shape(
                     position=tile.get_position(),
                     shape=(
