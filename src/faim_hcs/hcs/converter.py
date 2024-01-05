@@ -8,9 +8,14 @@ import numpy as np
 import zarr
 from dask.distributed import Client, wait
 from numcodecs import Blosc
+from ome_zarr.format import CurrentFormat
 from ome_zarr.io import parse_url
-from ome_zarr.scale import Scaler
-from ome_zarr.writer import write_image, write_plate_metadata, write_well_metadata
+from ome_zarr.writer import (
+    _get_valid_axes,
+    write_multiscales_metadata,
+    write_plate_metadata,
+    write_well_metadata,
+)
 from pydantic import BaseModel
 
 from faim_hcs.dask_utils import LocalClusterFactory
@@ -118,8 +123,7 @@ class ConvertToNGFFPlate:
         chunks: Union[tuple[int, int], tuple[int, int, int]] = (2048, 2048),
         max_layer: int = 3,
         storage_options: dict = None,
-        process_wells_sequentially: bool = False,
-    ) -> zarr.Group:
+    ):
         """
         Convert a plate acquisition to an NGFF plate.
 
@@ -135,75 +139,148 @@ class ConvertToNGFFPlate:
             Maximum layer of the resolution pyramid layers.
         storage_options :
             Zarr storage options.
-        process_wells_sequentially :
-            With large well acquisitions it can be quicker to process wells
-            sequentially.
 
         Returns
         -------
             zarr.Group of the plate.
         """
         assert 2 <= len(chunks) <= 3, "Chunks must be 2D or 3D."
-        well_futures = []
         plate = self._create_zarr_plate(plate_acquisition, wells=wells)
         well_acquisitions = plate_acquisition.get_well_acquisitions(wells)
-        max_priority = len(well_acquisitions) + 1
-        for i, well_acquisition in enumerate(well_acquisitions):
+
+        for well_acquisition in well_acquisitions:
             well_group = self._create_well_group(
                 plate,
                 well_acquisition,
                 well_sub_group,
             )
-
-            stitched_well_da = self._stitch_well_image(
-                chunks,
-                well_acquisition,
-                output_shape=plate_acquisition.get_common_well_shape(),
-            )
-
-            output_da = self._bin_yx(stitched_well_da)
-
-            output_da = output_da.squeeze()
-
             group = well_group[well_sub_group]
-            well_futures.append(
-                (
-                    group,
-                    self._client.compute(
-                        write_image(
-                            image=output_da,
-                            group=group,
-                            axes=well_acquisition.get_axes(),
-                            storage_options=self._get_storage_options(
-                                storage_options, output_da.shape, chunks
-                            ),
-                            scaler=Scaler(max_layer=max_layer),
-                            coordinate_transformations=well_acquisition.get_coordinate_transformations(
-                                max_layer=max_layer,
-                                yx_binning=self._yx_binning,
-                            ),
-                            compute=process_wells_sequentially,
-                        ),
-                        priority=max_priority - i,
-                    ),
-                )
+            self._write_stitched_image(
+                group,
+                chunks,
+                plate_acquisition,
+                storage_options,
+                well_acquisition,
             )
-
-        for group, futures in well_futures:
-            wait(futures)
-
-            group.attrs["omero"] = {
-                "channels": plate_acquisition.get_omero_channel_metadata()
-            }
-
-            group.attrs["acquisition_metadata"] = {
-                "channels": [
-                    ch_metadata.dict()
-                    for ch_metadata in plate_acquisition.get_channel_metadata().values()
-                ]
-            }
+            shapes, datasets = self._build_pyramid(
+                group,
+                chunks,
+                max_layer,
+                storage_options,
+            )
+            self._write_metadata(
+                group, max_layer, shapes, datasets, plate_acquisition, well_acquisition
+            )
 
         return plate
+
+    def _write_metadata(
+        self, group, max_layer, shapes, datasets, plate_acquisition, well_acquisition
+    ):
+        coordinate_transformations = well_acquisition.get_coordinate_transformations(
+            max_layer=max_layer,
+            yx_binning=self._yx_binning,
+        )
+        fmt = CurrentFormat()
+        dims = len(shapes[0])
+        fmt.validate_coordinate_transformations(
+            dims, len(datasets), coordinate_transformations
+        )
+        for dataset, transform in zip(datasets, coordinate_transformations):
+            dataset["coordinateTransformations"] = transform
+        axes = _get_valid_axes(dims, well_acquisition.get_axes(), fmt)
+        write_multiscales_metadata(
+            group,
+            datasets,
+            fmt,
+            axes,
+        )
+        group.attrs["omero"] = {
+            "channels": plate_acquisition.get_omero_channel_metadata()
+        }
+        group.attrs["acquisition_metadata"] = {
+            "channels": [
+                ch_metadata.dict()
+                for ch_metadata in plate_acquisition.get_channel_metadata().values()
+            ]
+        }
+
+    def _write_stitched_image(
+        self,
+        group,
+        chunks,
+        plate_acquisition,
+        storage_options,
+        well_acquisition,
+    ):
+        stitched_well_da = self._stitch_well_image(
+            chunks,
+            well_acquisition,
+            output_shape=plate_acquisition.get_common_well_shape(),
+        )
+        binned_da = self._bin_yx(stitched_well_da).squeeze()
+        rechunked_da = binned_da.rechunk(self._out_chunks(binned_da.shape, chunks))
+        options = self._get_storage_options(storage_options, rechunked_da.shape, chunks)
+        wait(
+            self._client.persist(
+                da.to_zarr(
+                    arr=rechunked_da,
+                    url=group.store,
+                    compute=False,
+                    component=str(Path(group.path, "0")),
+                    storage_options=options,
+                    compressor=options.get(
+                        "compressor", zarr.storage.default_compressor
+                    ),
+                    dimension_separator=group._store._dimension_separator,
+                ),
+            )
+        )
+
+    def _build_pyramid(
+        self,
+        group,
+        chunks,
+        max_layer,
+        storage_options,
+    ):
+        image = da.from_zarr(url=group.store, component=str(Path(group.path, "0")))
+        datasets = [{"path": "0"}]
+        shapes = [image.shape]
+        for path in range(1, max_layer + 1):
+            image = da.coarsen(
+                reduction=self._mean_cast_to(image.dtype),
+                x=image,
+                axes={
+                    image.ndim - 2: 2,
+                    image.ndim - 1: 2,
+                },
+                trim_excess=True,
+            )
+            options = self._get_storage_options(storage_options, image.shape, chunks)
+            image = image.rechunk(options["chunks"])
+            wait(
+                self._client.persist(
+                    da.to_zarr(
+                        arr=image,
+                        url=group.store,
+                        compute=False,
+                        component=str(Path(group.path, str(path))),
+                        storage_options=options,
+                        compressor=options.get(
+                            "compressor", zarr.storage.default_compressor
+                        ),
+                        dimension_separator=group._store._dimension_separator,
+                    )
+                )
+            )
+            datasets.append({"path": str(path)})
+            shapes.append(image.shape)
+            image = da.from_zarr(
+                url=group.store, component=str(Path(group.path, str(path)))
+            )
+
+        return shapes, datasets
 
     def _bin_yx(self, image_da):
         if self._yx_binning > 1:
