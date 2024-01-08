@@ -33,9 +33,9 @@ class CellVoyagerWellAcquisition(WellAcquisition):
         )
 
     def _compute_z_spacing(self, files: pd.DataFrame) -> Optional[float]:
-        if "Z" in files.columns:
+        if "ZIndex" in files.columns:
             z_steps = np.array(
-                sorted([float(i) for i in files.groupby("Z").mean("ZIndex").index])
+                files.astype({"Z": float}).groupby("ZIndex", sort=True).mean("Z")["Z"]
             )
 
             precision = -Decimal(str(z_steps[0])).as_tuple().exponent
