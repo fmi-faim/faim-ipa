@@ -81,29 +81,21 @@ class BoundingBox5D(BaseModel):
         )
 
     def overlaps_in_time(self, bbox: "BoundingBox5D") -> bool:
-        start_overlap = self.time_start <= bbox.time_start < self.time_end
-        end_overlap = self.time_start <= bbox.time_end - 1 < self.time_end
-        return start_overlap or end_overlap
+        return (self.time_start < bbox.time_end) and (bbox.time_start < self.time_end)
 
     def overlaps_in_channel(self, bbox: "BoundingBox5D") -> bool:
-        start_overlap = self.channel_start <= bbox.channel_start < self.channel_end
-        end_overlap = self.channel_start <= bbox.channel_end - 1 < self.channel_end
-        return start_overlap or end_overlap
+        return (self.channel_start < bbox.channel_end) and (
+            bbox.channel_start < self.channel_end
+        )
 
     def overlaps_in_z(self, bbox: "BoundingBox5D") -> bool:
-        start_overlap = self.z_start <= bbox.z_start < self.z_end
-        end_overlap = self.z_start <= bbox.z_end - 1 < self.z_end
-        return start_overlap or end_overlap
+        return (self.z_start < bbox.z_end) and (bbox.z_start < self.z_end)
 
     def overlaps_in_y(self, bbox: "BoundingBox5D") -> bool:
-        start_overlap = self.y_start <= bbox.y_start < self.y_end
-        end_overlap = self.y_start <= bbox.y_end - 1 < self.y_end
-        return start_overlap or end_overlap
+        return (self.y_start < bbox.y_end) and (bbox.y_start < self.y_end)
 
     def overlaps_in_x(self, bbox: "BoundingBox5D") -> bool:
-        start_overlap = self.x_start <= bbox.x_start < self.x_end
-        end_overlap = self.x_start <= bbox.x_end - 1 < self.x_end
-        return start_overlap or end_overlap
+        return (self.x_start < bbox.x_end) and (bbox.x_start < self.x_end)
 
     def overlaps(self, bbox: "BoundingBox5D") -> bool:
         """
@@ -114,19 +106,19 @@ class BoundingBox5D(BaseModel):
         bbox :
             Bounding box to check.
         """
-        if not (self.overlaps_in_time(bbox) or bbox.overlaps_in_time(self)):
+        if not self.overlaps_in_time(bbox):
             return False
 
-        if not (self.overlaps_in_channel(bbox) or bbox.overlaps_in_channel(self)):
+        if not self.overlaps_in_channel(bbox):
             return False
 
-        if not (self.overlaps_in_z(bbox) or bbox.overlaps_in_z(self)):
+        if not self.overlaps_in_z(bbox):
             return False
 
-        if not (self.overlaps_in_y(bbox) or bbox.overlaps_in_y(self)):
+        if not self.overlaps_in_y(bbox):
             return False
 
-        if not (self.overlaps_in_x(bbox) or bbox.overlaps_in_x(self)):
+        if not self.overlaps_in_x(bbox):
             return False
 
         return True
