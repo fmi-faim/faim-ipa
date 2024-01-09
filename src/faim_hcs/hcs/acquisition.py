@@ -155,7 +155,7 @@ class WellAcquisition(ABC):
     _files = None
     _alignment: TileAlignmentOptions = None
     _background_correction_matrices: Optional[dict[str, Union[Path, str]]]
-    _illumincation_correction_matrices: Optional[dict[str, Union[Path, str]]]
+    _illumination_correction_matrices: Optional[dict[str, Union[Path, str]]]
     _tiles = None
     _shape: tuple[int, int] = None
     _dtype: np.dtype = None
@@ -174,7 +174,7 @@ class WellAcquisition(ABC):
         self._files = files
         self._alignment = alignment
         self._background_correction_matrices = background_correction_matrices
-        self._illumincation_correction_matrices = illumination_correction_matrices
+        self._illumination_correction_matrices = illumination_correction_matrices
         self._tiles = self._align_tiles(tiles=self._assemble_tiles())
         super().__init__()
 
