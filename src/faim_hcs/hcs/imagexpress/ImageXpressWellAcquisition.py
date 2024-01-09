@@ -43,8 +43,8 @@ class ImageXpressWellAcquisition(WellAcquisition):
                 bgcm = self._background_correction_matrices[channel]
 
             icm = None
-            if self._illumincation_correction_matrices is not None:
-                icm = self._illumincation_correction_matrices[channel]
+            if self._illumination_correction_matrices is not None:
+                icm = self._illumination_correction_matrices[channel]
 
             tiles.append(
                 Tile(

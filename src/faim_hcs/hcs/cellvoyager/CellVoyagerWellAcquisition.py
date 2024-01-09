@@ -68,8 +68,8 @@ class CellVoyagerWellAcquisition(WellAcquisition):
                 bgcm = self._background_correction_matrices[str(channel)]
 
             icm = None
-            if self._illumincation_correction_matrices is not None:
-                icm = self._illumincation_correction_matrices[str(channel)]
+            if self._illumination_correction_matrices is not None:
+                icm = self._illumination_correction_matrices[str(channel)]
 
             tiles.append(
                 Tile(
