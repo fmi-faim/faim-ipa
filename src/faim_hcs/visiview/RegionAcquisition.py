@@ -28,8 +28,7 @@ class RegionAcquisitionSTK(WellAcquisition):
             y_spacing = metadata["YCalibration"]
             self._yx_spacing = (y_spacing, x_spacing)
             self._z_spacing = metadata["ZDistance"].mean()
-            self._n_z_planes = metadata["NumberPlanes"]
-            self._yx_shape = tif.asarray().shape[-2:]
+            self.tile_shape = tif.asarray().shape
 
         self._axes = axes
         super().__init__(
@@ -46,20 +45,19 @@ class RegionAcquisitionSTK(WellAcquisition):
             time_point = row["time"]
             channel = row["channel"]
 
-            for z in range(self._n_z_planes):
-                tiles.append(
-                    StackedTile(
-                        path=file,
-                        shape=self._yx_shape,
-                        position=TilePosition(
-                            time=time_point,
-                            channel=channel,
-                            z=z,
-                            y=int(row["Y"] / self._yx_spacing[0]),
-                            x=int(row["X"] / self._yx_spacing[1]),
-                        ),
-                    )
+            tiles.append(
+                StackedTile(
+                    path=file,
+                    shape=self.tile_shape,
+                    position=TilePosition(
+                        time=time_point,
+                        channel=channel,
+                        z=0,
+                        y=int(row["Y"] / self._yx_spacing[0]),
+                        x=int(row["X"] / self._yx_spacing[1]),
+                    ),
                 )
+            )
 
         return tiles
 
