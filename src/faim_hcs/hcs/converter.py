@@ -4,7 +4,6 @@ from pathlib import Path
 from typing import Callable, Optional, Union
 
 import dask.array as da
-import numpy as np
 import zarr
 from dask.distributed import Client, wait
 from numcodecs import Blosc
@@ -18,6 +17,7 @@ from ome_zarr.writer import (
 )
 from pydantic import BaseModel
 
+from faim_hcs import dask_utils
 from faim_hcs.dask_utils import LocalClusterFactory
 from faim_hcs.hcs.acquisition import PlateAcquisition
 from faim_hcs.hcs.plate import PlateLayout, get_rows_and_columns
@@ -55,9 +55,6 @@ class ConvertToNGFFPlate:
             NGFF plate information.
         yx_binning :
             YX binning factor.
-        stitching_yx_chunk_size_factor :
-            Stitching chunk size factor. Increasing this will increase the
-            memory usage, but reduce the dask computation graph size.
         warp_func :
             Function used to warp tile images.
         fuse_func :
@@ -68,10 +65,6 @@ class ConvertToNGFFPlate:
         assert (
             isinstance(yx_binning, int) and yx_binning >= 1
         ), "yx_binning must be an integer >= 1."
-        assert (
-            isinstance(stitching_yx_chunk_size_factor, int)
-            and stitching_yx_chunk_size_factor >= 1
-        ), "dask_chunk_size_factor must be an integer >= 1."
         self._ngff_plate = ngff_plate
         self._yx_binning = yx_binning
         self._stitching_yx_chunk_size_factor = stitching_yx_chunk_size_factor
@@ -249,7 +242,7 @@ class ConvertToNGFFPlate:
         shapes = [image.shape]
         for path in range(1, max_layer + 1):
             image = da.coarsen(
-                reduction=self._mean_cast_to(image.dtype),
+                reduction=dask_utils.mean_cast_to(image.dtype),
                 x=image,
                 axes={
                     image.ndim - 2: 2,
@@ -285,7 +278,7 @@ class ConvertToNGFFPlate:
     def _bin_yx(self, image_da):
         if self._yx_binning > 1:
             return da.coarsen(
-                reduction=self._mean_cast_to(image_da.dtype),
+                reduction=dask_utils.mean_cast_to(image_da.dtype),
                 x=image_da,
                 axes={
                     0: 1,
@@ -307,12 +300,24 @@ class ConvertToNGFFPlate:
     ):
         from faim_hcs.stitching import DaskTileStitcher
 
+        tile_data_ndims = well_acquisition.get_tiles()[0].load_data().ndim
+        if tile_data_ndims == 2:
+            chunk_shape = (
+                chunks[-2],
+                chunks[-1],
+            )
+        elif tile_data_ndims == 3:
+            chunk_shape = (
+                chunks[-3],
+                chunks[-2],
+                chunks[-1],
+            )
+        else:
+            raise NotImplementedError("Tile data must be 2D or 3D.")  # pragma: no cover
+
         stitcher = DaskTileStitcher(
             tiles=well_acquisition.get_tiles(),
-            yx_chunk_shape=(
-                chunks[-2] * self._stitching_yx_chunk_size_factor,
-                chunks[-1] * self._stitching_yx_chunk_size_factor,
-            ),
+            chunk_shape=chunk_shape,
             output_shape=output_shape,
             dtype=well_acquisition.get_dtype(),
         )
@@ -328,23 +333,6 @@ class ConvertToNGFFPlate:
         well_group.require_group(well_sub_group)
         write_well_metadata(well_group, [{"path": well_sub_group}])
         return well_group
-
-    @staticmethod
-    def _mean_cast_to(target_dtype):
-        def _mean(
-            a,
-            axis=None,
-            dtype=None,
-            out=None,
-            keepdims=np._NoValue,
-            *,
-            where=np._NoValue,
-        ):
-            return np.mean(
-                a=a, axis=axis, dtype=dtype, out=out, keepdims=keepdims, where=where
-            ).astype(target_dtype)
-
-        return _mean
 
     @staticmethod
     def _get_storage_options(

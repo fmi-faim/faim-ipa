@@ -300,7 +300,8 @@ class WellAcquisition(ABC):
             tile_extents = []
             for tile in self._tiles:
                 tile_extents.append(
-                    tile.get_position() + np.array((1, 1, 1) + tile.shape)
+                    tile.get_position()
+                    + np.array((1,) * (5 - len(tile.shape)) + tile.shape)
                 )
             self._shape = tuple(np.max(tile_extents, axis=0))
 
