@@ -313,7 +313,8 @@ class ConvertToNGFFPlate:
                 chunks[-1],
             )
         else:
-            raise NotImplementedError("Tile data must be 2D or 3D.")
+            raise NotImplementedError("Tile data must be 2D or 3D.")  # pragma: no cover
+
         stitcher = DaskTileStitcher(
             tiles=well_acquisition.get_tiles(),
             chunk_shape=chunk_shape,

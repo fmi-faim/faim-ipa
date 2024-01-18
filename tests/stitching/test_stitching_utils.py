@@ -182,11 +182,47 @@ def test_shift_to_origin():
     assert result[0].get_position() == (0, 0, 0, 0, 0)
 
 
-def test_translate_tiles_2d(tiles):
+def test_translate_3d_tiles_2d(tiles):
     tile_map = {
         (0, 0, 0, 0, 0): [
             DummyTile(yx_position=(0, 0), data=tiles[0][..., :15]),
             DummyTile(yx_position=(0, 5), data=tiles[1][..., 5:]),
+        ],
+        (1, 0, 0, 0, 0): [],
+    }
+
+    block_info = {
+        None: {
+            "array-location": [(0, 1), (0, 1), (0, 1), (0, 10), (0, 20)],
+            "chunk-location": (0, 0, 0, 0, 0),
+            "chunk-shape": (1, 1, 1, 10, 20),
+            "dtype": "uint16",
+            "num-chunks": (1, 1, 1, 1, 1),
+            "shape": (1, 1, 1, 10, 20),
+        }
+    }
+
+    warped_tiles, warped_masks = translate_tiles_2d(
+        block_info=block_info,
+        chunk_shape=(1, 10, 20),
+        tiles=tile_map[(0, 0, 0, 0, 0)],
+    )
+
+    assert warped_tiles.shape == (2, 1, 10, 20)
+    assert warped_masks.shape == (2, 1, 10, 20)
+
+    assert warped_tiles.dtype == np.uint16
+    assert warped_masks.dtype == bool
+
+    assert_array_equal(warped_tiles[0], tiles[0])
+    assert_array_equal(warped_tiles[1], tiles[1])
+
+
+def test_translate_2d_tiles_2d(tiles):
+    tile_map = {
+        (0, 0, 0, 0, 0): [
+            DummyTile(yx_position=(0, 0), data=tiles[0][0, ..., :15]),
+            DummyTile(yx_position=(0, 5), data=tiles[1][0, ..., 5:]),
         ],
         (1, 0, 0, 0, 0): [],
     }
