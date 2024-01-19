@@ -107,7 +107,7 @@ class PlateAcquisition(ABC):
                         },
                     }
                 )
-            elif index < max_channel:
+            else:
                 ome_channels.append(
                     {
                         "active": False,

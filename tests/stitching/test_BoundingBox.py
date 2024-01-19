@@ -132,3 +132,61 @@ def test_no_overlap():
         x_end=8,
     )
     assert not bbox_a.overlaps(bbox_c)
+
+
+def test_different_channel():
+    bbox_a = BoundingBox5D(
+        time_start=0,
+        time_end=1,
+        channel_start=0,
+        channel_end=1,
+        z_start=0,
+        z_end=1,
+        y_start=0,
+        y_end=10,
+        x_start=0,
+        x_end=10,
+    )
+    bbox_b = BoundingBox5D(
+        time_start=0,
+        time_end=1,
+        channel_start=1,
+        channel_end=2,
+        z_start=0,
+        z_end=1,
+        y_start=0,
+        y_end=1,
+        x_start=0,
+        x_end=1,
+    )
+    assert not bbox_a.overlaps(bbox_b)
+    assert not bbox_b.overlaps(bbox_a)
+
+
+def test_different_z():
+    bbox_a = BoundingBox5D(
+        time_start=0,
+        time_end=1,
+        channel_start=0,
+        channel_end=1,
+        z_start=0,
+        z_end=1,
+        y_start=0,
+        y_end=10,
+        x_start=0,
+        x_end=10,
+    )
+    bbox_b = BoundingBox5D(
+        time_start=0,
+        time_end=1,
+        channel_start=0,
+        channel_end=1,
+        z_start=1,
+        z_end=2,
+        y_start=0,
+        y_end=1,
+        x_start=0,
+        x_end=1,
+    )
+    assert not bbox_a.overlaps(bbox_b)
+    assert not bbox_b.overlaps(bbox_a)
