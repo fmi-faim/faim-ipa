@@ -21,6 +21,7 @@ class RegionAcquisitionSTK(WellAcquisition):
         background_correction_matrices: Optional[dict[str, NDArray]],
         illumination_correction_matrices: Optional[dict[str, NDArray]],
         axes: list[str] = ["c", "z", "y", "x"],
+        memmap: bool = True,
     ):
         path = files.iloc[0]["path"]
         with TiffFile(path) as tif:
@@ -34,6 +35,7 @@ class RegionAcquisitionSTK(WellAcquisition):
             self.tile_shape = tif.asarray().shape
 
         self._axes = axes
+        self._memmap = memmap
         super().__init__(
             files=files,
             alignment=alignment,
@@ -59,6 +61,7 @@ class RegionAcquisitionSTK(WellAcquisition):
                         y=int(row["Y"] / self._yx_spacing[0]),
                         x=int(row["X"] / self._yx_spacing[1]),
                     ),
+                    memmap=self._memmap,
                 )
             )
 
@@ -83,6 +86,7 @@ class RegionAcquisitionOME(WellAcquisition):
         background_correction_matrices: Optional[dict[str, NDArray]],
         illumination_correction_matrices: Optional[dict[str, NDArray]],
         axes: list[str] = ["c", "z", "y", "x"],
+        memmap: bool = True,
     ):
         self.metadata = parse_basic_metadata(companion_file=ome_xml)
         self.stage_positions = self.metadata["stage_positions"]
@@ -91,6 +95,7 @@ class RegionAcquisitionOME(WellAcquisition):
             self.tile_shape = tif.asarray().shape
 
         self._axes = axes
+        self._memmap = memmap
         super().__init__(
             files=files,
             alignment=alignment,
@@ -122,6 +127,7 @@ class RegionAcquisitionOME(WellAcquisition):
                             / self.metadata["yx_spacing"][1]
                         ),
                     ),
+                    memmap=self._memmap,
                 )
             )
 
