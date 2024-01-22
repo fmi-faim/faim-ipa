@@ -83,11 +83,15 @@ def get_stage_positions(metadata):
         index = int(id.split(":")[-1])
         assert index == i, f"Expected index {i} but got {index}"
 
-        stage_label = next(image.iterchildren(f"{SCHEMA}StageLabel")).attrib
+        try:
+            stage_label = next(image.iterchildren(f"{SCHEMA}StageLabel")).attrib
 
-        y_pos = float(stage_label["Y"])
-        x_pos = float(stage_label["X"])
-        positions[i + 1] = (y_pos, x_pos)
+            y_pos = float(stage_label["Y"])
+            x_pos = float(stage_label["X"])
+            positions[str(i + 1)] = (y_pos, x_pos)
+        except StopIteration:
+            # No stage positions
+            pass
 
     return positions
 
