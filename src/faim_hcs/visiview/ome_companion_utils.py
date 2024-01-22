@@ -30,8 +30,8 @@ def get_yx_spacing(metadata):
     image_0 = next(metadata.iterchildren(f"{SCHEMA}Image"))
     pixels = next(image_0.iterchildren(f"{SCHEMA}Pixels"))
     return (
-        pixels.get("PhysicalSizeY"),
-        pixels.get("PhysicalSizeX"),
+        float(pixels.get("PhysicalSizeY")),
+        float(pixels.get("PhysicalSizeX")),
     )
 
 
