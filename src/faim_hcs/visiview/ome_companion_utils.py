@@ -106,16 +106,3 @@ def parse_basic_metadata(companion_file: Union[Path, str]):
             stage_positions=get_stage_positions(root),
         )
     return metadata
-
-
-if __name__ == "__main__":
-    from datetime import datetime
-
-    start = datetime.now()
-    print(
-        parse_basic_metadata(
-            "/tungstenfs/scratch/gturco/calvida/240112_crispr_timelapse/240112_crispr_timelapse_1.companion.ome"
-        )
-    )
-    end = datetime.now()
-    print(end - start)
