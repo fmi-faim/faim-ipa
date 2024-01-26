@@ -31,6 +31,17 @@ def trace_log_file() -> Path:
     )
 
 
+@pytest.fixture
+def invalid_trace_log_file() -> Path:
+    return (
+        Path(__file__).parent.parent.parent.parent
+        / "resources"
+        / "CV8000"
+        / "CV8000-Minimal-DataSet-2C-3W-4S-FP2-stack_20230918_135839"
+        / "TRACE-invalid.log"
+    )
+
+
 def test__parse_files(cv_acquisition, trace_log_file):
     plate = ZAdjustedStackAcquisition(
         acquisition_dir=cv_acquisition,
@@ -99,3 +110,12 @@ def test_get_well_acquisitions(cv_acquisition, trace_log_file):
             assert tile.position.x in [0, 2000]
             assert tile.position.y in [0, 2000]
             assert tile.position.z in [0, 1, 2, 3, 4, 5]
+
+
+def test_invalid_tracelog(cv_acquisition, invalid_trace_log_file):
+    with pytest.raises(ValueError):
+        ZAdjustedStackAcquisition(
+            acquisition_dir=cv_acquisition,
+            trace_log_file=invalid_trace_log_file,
+            alignment=TileAlignmentOptions.GRID,
+        )
