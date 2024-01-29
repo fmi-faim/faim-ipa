@@ -1,7 +1,8 @@
 from decimal import Decimal
 from pathlib import Path
-from typing import Union
+from typing import Any, Optional, Union
 
+import lxml
 import numpy as np
 from lxml import etree
 
@@ -11,7 +12,19 @@ from faim_hcs.utils import rgb_to_hex, wavelength_to_rgb
 SCHEMA = "{http://www.openmicroscopy.org/Schemas/OME/2016-06}"
 
 
-def get_z_spacing(metadata):
+def get_z_spacing(metadata: lxml.etree.ElementTree) -> Optional[float]:
+    """
+    Get the Z spacing from the first image in the XML metadata.
+
+    Parameters
+    ----------
+    metadata :
+        XML metadata
+
+    Returns
+    -------
+        Z spacing or None if there is only one Z plane
+    """
     image_0 = next(metadata.iterchildren(f"{SCHEMA}Image"))
     pixels = next(image_0.iterchildren(f"{SCHEMA}Pixels"))
     z_positions = set()
@@ -26,7 +39,19 @@ def get_z_spacing(metadata):
         return np.round(np.diff(z_positions).mean(), precision)
 
 
-def get_yx_spacing(metadata):
+def get_yx_spacing(metadata: lxml.etree.ElementTree) -> tuple[float, float]:
+    """
+    Get the YX spacing from the first image in the XML metadata.
+
+    Parameters
+    ----------
+    metadata :
+        XML metadata
+
+    Returns
+    -------
+        YX spacing
+    """
     image_0 = next(metadata.iterchildren(f"{SCHEMA}Image"))
     pixels = next(image_0.iterchildren(f"{SCHEMA}Pixels"))
     return (
@@ -35,14 +60,38 @@ def get_yx_spacing(metadata):
     )
 
 
-def get_exposure_time(metadata):
+def get_exposure_time(metadata: lxml.etree.ElementTree) -> tuple[float, str]:
+    """
+    Get the exposure time and unit from the first image in the XML metadata.
+
+    Parameters
+    ----------
+    metadata :
+        XML metadata
+
+    Returns
+    -------
+        Exposure time and unit
+    """
     image_0 = next(metadata.iterchildren(f"{SCHEMA}Image"))
     pixels = next(image_0.iterchildren(f"{SCHEMA}Pixels"))
     plane_0 = next(pixels.iterchildren(f"{SCHEMA}Plane"))
     return plane_0.get("ExposureTime"), plane_0.get("ExposureTimeUnit")
 
 
-def get_channels(metadata):
+def get_channels(metadata: lxml.etree.ElementTree) -> dict[str, ChannelMetadata]:
+    """
+    Get the channel metadata from the XML metadata.
+
+    Parameters
+    ----------
+    metadata :
+        XML metadata
+
+    Returns
+    -------
+        Channel metadata for each channel.
+    """
     image_0 = next(metadata.iterchildren(f"{SCHEMA}Image"))
     pixels = next(image_0.iterchildren(f"{SCHEMA}Pixels"))
     channels = [channel.attrib for channel in pixels.iterchildren(f"{SCHEMA}Channel")]
@@ -76,7 +125,21 @@ def get_channels(metadata):
     return ch_metadata
 
 
-def get_stage_positions(metadata):
+def get_stage_positions(
+    metadata: lxml.etree.ElementTree,
+) -> dict[str, tuple[float, float]]:
+    """
+    Get the stage positions for each image from the XML metadata.
+
+    Parameters
+    ----------
+    metadata :
+        XML metadata
+
+    Returns
+    -------
+        Stage positions for each image.
+    """
     positions = {}
     for i, image in enumerate(metadata.iterchildren(f"{SCHEMA}Image")):
         id = image.get("ID")
@@ -96,7 +159,29 @@ def get_stage_positions(metadata):
     return positions
 
 
-def parse_basic_metadata(companion_file: Union[Path, str]):
+def parse_basic_metadata(companion_file: Union[Path, str]) -> dict[str, Any]:
+    """
+    Parse the basic metadata from the XML companion file.
+
+    Note: Only the first entries are parsed, and it is assumed that the
+    extracted metadata is the same for all images.
+    If you want to parse the complete metadata, use ome-types instead.
+
+    ome-types: https://ome-types.readthedocs.io/en/latest/usage/
+
+    Parameters
+    ----------
+    companion_file :
+        Path to the XML companion file.
+
+    Returns
+    -------
+        Basic metadata:
+        - z_spacing
+        - yx_spacing
+        - channels
+        - stage_positions
+    """
     with open(companion_file, "rb") as f:
         root = etree.parse(f).getroot()
         metadata = dict(
