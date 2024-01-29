@@ -14,7 +14,7 @@ def main():
 
     # Parse MD plate acquisition.
     plate = StackAcquisition(
-        acquisition_dir=Path(r'/mnt/zmb/zmbstaff/9713/Raw_Data/240117_test-dataset/fsturzenegger-test-dataset_Plate_2653'),
+        acquisition_dir=Path(r'Z:\zmbstaff\9713\Raw_Data\240117_test-dataset\fsturzenegger-test-dataset_Plate_2653'),
         alignment=TileAlignmentOptions.GRID,
     )
 
