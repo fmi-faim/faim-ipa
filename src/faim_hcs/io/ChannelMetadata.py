@@ -12,6 +12,6 @@ class ChannelMetadata(BaseModel):
     spatial_calibration_units: str
     z_spacing: Optional[PositiveFloat]
     wavelength: Union[PositiveInt, str]
-    exposure_time: PositiveFloat
-    exposure_time_unit: str
+    exposure_time: Optional[PositiveFloat]
+    exposure_time_unit: Optional[str]
     objective: str
