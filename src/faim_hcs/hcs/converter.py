@@ -77,9 +77,21 @@ class ConvertToNGFFPlate:
             self._cluster_factory = None
             self._client = client
 
-    def _create_zarr_plate(
+    def create_zarr_plate(
         self, plate_acquisition: PlateAcquisition, wells: Optional[list[str]] = None
     ) -> zarr.Group:
+        """
+        Create empty NGFF zarr plate.
+
+        Note: Loads the plate from disk if it already exists.
+
+        Parameters
+        ----------
+        plate_acquisition :
+            A single plate acquisition.
+        wells :
+            List of wells to build. If None, all wells are built.
+        """
         plate_path = join(self._ngff_plate.root_dir, self._ngff_plate.name + ".zarr")
         if not os.path.exists(plate_path):
             os.makedirs(plate_path, exist_ok=False)
@@ -110,6 +122,7 @@ class ConvertToNGFFPlate:
 
     def run(
         self,
+        plate: zarr.Group,
         plate_acquisition: PlateAcquisition,
         wells: list[str] = None,
         well_sub_group: str = "0",
@@ -138,7 +151,6 @@ class ConvertToNGFFPlate:
             zarr.Group of the plate.
         """
         assert 2 <= len(chunks) <= 3, "Chunks must be 2D or 3D."
-        plate = self._create_zarr_plate(plate_acquisition, wells=wells)
         well_acquisitions = plate_acquisition.get_well_acquisitions(wells)
 
         for well_acquisition in well_acquisitions:
@@ -173,6 +185,7 @@ class ConvertToNGFFPlate:
         coordinate_transformations = well_acquisition.get_coordinate_transformations(
             max_layer=max_layer,
             yx_binning=self._yx_binning,
+            ndim=len(shapes[0]),
         )
         fmt = CurrentFormat()
         dims = len(shapes[0])

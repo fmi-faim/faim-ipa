@@ -13,7 +13,7 @@ def main():
     shutil.rmtree("md-single-plane.zarr", ignore_errors=True)
 
     # Parse MD plate acquisition.
-    plate = SinglePlaneAcquisition(
+    plate_acquisition = SinglePlaneAcquisition(
         acquisition_dir=Path(__file__).parent.parent / "resources" / "Projection-Mix",
         alignment=TileAlignmentOptions.GRID,
     )
@@ -33,9 +33,12 @@ def main():
         fuse_func=stitching_utils.fuse_mean,
     )
 
+    plate = converter.create_zarr_plate(plate_acquisition)
+
     # Run conversion.
     converter.run(
-        plate_acquisition=plate,
+        plate=plate,
+        plate_acquisition=plate_acquisition,
         well_sub_group="0",
         chunks=(1, 512, 512),
         max_layer=2,
