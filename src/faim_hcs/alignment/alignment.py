@@ -13,7 +13,7 @@ class AbstractAlignment(ABC):
     def __init__(self, tiles: list[Tile]) -> None:
         super().__init__()
         self._unaligned_tiles = stitching_utils.shift_to_origin(tiles)
-        self._aligned_tiles = self._align(tiles)
+        self._aligned_tiles = self._align(self._unaligned_tiles)
 
     def _align(self, tiles: list[Tile]) -> list[Tile]:
         raise NotImplementedError()
