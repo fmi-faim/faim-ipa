@@ -12,8 +12,16 @@ def main():
     # Remove existing zarr.
     shutil.rmtree("md-stack.zarr", ignore_errors=True)
 
+    import distributed
+
+    client = distributed.Client(
+        n_workers=1,
+        threads_per_worker=1,
+        processes=False,
+    )
+
     # Parse MD plate acquisition.
-    plate = StackAcquisition(
+    plate_acquisition = StackAcquisition(
         acquisition_dir=Path(__file__).parent.parent / "resources" / "Projection-Mix",
         alignment=TileAlignmentOptions.GRID,
     )
@@ -31,11 +39,15 @@ def main():
         stitching_yx_chunk_size_factor=2,
         warp_func=stitching_utils.translate_tiles_2d,
         fuse_func=stitching_utils.fuse_mean,
+        client=client,
     )
+
+    plate = converter.create_zarr_plate(plate_acquisition)
 
     # Run conversion.
     converter.run(
-        plate_acquisition=plate,
+        plate=plate,
+        plate_acquisition=plate_acquisition,
         well_sub_group="0",
         chunks=(1, 512, 512),
         max_layer=2,

@@ -13,7 +13,7 @@ def main():
     shutil.rmtree("cv-stack.zarr", ignore_errors=True)
 
     # Parse CV plate acquisition.
-    plate = StackAcquisition(
+    plate_acquisition = StackAcquisition(
         acquisition_dir=Path(__file__).parent.parent
         / "resources"
         / "CV8000"
@@ -37,9 +37,12 @@ def main():
         fuse_func=stitching_utils.fuse_mean,
     )
 
+    plate = converter.create_zarr_plate(plate_acquisition)
+
     # Run conversion.
     converter.run(
-        plate_acquisition=plate,
+        plate=plate,
+        plate_acquisition=plate_acquisition,
         well_sub_group="0",
         chunks=(2, 1000, 1000),
         max_layer=2,

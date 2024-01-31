@@ -33,18 +33,7 @@ def test__assemble_tiles(files):
         assert tile.shape == (512, 512)
         assert tile.position.channel in [1, 2, 4]
         assert tile.position.time == 0
-        assert tile.position.z in [
-            3106,
-            3107,
-            3109,
-            3111,
-            3112,
-            3114,
-            3116,
-            3117,
-            3119,
-            3121,
-        ]
+        assert tile.position.z in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
 
 def test_get_axes(files):
@@ -65,6 +54,15 @@ def test_get_axes(files):
 
     axes = ix_well_acquisition.get_axes()
     assert axes == ["c", "y", "x"]
+
+    ix_well_acquisition = ImageXpressWellAcquisition(
+        files=files[files["channel"] == "w1"].drop("z", axis=1),
+        alignment=TileAlignmentOptions.GRID,
+        z_spacing=None,
+    )
+
+    axes = ix_well_acquisition.get_axes()
+    assert axes == ["y", "x"]
 
 
 def test_get_yx_spacing(files):

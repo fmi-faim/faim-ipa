@@ -34,9 +34,9 @@ class ImageXpressWellAcquisition(WellAcquisition):
             channel = row["channel"]
             metadata = load_metaseries_tiff_metadata(file)
             if self._z_spacing is None:
-                z = 0
+                z = 1
             else:
-                z = int(metadata["stage-position-z"] / self._z_spacing)
+                z = row["z"] if row["z"] is not None else 1
 
             bgcm = None
             if self._background_correction_matrices is not None:
@@ -78,6 +78,11 @@ class ImageXpressWellAcquisition(WellAcquisition):
 
     def get_axes(self) -> list[str]:
         if "z" in self._files.columns:
-            return ["c", "z", "y", "x"]
+            axes = ["z", "y", "x"]
         else:
-            return ["c", "y", "x"]
+            axes = ["y", "x"]
+
+        if self._files["channel"].nunique() > 1:
+            axes = ["c"] + axes
+
+        return axes
