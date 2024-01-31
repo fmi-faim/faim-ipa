@@ -245,7 +245,10 @@ class WellAcquisition(ABC):
         raise NotImplementedError()
 
     def get_coordinate_transformations(
-        self, max_layer: int, yx_binning: int
+        self,
+        max_layer: int,
+        yx_binning: int,
+        ndim: int,
     ) -> list[dict[str, Any]]:
         """
         Get the NGFF conform coordinate transformations for the well
@@ -255,6 +258,7 @@ class WellAcquisition(ABC):
         ----------
         max_layer : Maximum layer of the resolution pyramid.
         yx_binning : Bin factor of the yx resolution.
+        ndim : Number of dimensions of the data.
 
         Returns
         -------
@@ -268,6 +272,9 @@ class WellAcquisition(ABC):
                         {
                             "scale": [
                                 1.0,
+                            ]
+                            * (ndim - 3)
+                            + [
                                 self.get_z_spacing(),
                                 self.get_yx_spacing()[0] * yx_binning * 2**s,
                                 self.get_yx_spacing()[1] * yx_binning * 2**s,
@@ -282,6 +289,9 @@ class WellAcquisition(ABC):
                         {
                             "scale": [
                                 1.0,
+                            ]
+                            * (ndim - 2)
+                            + [
                                 self.get_yx_spacing()[0] * yx_binning * 2**s,
                                 self.get_yx_spacing()[1] * yx_binning * 2**s,
                             ],
