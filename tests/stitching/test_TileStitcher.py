@@ -82,6 +82,34 @@ def test_block_to_tile_map_large_chunks(tiles):
     assert ts._block_to_tile_map[(0, 0, 0, 1, 1)] == [tiles[3]]
 
 
+def test_block_to_tile_map_with_missing_tiles(tiles):
+    """
+    Test mapping of chunk-blocks to tiles if the chunk shape is larger than
+    the tile shape.
+    """
+    ts = DaskTileStitcher(
+        tiles=tiles,
+        chunk_shape=(15, 15),
+        output_shape=(1, 1, 2, 20, 20),
+    )
+
+    assert ts._shape == (1, 1, 2, 20, 20)
+    assert len(ts._block_to_tile_map) == 8
+    assert ts._block_to_tile_map[(0, 0, 0, 0, 0)] == [
+        tiles[0],
+        tiles[1],
+        tiles[2],
+        tiles[3],
+    ]
+    assert ts._block_to_tile_map[(0, 0, 0, 0, 1)] == [tiles[1], tiles[3]]
+    assert ts._block_to_tile_map[(0, 0, 0, 1, 0)] == [tiles[2], tiles[3]]
+    assert ts._block_to_tile_map[(0, 0, 0, 1, 1)] == [tiles[3]]
+    assert ts._block_to_tile_map[(0, 0, 1, 0, 0)] == []
+    assert ts._block_to_tile_map[(0, 0, 1, 0, 1)] == []
+    assert ts._block_to_tile_map[(0, 0, 1, 1, 0)] == []
+    assert ts._block_to_tile_map[(0, 0, 1, 1, 1)] == []
+
+
 def test_block_to_tile_map_small_chunks(tiles):
     """
     Test mapping of chunk-blocks to tiles if the chunk shape is smaller than
