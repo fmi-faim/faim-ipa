@@ -81,20 +81,20 @@ class DaskTileStitcher:
                 position=tuple(block_position * np.array(self.chunk_shape)),
                 shape=self.chunk_shape,
             )
-            for tile in tiles_lut[
-                (block_bbox.time_start, block_bbox.channel_start, block_bbox.z_start)
-            ]:
-                tile_bbox = BoundingBox5D.from_pos_and_shape(
-                    position=tile.get_position(),
-                    shape=(
-                        1,
-                        1,
-                        1,
+            pos = (block_bbox.time_start, block_bbox.channel_start, block_bbox.z_start)
+            if pos in tiles_lut.keys():
+                for tile in tiles_lut[pos]:
+                    tile_bbox = BoundingBox5D.from_pos_and_shape(
+                        position=tile.get_position(),
+                        shape=(
+                            1,
+                            1,
+                            1,
+                        )
+                        + tile.shape,
                     )
-                    + tile.shape,
-                )
-                if block_bbox.overlaps(tile_bbox):
-                    block_to_tile_map[block_position].append(tile)
+                    if block_bbox.overlaps(tile_bbox):
+                        block_to_tile_map[block_position].append(tile)
 
         return block_to_tile_map
 
