@@ -55,6 +55,15 @@ def test_get_axes(files):
     axes = ix_well_acquisition.get_axes()
     assert axes == ["c", "y", "x"]
 
+    ix_well_acquisition = ImageXpressWellAcquisition(
+        files=files[files["channel"] == "w1"].drop("z", axis=1),
+        alignment=TileAlignmentOptions.GRID,
+        z_spacing=None,
+    )
+
+    axes = ix_well_acquisition.get_axes()
+    assert axes == ["y", "x"]
+
 
 def test_get_yx_spacing(files):
     ix_well_acquisition = ImageXpressWellAcquisition(
