@@ -124,7 +124,7 @@ def plate_acquisition_3d():
 
 def test__create_zarr_plate(tmp_dir, plate_acquisition, hcs_plate):
     converter = ConvertToNGFFPlate(hcs_plate)
-    zarr_plate = converter._create_zarr_plate(plate_acquisition, wells=None)
+    zarr_plate = converter.create_zarr_plate(plate_acquisition, wells=None)
 
     assert exists(join(tmp_dir, "plate_name.zarr"))
     assert zarr_plate.attrs["plate"]["name"] == "plate_name"
@@ -142,7 +142,7 @@ def test__create_zarr_plate(tmp_dir, plate_acquisition, hcs_plate):
     assert not exists(join(tmp_dir, "plate_name.zarr", "E"))
     assert not exists(join(tmp_dir, "plate_name.zarr", "F"))
 
-    zarr_plate_1 = converter._create_zarr_plate(plate_acquisition)
+    zarr_plate_1 = converter.create_zarr_plate(plate_acquisition)
     assert zarr_plate_1 == zarr_plate
 
 
@@ -195,7 +195,7 @@ def test__mean_cast_to():
 
 def test__create_well_group(tmp_dir, plate_acquisition, hcs_plate):
     converter = ConvertToNGFFPlate(hcs_plate)
-    zarr_plate = converter._create_zarr_plate(plate_acquisition)
+    zarr_plate = converter.create_zarr_plate(plate_acquisition)
     well_group = converter._create_well_group(
         plate=zarr_plate,
         well_acquisition=plate_acquisition.get_well_acquisitions()[0],
@@ -262,7 +262,8 @@ def test_run(tmp_dir, plate_acquisition, hcs_plate):
             n_workers=1, threads_per_worker=4, processes=False
         ).get_client(),
     )
-    plate = converter.run(plate_acquisition, max_layer=2)
+    plate = converter.create_zarr_plate(plate_acquisition)
+    plate = converter.run(plate=plate, plate_acquisition=plate_acquisition, max_layer=2)
     plate.attrs["plate"]["wells"] == [
         {"columnIndex": 7, "path": "D/08", "rowIndex": 3},
         {"columnIndex": 2, "path": "E/03", "rowIndex": 4},
@@ -297,7 +298,10 @@ def test_run_selection(tmp_dir, plate_acquisition, hcs_plate):
             n_workers=1, threads_per_worker=4, processes=False
         ).get_client(),
     )
-    plate = converter.run(plate_acquisition, max_layer=2, wells=["D08"])
+    plate = converter.create_zarr_plate(plate_acquisition)
+    plate = converter.run(
+        plate=plate, plate_acquisition=plate_acquisition, max_layer=2, wells=["D08"]
+    )
     plate.attrs["plate"]["wells"] == [{"columnIndex": 7, "path": "D/08", "rowIndex": 3}]
     for well in ["D08"]:
         row, col = well[0], well[1:]
