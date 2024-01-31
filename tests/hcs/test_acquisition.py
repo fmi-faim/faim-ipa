@@ -242,6 +242,7 @@ def test_get_coordiante_transformations_3d(dummy_well):
     ct = dummy_well.get_coordinate_transformations(
         max_layer=2,
         yx_binning=1,
+        ndim=4,
     )
     assert len(ct) == 3
     assert ct[0] == [
@@ -282,10 +283,7 @@ def test_get_coordiante_transformations_3d(dummy_well):
 def test_get_coordiante_transformations_2d(dummy_well):
     dummy_well.get_z_spacing = lambda: None
     dummy_well.get_yx_spacing = lambda: (2.0, 3.0)
-    ct = dummy_well.get_coordinate_transformations(
-        max_layer=2,
-        yx_binning=1,
-    )
+    ct = dummy_well.get_coordinate_transformations(max_layer=2, yx_binning=1, ndim=3)
     assert len(ct) == 3
     assert ct[0] == [
         {
