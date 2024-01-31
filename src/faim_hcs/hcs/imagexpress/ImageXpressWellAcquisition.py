@@ -34,9 +34,9 @@ class ImageXpressWellAcquisition(WellAcquisition):
             channel = row["channel"]
             metadata = load_metaseries_tiff_metadata(file)
             if self._z_spacing is None:
-                z = 0
+                z = 1
             else:
-                z = row["z"]
+                z = row["z"] if row["z"] is not None else 1
 
             bgcm = None
             if self._background_correction_matrices is not None:

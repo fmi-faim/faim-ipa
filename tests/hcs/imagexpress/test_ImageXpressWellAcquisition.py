@@ -33,18 +33,7 @@ def test__assemble_tiles(files):
         assert tile.shape == (512, 512)
         assert tile.position.channel in [1, 2, 4]
         assert tile.position.time == 0
-        assert tile.position.z in [
-            3106,
-            3107,
-            3109,
-            3111,
-            3112,
-            3114,
-            3116,
-            3117,
-            3119,
-            3121,
-        ]
+        assert tile.position.z in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
 
 def test_get_axes(files):
