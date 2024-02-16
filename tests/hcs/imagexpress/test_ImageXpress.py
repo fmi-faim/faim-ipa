@@ -266,3 +266,51 @@ def test_raise_not_implemented_error(dummy_plate):
 
     with pytest.raises(NotImplementedError):
         dummy_plate._get_z_spacing()
+
+
+@pytest.fixture
+def acquisition_dir_single_channel():
+    return Path(__file__).parent.parent.parent.parent / "resources" / "SingleChannel"
+
+
+@pytest.fixture
+def single_channel_acquisition(acquisition_dir_single_channel):
+    return SinglePlaneAcquisition(
+        acquisition_dir_single_channel, alignment=TileAlignmentOptions.GRID
+    )
+
+
+def test_single_channel_acquistion(single_channel_acquisition: PlateAcquisition):
+    wells = single_channel_acquisition.get_well_acquisitions()
+
+    assert wells is not None
+    assert len(wells) == 2
+    # MIPs: 1 well has 2 fields * 1 channels = 2 files
+    assert len(wells[0]._files) == 2
+    assert len(wells[0]._files) == 2
+
+    channels = single_channel_acquisition.get_channel_metadata()
+    assert len(channels) == 1
+    ch = channels[0]
+    assert ch.channel_index == 0
+    assert ch.channel_name == "Maximum-Projection_FITC_05"
+    assert ch.display_color == "73ff00"
+    assert ch.exposure_time == 15.0
+    assert ch.exposure_time_unit == "ms"
+    assert ch.objective == "20X Plan Apo Lambda"
+    assert ch.spatial_calibration_units == "um"
+    assert ch.spatial_calibration_x == 1.3668
+    assert ch.spatial_calibration_y == 1.3668
+    assert ch.wavelength == 536
+    assert ch.z_spacing is None
+
+    for well in single_channel_acquisition.get_well_acquisitions():
+        assert isinstance(well, WellAcquisition)
+        assert len(well.get_tiles()) == 2
+        for tile in well.get_tiles():
+            assert tile.position.time == 0
+            assert tile.position.channel in [0]
+            assert tile.position.z == 0
+            assert tile.position.y in [0]
+            assert tile.position.x in [0, 512]
+            assert tile.shape == (512, 512)
