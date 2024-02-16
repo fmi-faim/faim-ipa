@@ -275,9 +275,9 @@ class WellAcquisition(ABC):
                             ]
                             * (ndim - 3)
                             + [
-                                self.get_z_spacing(),
-                                self.get_yx_spacing()[0] * yx_binning * 2**s,
-                                self.get_yx_spacing()[1] * yx_binning * 2**s,
+                                float(self.get_z_spacing()),
+                                float(self.get_yx_spacing()[0] * yx_binning * 2**s),
+                                float(self.get_yx_spacing()[1] * yx_binning * 2**s),
                             ],
                             "type": "scale",
                         }
@@ -292,8 +292,8 @@ class WellAcquisition(ABC):
                             ]
                             * (ndim - 2)
                             + [
-                                self.get_yx_spacing()[0] * yx_binning * 2**s,
-                                self.get_yx_spacing()[1] * yx_binning * 2**s,
+                                float(self.get_yx_spacing()[0] * yx_binning * 2**s),
+                                float(self.get_yx_spacing()[1] * yx_binning * 2**s),
                             ],
                             "type": "scale",
                         }
