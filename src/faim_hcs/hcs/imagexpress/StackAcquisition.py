@@ -73,7 +73,7 @@ class StackAcquisition(ImageXpressPlateAcquisition):
 
     def _compute_z_spacing(self, files: pd.DataFrame) -> Optional[float]:
         assert "z" in files.columns, "No z column in files DataFrame."
-        channel_with_stack = files[files["z"] == "2"]["channel"].unique()[0]
+        channel_with_stack = np.sort(files[files["z"] == "2"]["channel"].unique())[0]
         subset = files[files["channel"] == channel_with_stack]
         subset = subset[subset["well"] == subset["well"].unique()[0]]
         subset = subset[subset["field"] == subset["field"].unique()[0]]
@@ -87,7 +87,7 @@ class StackAcquisition(ImageXpressPlateAcquisition):
                 z_position = metadata["stage-position-z"]
                 plane_positions.append(z_position)
 
-        plane_positions = sorted(plane_positions)
+        plane_positions = np.array(sorted(plane_positions), dtype=np.float32)
 
         precision = -Decimal(str(plane_positions[0])).as_tuple().exponent
         z_step = np.round(np.mean(np.diff(plane_positions)), decimals=precision)
