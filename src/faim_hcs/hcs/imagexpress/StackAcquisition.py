@@ -65,7 +65,7 @@ class StackAcquisition(ImageXpressPlateAcquisition):
 
     def _get_filename_re(self) -> re.Pattern:
         return re.compile(
-            r"(?P<name>.*)_(?P<well>[A-Z]+\d{2})_(?P<field>s\d+)_(?P<channel>w[1-9]{1})(?!_thumb)(?P<md_id>.*)(?P<ext>.tif)"
+            r"(?P<name>.*)_(?P<well>[A-Z]+\d{2})_?(?P<field>s\d+)?_?(?P<channel>w[1-9]{1})?(?!_thumb)(?P<md_id>[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12})(?P<ext>.tif)"
         )
 
     def _get_z_spacing(self) -> Optional[float]:
@@ -73,7 +73,7 @@ class StackAcquisition(ImageXpressPlateAcquisition):
 
     def _compute_z_spacing(self, files: pd.DataFrame) -> Optional[float]:
         assert "z" in files.columns, "No z column in files DataFrame."
-        channel_with_stack = files[files["z"] == "2"]["channel"].unique()[0]
+        channel_with_stack = np.sort(files[files["z"] == "2"]["channel"].unique())[0]
         subset = files[files["channel"] == channel_with_stack]
         subset = subset[subset["well"] == subset["well"].unique()[0]]
         subset = subset[subset["field"] == subset["field"].unique()[0]]
@@ -87,7 +87,7 @@ class StackAcquisition(ImageXpressPlateAcquisition):
                 z_position = metadata["stage-position-z"]
                 plane_positions.append(z_position)
 
-        plane_positions = sorted(plane_positions)
+        plane_positions = np.array(sorted(plane_positions), dtype=np.float32)
 
         precision = -Decimal(str(plane_positions[0])).as_tuple().exponent
         z_step = np.round(np.mean(np.diff(plane_positions)), decimals=precision)
