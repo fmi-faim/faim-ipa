@@ -58,20 +58,21 @@ class MixedAcquisition(ImageXpressPlateAcquisition):
         # single-planes and projections are unnecessarily duplicated
         # -> remove duplicates from files
         for c in files.channel.unique():
-            file = files[(files.channel == c) & (files.z == '2')].iloc[0]
+            file = files[(files.channel == c) & (files.z == "2")].iloc[0]
             metadata = load_metaseries_tiff_metadata(file.path)
             # projections have no "Z Step" attribute
             # single-planes have always metadata["Z Step"] == 1, for each duplicate
             if "Z Step" in metadata.keys():
                 if metadata["Z Step"] == 1:
-                    files = files[~((files['channel'] == c) & (files['z'] != '1'))]
+                    files = files[~((files["channel"] == c) & (files["z"] != "1"))]
             else:
-                files = files[~((files['channel'] == c) & (files['z'] != '1'))]
+                files = files[~((files["channel"] == c) & (files["z"] != "1"))]
         self._z_spacing = self._compute_z_spacing(files)
         return files
 
     def _get_root_re(self) -> re.Pattern:
-        return re.compile(r".*[\/\\]TimePoint_(?P<timepoint>\d+)[\/\\]ZStep_(?!0)(?P<z>\d+)"
+        return re.compile(
+            r".*[\/\\]TimePoint_(?P<timepoint>\d+)[\/\\]ZStep_(?!0)(?P<z>\d+)"
         )
 
     def _get_filename_re(self) -> re.Pattern:
@@ -84,7 +85,7 @@ class MixedAcquisition(ImageXpressPlateAcquisition):
 
     def _compute_z_spacing(self, files: pd.DataFrame) -> Optional[float]:
         assert "z" in files.columns, "No z column in files DataFrame."
-        channel_with_stack = files[files["z"] == "2"]["channel"].unique()[0]
+        channel_with_stack = np.sort(files[files["z"] == "2"]["channel"].unique())[0]
         subset = files[files["channel"] == channel_with_stack]
         subset = subset[subset["well"] == subset["well"].unique()[0]]
         subset = subset[subset["field"] == subset["field"].unique()[0]]
@@ -98,7 +99,7 @@ class MixedAcquisition(ImageXpressPlateAcquisition):
                 z_position = metadata["stage-position-z"]
                 plane_positions.append(z_position)
 
-        plane_positions = sorted(plane_positions)
+        plane_positions = np.array(sorted(plane_positions), dtype=np.float32)
 
         precision = -Decimal(str(plane_positions[0])).as_tuple().exponent
         z_step = np.round(np.mean(np.diff(plane_positions)), decimals=precision)

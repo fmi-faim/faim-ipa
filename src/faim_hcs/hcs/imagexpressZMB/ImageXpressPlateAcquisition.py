@@ -56,7 +56,7 @@ class ImageXpressPlateAcquisition(PlateAcquisition):
         root_dir: Union[Path, str],
         root_re: re.Pattern,
         filename_re: re.Pattern,
-    ) -> list[[dict[dict, str]]]:
+    ) -> list[list[dict[dict, str]]]:
         files = []
         for root, _, filenames in os.walk(root_dir):
             m_root = root_re.fullmatch(root)
@@ -66,6 +66,8 @@ class ImageXpressPlateAcquisition(PlateAcquisition):
                     if m_filename:
                         row = m_root.groupdict()
                         row |= m_filename.groupdict()
+                        if "channel" not in row or row["channel"] is None:
+                            row["channel"] = "w1"
                         row["path"] = str(Path(root).joinpath(f))
                         files.append(row)
         return files
