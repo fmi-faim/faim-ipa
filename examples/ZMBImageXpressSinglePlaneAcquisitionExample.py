@@ -7,13 +7,24 @@ from faim_hcs.hcs.imagexpressZMB import SinglePlaneAcquisition
 from faim_hcs.hcs.plate import PlateLayout
 from faim_hcs.stitching import stitching_utils
 
+
 def main():
     # Remove existing zarr.
     shutil.rmtree("md-single-plane.zarr", ignore_errors=True)
 
+    import distributed
+
+    client = distributed.Client(
+        n_workers=1,
+        threads_per_worker=1,
+        processes=False,
+    )
+
     # Parse MD plate acquisition.
-    plate = SinglePlaneAcquisition(
-        acquisition_dir=Path(r'Z:\zmbstaff\9713\Raw_Data\240117_test-dataset\fsturzenegger-test-dataset_Plate_2653'),
+    plate_acquisition = SinglePlaneAcquisition(
+        acquisition_dir=Path(
+            r"Z:\zmbstaff\9713\Raw_Data\240117_test-dataset\fsturzenegger-test-dataset_Plate_2653"
+        ),
         alignment=TileAlignmentOptions.GRID,
     )
 
@@ -30,11 +41,15 @@ def main():
         stitching_yx_chunk_size_factor=2,
         warp_func=stitching_utils.translate_tiles_2d,
         fuse_func=stitching_utils.fuse_mean,
+        client=client,
     )
+
+    plate = converter.create_zarr_plate(plate_acquisition)
 
     # Run conversion.
     converter.run(
-        plate_acquisition=plate,
+        plate=plate,
+        plate_acquisition=plate_acquisition,
         well_sub_group="0",
         chunks=(1, 512, 512),
         max_layer=2,
