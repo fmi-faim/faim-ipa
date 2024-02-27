@@ -45,7 +45,7 @@ def invalid_trace_log_file() -> Path:
 def test__parse_files(cv_acquisition, trace_log_file):
     plate = ZAdjustedStackAcquisition(
         acquisition_dir=cv_acquisition,
-        trace_log_file=trace_log_file,
+        trace_log_files=[trace_log_file],
         alignment=TileAlignmentOptions.GRID,
     )
 
@@ -88,7 +88,7 @@ def test__parse_files(cv_acquisition, trace_log_file):
 def test_get_well_acquisitions(cv_acquisition, trace_log_file):
     plate = ZAdjustedStackAcquisition(
         acquisition_dir=cv_acquisition,
-        trace_log_file=trace_log_file,
+        trace_log_files=[trace_log_file],
         alignment=TileAlignmentOptions.GRID,
     )
 
@@ -116,6 +116,6 @@ def test_invalid_tracelog(cv_acquisition, invalid_trace_log_file):
     with pytest.raises(ValueError):
         ZAdjustedStackAcquisition(
             acquisition_dir=cv_acquisition,
-            trace_log_file=invalid_trace_log_file,
+            trace_log_files=[invalid_trace_log_file],
             alignment=TileAlignmentOptions.GRID,
         )
