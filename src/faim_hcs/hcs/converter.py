@@ -18,7 +18,6 @@ from ome_zarr.writer import (
 from pydantic import BaseModel
 
 from faim_hcs import dask_utils
-from faim_hcs.dask_utils import LocalClusterFactory
 from faim_hcs.hcs.acquisition import PlateAcquisition
 from faim_hcs.hcs.plate import PlateLayout, get_rows_and_columns
 from faim_hcs.stitching import stitching_utils
@@ -70,12 +69,7 @@ class ConvertToNGFFPlate:
         self._stitching_yx_chunk_size_factor = stitching_yx_chunk_size_factor
         self._warp_func = warp_func
         self._fuse_func = fuse_func
-        if client is None:
-            self._cluster_factory = LocalClusterFactory()
-            self._client = self._cluster_factory.get_client()
-        else:
-            self._cluster_factory = None
-            self._client = client
+        self._client = client
 
     def create_zarr_plate(
         self, plate_acquisition: PlateAcquisition, wells: Optional[list[str]] = None
@@ -369,7 +363,3 @@ class ConvertToNGFFPlate:
             return chunks
         else:
             return (1,) * (len(shape) - len(chunks)) + chunks
-
-    def __del__(self):
-        if self._cluster_factory is not None:
-            self._cluster_factory.__del__()
