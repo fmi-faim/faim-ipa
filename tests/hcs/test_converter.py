@@ -31,7 +31,7 @@ def test_NGFFPlate():
         order_name=order_name,
         barcode=barcode,
     )
-    assert plate.root_dir == Path(root_dir)
+    assert Path(plate.root_dir) == Path(root_dir)
     assert plate.name == name
     assert plate.layout == layout
     assert plate.order_name == order_name
