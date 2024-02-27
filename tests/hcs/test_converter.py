@@ -39,8 +39,8 @@ def test_NGFFPlate():
 
 
 @pytest.fixture
-def tmp_dir(tmpdir_factory):
-    return tmpdir_factory.mktemp("hcs_plate")
+def tmp_dir(tmp_path_factory):
+    return tmp_path_factory.mktemp("hcs_plate")
 
 
 @pytest.fixture
