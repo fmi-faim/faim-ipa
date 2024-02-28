@@ -45,9 +45,11 @@ class GridAlignment(AbstractAlignment):
         grid_positions_x = set()
         tile_map = {}
         for tile in tiles:
-            assert tile.shape == tile_shape, "All tiles must have the same shape."
-            y_pos = int(np.round(tile.position.y / tile_shape[0]))
-            x_pos = int(np.round(tile.position.x / tile_shape[1]))
+            assert (
+                tile.shape[-2:] == tile_shape[-2:]
+            ), "All tiles must have the same YX shape."
+            y_pos = int(np.round(tile.position.y / tile_shape[-2]))
+            x_pos = int(np.round(tile.position.x / tile_shape[-1]))
             if (y_pos, x_pos) in tile_map.keys():
                 tile_map[(y_pos, x_pos)].append(tile)
             else:
@@ -62,8 +64,8 @@ class GridAlignment(AbstractAlignment):
                 if (y_pos, x_pos) in tile_map.keys():
                     for unaligned_tile in tile_map[(y_pos, x_pos)]:
                         new_tile = copy(unaligned_tile)
-                        new_tile.position.y = y_pos * tile_shape[0]
-                        new_tile.position.x = x_pos * tile_shape[1]
+                        new_tile.position.y = y_pos * tile_shape[-2]
+                        new_tile.position.x = x_pos * tile_shape[-1]
                         aligned_tiles.append(new_tile)
 
         return aligned_tiles
