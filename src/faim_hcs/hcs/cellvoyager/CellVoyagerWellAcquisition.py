@@ -61,9 +61,12 @@ class CellVoyagerWellAcquisition(WellAcquisition):
 
         tiles = {}
         for i, row in self._files.iterrows():
-            tile_z_index = (
-                row["ZIndex"] - min_z_index
-            ) // self._n_planes_in_stacked_tile
+            if "ZIndex" in row:
+                tile_z_index = (
+                    row["ZIndex"] - min_z_index
+                ) // self._n_planes_in_stacked_tile
+            else:
+                tile_z_index = min_z_index
             tczyx_index = (
                 row["TimePoint"],
                 row["Ch"],
@@ -78,7 +81,13 @@ class CellVoyagerWellAcquisition(WellAcquisition):
 
         stacked_tiles = []
         for tczyx_index, rows in tiles.items():
-            row_dict = {r["ZIndex"]: r["path"] for r in rows}
+            row_dict = {}
+            for r in rows:
+                if "ZIndex" in r:
+                    row_dict[r["ZIndex"]] = r["path"]
+                else:
+                    row_dict[min_z_index] = r["path"]
+
             files = []
             z_start = tczyx_index[2] * self._n_planes_in_stacked_tile + min_z_index
             for z in range(
@@ -117,7 +126,7 @@ class CellVoyagerWellAcquisition(WellAcquisition):
                     position=TilePosition(
                         time=time_point,
                         channel=int(channel),
-                        z=tczyx_index[2] * self._n_planes_in_stacked_tile,
+                        z=z_start,
                         y=int(-float(y) / yx_spacing[0]),
                         x=int(float(x) / yx_spacing[1]),
                     ),

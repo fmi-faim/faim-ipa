@@ -106,7 +106,7 @@ def plate_acquisition_3d():
             new_tiles.append(
                 Tile3D(
                     path="place-holder",
-                    shape=(len(pos),) + pos[0].shape,
+                    shape=(len(pos),) + pos[0].shape[1:],
                     position=TilePosition(
                         time=pos[0].position.time,
                         channel=pos[0].position.channel,
@@ -219,7 +219,12 @@ def test__stitch_well_image_2d(tmp_dir, plate_acquisition, hcs_plate):
 
 
 def test__stitch_well_image_3d(tmp_dir, plate_acquisition_3d, hcs_plate):
-    converter = ConvertToNGFFPlate(hcs_plate)
+    import distributed
+
+    converter = ConvertToNGFFPlate(
+        hcs_plate,
+        client=distributed.Client(threads_per_worker=1, processes=False, n_workers=1),
+    )
     well_acquisition = plate_acquisition_3d.get_well_acquisitions()[0]
     well_img_da = converter._stitch_well_image(
         chunks=(1, 1, 10, 1000, 1000),
@@ -263,7 +268,12 @@ def test_run(tmp_dir, plate_acquisition, hcs_plate):
         ).get_client(),
     )
     plate = converter.create_zarr_plate(plate_acquisition)
-    plate = converter.run(plate=plate, plate_acquisition=plate_acquisition, max_layer=2)
+    plate = converter.run(
+        plate=plate,
+        plate_acquisition=plate_acquisition,
+        max_layer=2,
+        chunks=(1, 2000, 2000),
+    )
     plate.attrs["plate"]["wells"] == [
         {"columnIndex": 7, "path": "D/08", "rowIndex": 3},
         {"columnIndex": 2, "path": "E/03", "rowIndex": 4},
@@ -300,7 +310,11 @@ def test_run_selection(tmp_dir, plate_acquisition, hcs_plate):
     )
     plate = converter.create_zarr_plate(plate_acquisition)
     plate = converter.run(
-        plate=plate, plate_acquisition=plate_acquisition, max_layer=2, wells=["D08"]
+        plate=plate,
+        plate_acquisition=plate_acquisition,
+        max_layer=2,
+        wells=["D08"],
+        chunks=(1, 2000, 2000),
     )
     plate.attrs["plate"]["wells"] == [{"columnIndex": 7, "path": "D/08", "rowIndex": 3}]
     for well in ["D08"]:

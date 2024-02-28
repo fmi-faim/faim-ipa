@@ -19,6 +19,7 @@ class ZAdjustedStackAcquisition(StackAcquisition):
         alignment: TileAlignmentOptions,
         background_correction_matrices: Optional[dict[str, Union[Path, str]]] = None,
         illumination_correction_matrices: Optional[dict[str, Union[Path, str]]] = None,
+        n_planes_in_stacked_tile: int = 1,
     ):
         self._trace_log_files = trace_log_files
         super().__init__(
@@ -26,6 +27,7 @@ class ZAdjustedStackAcquisition(StackAcquisition):
             alignment,
             background_correction_matrices,
             illumination_correction_matrices,
+            n_planes_in_stacked_tile=n_planes_in_stacked_tile,
         )
 
     def _parse_files(self) -> DataFrame:

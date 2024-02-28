@@ -6,6 +6,7 @@ from tifffile import imread
 
 from faim_hcs.hcs.acquisition import TileAlignmentOptions
 from faim_hcs.hcs.cellvoyager import StackAcquisition
+from faim_hcs.hcs.cellvoyager.StackedTile import StackedTile
 
 
 @pytest.fixture
@@ -120,8 +121,9 @@ def test_get_well_acquisitions(cv_acquisition):
                 f"{str(tile.position.channel + 1).zfill(2)}.tif"
             )
             re_file_name = re.compile(file_name)
-            assert re_file_name.match(tile.path)
-            assert tile.shape == imread(tile.path).shape
+            assert isinstance(tile, StackedTile)
+            assert re_file_name.match(tile._paths[0])
+            assert tile.shape[1:] == imread(tile._paths[0]).shape
             assert tile.illumination_correction_matrix_path is None
             assert tile.background_correction_matrix_path is None
             assert tile.position.x in [0, 2000]

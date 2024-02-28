@@ -9,6 +9,7 @@ from faim_hcs.hcs.acquisition import TileAlignmentOptions
 from faim_hcs.hcs.cellvoyager.CellVoyagerWellAcquisition import (
     CellVoyagerWellAcquisition,
 )
+from faim_hcs.hcs.cellvoyager.StackedTile import StackedTile
 
 
 @pytest.fixture
@@ -45,8 +46,10 @@ def test__assemble_tiles(files, metadata):
     tiles = cv_well_acquisition._assemble_tiles()
     assert len(tiles) == 32
     for tile in tiles:
-        assert os.path.exists(tile.path)
-        assert tile.shape == (2000, 2000)
+        assert isinstance(tile, StackedTile)
+        assert os.path.exists(tile._paths[0])
+        assert len(tile._paths) == 1
+        assert tile.shape == (1, 2000, 2000)
         assert tile.position.channel in [1, 2]
         assert tile.position.time == 1
         assert tile.position.z in [1, 2, 3, 4]

@@ -145,6 +145,9 @@ class ConvertToNGFFPlate:
             zarr.Group of the plate.
         """
         assert 2 <= len(chunks) <= 3, "Chunks must be 2D or 3D."
+        assert len(chunks) == len(
+            plate_acquisition.get_well_acquisitions()[0].get_tiles()[0].shape
+        ), "Chunks must have the same number of dimensions as the tile shape."
         well_acquisitions = plate_acquisition.get_well_acquisitions(wells)
 
         for well_acquisition in well_acquisitions:
