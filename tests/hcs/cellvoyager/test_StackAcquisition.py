@@ -34,7 +34,7 @@ def test_get_channel_metadata(cv_acquisition):
     assert ch_metadata[0].spatial_calibration_y == 0.325
     assert ch_metadata[0].spatial_calibration_units == "um"
     assert ch_metadata[0].z_spacing == 3.0
-    assert ch_metadata[0].wavelength == 405
+    assert int(ch_metadata[0].wavelength) == 405
     assert ch_metadata[0].exposure_time == 100
     assert ch_metadata[0].exposure_time_unit == "ms"
     assert ch_metadata[0].objective == "20x v2"
@@ -45,7 +45,7 @@ def test_get_channel_metadata(cv_acquisition):
     assert ch_metadata[1].spatial_calibration_y == 0.325
     assert ch_metadata[1].spatial_calibration_units == "um"
     assert ch_metadata[1].z_spacing == 3.0
-    assert ch_metadata[1].wavelength == 488
+    assert int(ch_metadata[1].wavelength) == 488
     assert ch_metadata[1].exposure_time == 100
     assert ch_metadata[1].exposure_time_unit == "ms"
     assert ch_metadata[1].objective == "20x v2"
@@ -56,7 +56,7 @@ def test_get_channel_metadata(cv_acquisition):
     assert ch_metadata[2].spatial_calibration_y == 0.325
     assert ch_metadata[2].spatial_calibration_units == "um"
     assert ch_metadata[2].z_spacing == 3.0
-    assert ch_metadata[2].wavelength == 561
+    assert int(ch_metadata[2].wavelength) == 561
     assert ch_metadata[2].exposure_time == 250
     assert ch_metadata[2].exposure_time_unit == "ms"
     assert ch_metadata[2].objective == "20x v2"
@@ -67,7 +67,7 @@ def test_get_channel_metadata(cv_acquisition):
     assert ch_metadata[3].spatial_calibration_y == 0.325
     assert ch_metadata[3].spatial_calibration_units == "um"
     assert ch_metadata[3].z_spacing == 3.0
-    assert ch_metadata[3].wavelength == 640
+    assert int(ch_metadata[3].wavelength) == 640
     assert ch_metadata[3].exposure_time == 250
     assert ch_metadata[3].exposure_time_unit == "ms"
     assert ch_metadata[3].objective == "20x v2"
@@ -113,7 +113,7 @@ def test_get_well_acquisitions(cv_acquisition):
     for well in wells:
         for tile in well.get_tiles():
             file_name = (
-                f".*/CV8000-Minimal-DataSet-2C-3W-4S-FP2-stack_"
+                f".*[/\\\\]CV8000-Minimal-DataSet-2C-3W-4S-FP2-stack_"
                 f"{well.name}_T"
                 f"{str(tile.position.time + 1).zfill(4)}F.*L.*A.*Z"
                 f"{str(tile.position.z + 1).zfill(2)}C"

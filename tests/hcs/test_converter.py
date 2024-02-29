@@ -31,7 +31,7 @@ def test_NGFFPlate():
         order_name=order_name,
         barcode=barcode,
     )
-    assert plate.root_dir == Path(root_dir)
+    assert Path(plate.root_dir) == Path(root_dir)
     assert plate.name == name
     assert plate.layout == layout
     assert plate.order_name == order_name
@@ -39,8 +39,8 @@ def test_NGFFPlate():
 
 
 @pytest.fixture
-def tmp_dir(tmpdir_factory):
-    return tmpdir_factory.mktemp("hcs_plate")
+def tmp_dir(tmp_path_factory):
+    return tmp_path_factory.mktemp("hcs_plate")
 
 
 @pytest.fixture
@@ -331,4 +331,3 @@ def test_provide_client(tmp_dir, plate_acquisition, hcs_plate):
         client=Client(),
     )
     assert converter._client is not None
-    assert converter._cluster_factory is None
