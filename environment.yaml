@@ -15,5 +15,3 @@ dependencies:
   - locket
   - numcodecs
   - ome-zarr
-  - pip:
-    - git+https://github.com/fmi-faim/faim-hcs@v0.2.2
