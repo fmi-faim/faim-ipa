@@ -26,7 +26,9 @@ class StackAcquisition(PlateAcquisition):
         alignment: TileAlignmentOptions,
         background_correction_matrices: Optional[dict[str, Union[Path, str]]] = None,
         illumination_correction_matrices: Optional[dict[str, Union[Path, str]]] = None,
+        n_planes_in_stacked_tile: int = 1,
     ):
+        self._n_planes_in_stacked_tile = n_planes_in_stacked_tile
         super().__init__(
             acquisition_dir=acquisition_dir,
             alignment=alignment,
@@ -71,6 +73,7 @@ class StackAcquisition(PlateAcquisition):
                     metadata=self._parse_metadata(),
                     background_correction_matrices=self._background_correction_matrices,
                     illumination_correction_matrices=self._illumination_correction_matrices,
+                    n_planes_in_stacked_tile=self._n_planes_in_stacked_tile,
                 )
             )
         return wells
@@ -138,4 +141,7 @@ class StackAcquisition(PlateAcquisition):
                 }
                 files.append(row)
 
-        return pd.DataFrame(files)
+        files = pd.DataFrame(files)
+        files["TimePoint"] = files["TimePoint"].astype(int)
+        files["ZIndex"] = files["ZIndex"].astype(int)
+        return files

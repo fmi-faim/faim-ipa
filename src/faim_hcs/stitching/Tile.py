@@ -27,7 +27,7 @@ class Tile:
     """
 
     path: str
-    shape: tuple[int, int]
+    shape: tuple[int, ...]
     position: TilePosition
     background_correction_matrix_path: Optional[Union[Path, str]] = None
     illumination_correction_matrix_path: Optional[Union[Path, str]] = None

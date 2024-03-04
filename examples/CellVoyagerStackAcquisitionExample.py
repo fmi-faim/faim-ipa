@@ -1,6 +1,8 @@
 import shutil
 from pathlib import Path
 
+import distributed
+
 from faim_hcs.hcs.acquisition import TileAlignmentOptions
 from faim_hcs.hcs.cellvoyager import StackAcquisition
 from faim_hcs.hcs.converter import ConvertToNGFFPlate, NGFFPlate
@@ -20,6 +22,7 @@ def main():
         / "CV8000-Minimal-DataSet-2C-3W-4S-FP2-stack_20230918_135839"
         / "CV8000-Minimal-DataSet-2C-3W-4S-FP2-stack",
         alignment=TileAlignmentOptions.GRID,
+        n_planes_in_stacked_tile=3,
     )
 
     # Create converter.
@@ -35,6 +38,7 @@ def main():
         stitching_yx_chunk_size_factor=2,
         warp_func=stitching_utils.translate_tiles_2d,
         fuse_func=stitching_utils.fuse_mean,
+        client=distributed.Client(threads_per_worker=1, processes=False, n_workers=1),
     )
 
     plate = converter.create_zarr_plate(plate_acquisition)
@@ -44,7 +48,7 @@ def main():
         plate=plate,
         plate_acquisition=plate_acquisition,
         well_sub_group="0",
-        chunks=(2, 1000, 1000),
+        chunks=(3, 1000, 1000),
         max_layer=2,
     )
 
