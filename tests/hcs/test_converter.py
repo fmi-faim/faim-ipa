@@ -7,7 +7,6 @@ import pytest
 import zarr
 from distributed import Client, LocalCluster
 from numcodecs import Blosc
-from numpy._typing import NDArray
 
 from faim_hcs import dask_utils
 from faim_hcs.hcs.acquisition import TileAlignmentOptions
@@ -66,22 +65,8 @@ def plate_acquisition():
     )
 
 
-class Tile3D(Tile):
-    def __init__(
-        self,
-        path: str,
-        shape: tuple[int, int, int],
-        position: TilePosition,
-    ):
-        super().__init__(path, shape, position)
-        self._shape = shape
-
-    def load_data(self) -> NDArray:
-        return np.zeros(self._shape, dtype=np.uint16)
-
-
 @pytest.fixture
-def plate_acquisition_3d():
+def plate_acquisition_2d():
     acq = StackAcquisition(
         acquisition_dir=Path(__file__).parent.parent.parent
         / "resources"
@@ -93,26 +78,18 @@ def plate_acquisition_3d():
 
     for well in acq.get_well_acquisitions():
         tiles = well.get_tiles()
-        cyx_pos = {}
-        for tile in tiles:
-            idx = (tile.position.channel, tile.position.y, tile.position.x)
-            if idx not in cyx_pos.keys():
-                cyx_pos[idx] = [tile]
-            else:
-                cyx_pos[idx].append(tile)
-
         new_tiles = []
-        for pos in cyx_pos.values():
+        for tile in tiles:
             new_tiles.append(
-                Tile3D(
-                    path="place-holder",
-                    shape=(len(pos),) + pos[0].shape[1:],
+                Tile(
+                    path=tile._paths[0],
+                    shape=(2000, 2000),
                     position=TilePosition(
-                        time=pos[0].position.time,
-                        channel=pos[0].position.channel,
-                        z=0,
-                        y=pos[0].position.y,
-                        x=pos[0].position.x,
+                        time=tile.position.time,
+                        channel=tile.position.channel,
+                        z=tile.position.z,
+                        y=tile.position.y,
+                        x=tile.position.x,
                     ),
                 )
             )
@@ -205,31 +182,31 @@ def test__create_well_group(tmp_dir, plate_acquisition, hcs_plate):
     assert isinstance(well_group, zarr.Group)
 
 
-def test__stitch_well_image_2d(tmp_dir, plate_acquisition, hcs_plate):
+def test__stitch_well_image_2d(tmp_dir, plate_acquisition_2d, hcs_plate):
     converter = ConvertToNGFFPlate(hcs_plate)
-    well_acquisition = plate_acquisition.get_well_acquisitions()[0]
+    well_acquisition = plate_acquisition_2d.get_well_acquisitions()[0]
     well_img_da = converter._stitch_well_image(
         chunks=(1, 1, 10, 1000, 1000),
         well_acquisition=well_acquisition,
-        output_shape=plate_acquisition.get_common_well_shape(),
+        output_shape=plate_acquisition_2d.get_common_well_shape(),
     )
     assert isinstance(well_img_da, dask.array.core.Array)
     assert well_img_da.shape == (1, 2, 4, 4000, 4000)
     assert well_img_da.dtype == np.uint16
 
 
-def test__stitch_well_image_3d(tmp_dir, plate_acquisition_3d, hcs_plate):
+def test__stitch_well_image_3d(tmp_dir, plate_acquisition, hcs_plate):
     import distributed
 
     converter = ConvertToNGFFPlate(
         hcs_plate,
         client=distributed.Client(threads_per_worker=1, processes=False, n_workers=1),
     )
-    well_acquisition = plate_acquisition_3d.get_well_acquisitions()[0]
+    well_acquisition = plate_acquisition.get_well_acquisitions()[0]
     well_img_da = converter._stitch_well_image(
         chunks=(1, 1, 10, 1000, 1000),
         well_acquisition=well_acquisition,
-        output_shape=plate_acquisition_3d.get_common_well_shape(),
+        output_shape=plate_acquisition.get_common_well_shape(),
     )
     assert isinstance(well_img_da, dask.array.core.Array)
     assert well_img_da.shape == (1, 2, 4, 4000, 4000)

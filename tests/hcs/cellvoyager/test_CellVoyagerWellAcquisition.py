@@ -79,6 +79,7 @@ def test__assemble_tiles_missing_acquisition(files, metadata):
         assert tile.position.z in [1, 3]
         assert tile.position.y in list(-(files["Y"].unique() / 0.65).astype(int))
         assert tile.position.x in list((files["X"].unique() / 0.65).astype(int))
+        assert tile.load_data().shape == tile.shape
 
 
 def test_get_axes(files, metadata):
