@@ -57,6 +57,30 @@ def test__assemble_tiles(files, metadata):
         assert tile.position.x in list((files["X"].unique() / 0.65).astype(int))
 
 
+def test__assemble_tiles_missing_acquisition(files, metadata):
+    cv_well_acquisition = CellVoyagerWellAcquisition(
+        files=files.query("ZIndex != 2"),
+        alignment=TileAlignmentOptions.GRID,
+        metadata=metadata,
+        n_planes_in_stacked_tile=2,
+    )
+
+    tiles = cv_well_acquisition._assemble_tiles()
+    assert len(tiles) == 16
+    for tile in tiles:
+        assert isinstance(tile, StackedTile)
+        assert len(tile._paths) == 2
+        assert os.path.exists(tile._paths[0])
+        if tile._paths[1]:
+            assert os.path.exists(tile._paths[1])
+        assert tile.shape == (2, 2000, 2000)
+        assert tile.position.channel in [1, 2]
+        assert tile.position.time == 1
+        assert tile.position.z in [1, 3]
+        assert tile.position.y in list(-(files["Y"].unique() / 0.65).astype(int))
+        assert tile.position.x in list((files["X"].unique() / 0.65).astype(int))
+
+
 def test_get_axes(files, metadata):
     cv_well_acquisition = CellVoyagerWellAcquisition(
         files=files,
