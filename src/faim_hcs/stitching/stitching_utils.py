@@ -159,8 +159,8 @@ def shift_yx(chunk_zyx_origin, tile_data, tile_origin, chunk_shape):
         end_y = start_y + tile_data.shape[1]
         start_x = max(0, yx_shift[1])
         end_x = start_x + tile_data.shape[2]
-        warped_tile[..., start_y:end_y, start_x:end_x] = tile_data
-        warped_mask[..., start_y:end_y, start_x:end_x] = True
+        warped_tile[: tile_data.shape[0], start_y:end_y, start_x:end_x] = tile_data
+        warped_mask[: tile_data.shape[0], start_y:end_y, start_x:end_x] = True
     return warped_mask, warped_tile
 
 
