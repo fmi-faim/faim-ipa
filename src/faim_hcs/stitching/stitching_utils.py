@@ -95,7 +95,9 @@ def fuse_sum(warped_tiles: NDArray, warped_masks: NDArray) -> NDArray:
     return fused_image.astype(warped_tiles.dtype)
 
 
-def translate_tiles_2d(block_info, chunk_shape, tiles):
+def translate_tiles_2d(
+    block_info, chunk_shape, tiles, build_acquisition_mask: bool = False
+):
     """
     Translate tiles to their relative position inside the given block.
 
@@ -120,7 +122,10 @@ def translate_tiles_2d(block_info, chunk_shape, tiles):
     warped_masks = []
     for tile in tiles:
         tile_origin = np.array(tile.get_zyx_position())
-        tile_data = tile.load_data()
+        if build_acquisition_mask:
+            tile_data = tile.load_data_mask()
+        else:
+            tile_data = tile.load_data()
         if tile_data.ndim == 2:
             tile_data = tile_data[np.newaxis, ...]
         warped_mask, warped_tile = shift_yx(
@@ -165,7 +170,12 @@ def shift_yx(chunk_zyx_origin, tile_data, tile_origin, chunk_shape):
 
 
 def assemble_chunk(
-    block_info=None, tile_map=None, warp_func=None, fuse_func=None, dtype=None
+    block_info=None,
+    tile_map=None,
+    warp_func=None,
+    fuse_func=None,
+    dtype=None,
+    build_acquisition_mask: bool = False,
 ):
     """
     Assemble a chunk of the stitched image.
@@ -192,7 +202,9 @@ def assemble_chunk(
     tiles = tile_map[chunk_location]
 
     if len(tiles) > 0:
-        warped_tiles, warped_masks = warp_func(block_info, chunk_shape[-3:], tiles)
+        warped_tiles, warped_masks = warp_func(
+            block_info, chunk_shape[-3:], tiles, build_acquisition_mask
+        )
 
         if len(tiles) > 1:
             stitched_img = fuse_func(

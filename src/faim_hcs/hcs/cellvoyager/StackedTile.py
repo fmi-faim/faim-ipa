@@ -2,6 +2,7 @@ from pathlib import Path
 from typing import Optional, Union
 
 import numpy as np
+from numpy._typing import NDArray
 from tifffile import imread
 
 from faim_hcs.stitching import Tile
@@ -37,5 +38,13 @@ class StackedTile(Tile):
                 plane = self._apply_background_correction(plane)
                 plane = self._apply_illumination_correction(plane)
                 data[i] = plane
+
+        return data
+
+    def load_data_mask(self) -> NDArray:
+        data = np.zeros(self.shape, dtype=bool)
+        for i, path in enumerate(self._paths):
+            if path:
+                data[i] = True
 
         return data

@@ -109,6 +109,7 @@ class DaskTileStitcher:
         self,
         warp_func: Callable = stitching_utils.translate_tiles_2d,
         fuse_func: Callable = stitching_utils.fuse_mean,
+        build_acquisition_mask: bool = False,
     ) -> da.array:
         """
         Build the dask array for the stitched image.
@@ -128,6 +129,7 @@ class DaskTileStitcher:
             stitching_utils.assemble_chunk,
             warp_func=warp_func,
             fuse_func=fuse_func,
+            build_acquisition_mask=build_acquisition_mask,
         )
 
         return da.map_blocks(

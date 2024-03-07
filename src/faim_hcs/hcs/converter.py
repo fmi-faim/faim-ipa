@@ -123,6 +123,7 @@ class ConvertToNGFFPlate:
         chunks: Union[tuple[int, int], tuple[int, int, int]] = (2048, 2048),
         max_layer: int = 3,
         storage_options: dict = None,
+        build_acquisition_mask: bool = False,
     ):
         """
         Convert a plate acquisition to an NGFF plate.
@@ -139,6 +140,8 @@ class ConvertToNGFFPlate:
             Maximum layer of the resolution pyramid layers.
         storage_options :
             Zarr storage options.
+        build_acquisition_mask :
+            Writes a boolean mask instead of the image data, indicating where the image data is present.
 
         Returns
         -------
@@ -163,6 +166,7 @@ class ConvertToNGFFPlate:
                 plate_acquisition,
                 storage_options,
                 well_acquisition,
+                build_acquisition_mask=build_acquisition_mask,
             )
             shapes, datasets = self._build_pyramid(
                 group,
@@ -215,11 +219,13 @@ class ConvertToNGFFPlate:
         plate_acquisition,
         storage_options,
         well_acquisition,
+        build_acquisition_mask,
     ):
         stitched_well_da = self._stitch_well_image(
             chunks,
             well_acquisition,
             output_shape=plate_acquisition.get_common_well_shape(),
+            build_acquisition_mask=build_acquisition_mask,
         )
         binned_da = self._bin_yx(stitched_well_da).squeeze()
         rechunked_da = binned_da.rechunk(self._out_chunks(binned_da.shape, chunks))
@@ -307,6 +313,7 @@ class ConvertToNGFFPlate:
         chunks,
         well_acquisition,
         output_shape: tuple[int, int, int, int, int],
+        build_acquisition_mask: bool,
     ):
         from faim_hcs.stitching import DaskTileStitcher
 
@@ -329,11 +336,12 @@ class ConvertToNGFFPlate:
             tiles=well_acquisition.get_tiles(),
             chunk_shape=chunk_shape,
             output_shape=output_shape,
-            dtype=well_acquisition.get_dtype(),
+            dtype=bool if build_acquisition_mask else well_acquisition.get_dtype(),
         )
         image_da = stitcher.get_stitched_dask_array(
             warp_func=self._warp_func,
             fuse_func=self._fuse_func,
+            build_acquisition_mask=build_acquisition_mask,
         )
         return image_da
 

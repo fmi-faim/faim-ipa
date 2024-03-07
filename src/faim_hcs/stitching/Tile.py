@@ -85,6 +85,16 @@ class Tile:
 
         return data
 
+    def load_data_mask(self) -> NDArray:
+        """
+        Create a binary mask indicating the presence of data.
+
+        Returns
+        -------
+        Binary mask
+        """
+        return np.ones(self.shape, dtype=bool)
+
     def _apply_illumination_correction(self, data):
         dtype = data.dtype
         if self.illumination_correction_matrix_path is not None:
