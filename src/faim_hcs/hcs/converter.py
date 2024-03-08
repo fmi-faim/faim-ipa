@@ -340,7 +340,9 @@ class ConvertToNGFFPlate:
         )
         image_da = stitcher.get_stitched_dask_array(
             warp_func=self._warp_func,
-            fuse_func=self._fuse_func,
+            fuse_func=(
+                stitching_utils.fuse_sum if build_acquisition_mask else self._fuse_func
+            ),
             build_acquisition_mask=build_acquisition_mask,
         )
         return image_da
