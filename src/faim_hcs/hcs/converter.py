@@ -10,11 +10,12 @@ from numcodecs import Blosc
 from ome_zarr.format import CurrentFormat
 from ome_zarr.io import parse_url
 from ome_zarr.writer import (
-    _get_valid_axes,
+    Axes,
     write_multiscales_metadata,
     write_plate_metadata,
     write_well_metadata,
 )
+from pint import Unit
 from pydantic import BaseModel
 
 from faim_hcs import dask_utils
@@ -191,7 +192,13 @@ class ConvertToNGFFPlate:
         )
         for dataset, transform in zip(datasets, coordinate_transformations):
             dataset["coordinateTransformations"] = transform
-        axes = _get_valid_axes(dims, well_acquisition.get_axes(), fmt)
+        axes = Axes(well_acquisition.get_axes(), fmt).to_list()
+        spatial_calibration_unit = Unit(
+            plate_acquisition.get_channel_metadata()[0].spatial_calibration_units
+        )
+        for axis in axes:
+            if axis["name"] in ["z", "y", "x"]:
+                axis["unit"] = str(spatial_calibration_unit)
         write_multiscales_metadata(
             group,
             datasets,

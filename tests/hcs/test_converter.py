@@ -270,6 +270,12 @@ def test_run(tmp_dir, plate_acquisition, hcs_plate):
         assert "multiscales" in plate[row][col]["0"].attrs.keys()
         assert "omero" in plate[row][col]["0"].attrs.keys()
 
+        axes = plate[row][col]["0"].attrs["multiscales"][0]["axes"]
+        for axis in axes:
+            if axis["type"] == "space":
+                assert "unit" in axis.keys()
+                assert axis["unit"] == "micrometer"
+
         assert exists(join(path, "0", ".zarray"))
         assert exists(join(path, "1", ".zarray"))
 
