@@ -43,11 +43,12 @@ def invalid_trace_log_file() -> Path:
 
 
 def test__parse_files(cv_acquisition, trace_log_file):
-    plate = ZAdjustedStackAcquisition(
-        acquisition_dir=cv_acquisition,
-        trace_log_files=[trace_log_file],
-        alignment=TileAlignmentOptions.GRID,
-    )
+    with pytest.warns(UserWarning, match="First file without z position"):
+        plate = ZAdjustedStackAcquisition(
+            acquisition_dir=cv_acquisition,
+            trace_log_files=[trace_log_file],
+            alignment=TileAlignmentOptions.GRID,
+        )
 
     files = plate._parse_files()
     assert len(files) == 96
@@ -86,11 +87,12 @@ def test__parse_files(cv_acquisition, trace_log_file):
 
 
 def test_get_well_acquisitions(cv_acquisition, trace_log_file):
-    plate = ZAdjustedStackAcquisition(
-        acquisition_dir=cv_acquisition,
-        trace_log_files=[trace_log_file],
-        alignment=TileAlignmentOptions.GRID,
-    )
+    with pytest.warns(UserWarning, match="First file without z position"):
+        plate = ZAdjustedStackAcquisition(
+            acquisition_dir=cv_acquisition,
+            trace_log_files=[trace_log_file],
+            alignment=TileAlignmentOptions.GRID,
+        )
 
     wells = plate.get_well_acquisitions()
     assert len(wells) == 3
@@ -116,7 +118,9 @@ def test_get_well_acquisitions(cv_acquisition, trace_log_file):
 
 
 def test_invalid_tracelog(cv_acquisition, invalid_trace_log_file):
-    with pytest.raises(ValueError):
+    with pytest.raises(
+        ValueError, match="At least one invalid z position"
+    ), pytest.warns(UserWarning, match="First file without z position"):
         ZAdjustedStackAcquisition(
             acquisition_dir=cv_acquisition,
             trace_log_files=[invalid_trace_log_file],

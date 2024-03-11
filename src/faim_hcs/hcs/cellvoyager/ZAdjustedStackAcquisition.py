@@ -1,6 +1,7 @@
 from os.path import join
 from pathlib import Path
 from typing import Optional, Union
+from warnings import warn
 
 import numpy as np
 from pandas.core.api import DataFrame as DataFrame
@@ -35,6 +36,8 @@ class ZAdjustedStackAcquisition(StackAcquisition):
         z_mapping = self._create_z_mapping()
         # merge files left with mapping on path
         merged = files.merge(z_mapping, how="left", left_on=["path"], right_on=["path"])
+        if np.any(merged["z_pos"].isna()):
+            raise ValueError("At least one invalid z position.")
         min_z = np.min(merged["z_pos"].astype(float))
         z_spacing = np.mean(
             merged[merged["ZIndex"].astype(int) == 2]["Z"].astype(float)
@@ -49,6 +52,7 @@ class ZAdjustedStackAcquisition(StackAcquisition):
     def _create_z_mapping(self) -> DataFrame:
         z_pos = []
         filenames = []
+        missing = []
         value = None
         for trace_file in self._trace_log_files:
             with open(trace_file) as log:
@@ -74,11 +78,15 @@ class ZAdjustedStackAcquisition(StackAcquisition):
                     ):
                         filename = tokens[8]
                         if value is None:
-                            raise ValueError(f"No z position found for {filename}")
-                        filenames.append(join(self._acquisition_dir, filename))
-                        z_pos.append(value)
-                        value = None
+                            missing.append(join(self._acquisition_dir, filename))
+                        else:
+                            filenames.append(join(self._acquisition_dir, filename))
+                            z_pos.append(value)
+                            value = None
 
+        if len(missing) > 0:
+            warn("Z position information missing for some files.")
+            warn(f"First file without z position information: {missing[0]}")
         return DataFrame(
             {
                 "path": filenames,

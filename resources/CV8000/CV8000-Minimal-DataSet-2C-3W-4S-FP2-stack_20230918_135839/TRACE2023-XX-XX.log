@@ -6,6 +6,7 @@
 0000/00/00,00:00:00,.000,-35533750,Measurement,Measurement.measure_timelapse,_m_Timelapse,_init_frame_save,CV8000-Minimal-DataSet-2C-3W-4S-FP2-stack_D08_T0001F001L01A01Z03C01.tif,None
 0000/00/00,00:00:00,.000,-35533593,Portal,RemoteDevice,ReaderControl,--->,AF_MANU,34,0,OK,9.0,0
 0000/00/00,00:00:00,.000,-35533750,Measurement,Measurement.measure_timelapse,_m_Timelapse,_init_frame_save,CV8000-Minimal-DataSet-2C-3W-4S-FP2-stack_D08_T0001F001L01A01Z04C01.tif,None
+0000/00/00,00:00:00,.000,-35533750,Measurement,Measurement.measure_timelapse,_m_Timelapse,_init_frame_save,this-file-does-not-have-z-position-information.tif,None
 0000/00/00,00:00:00,.000,-35533593,Portal,RemoteDevice,ReaderControl,--->,AF_MANU,34,0,OK,0.0,0
 0000/00/00,00:00:00,.000,-35533750,Measurement,Measurement.measure_timelapse,_m_Timelapse,_init_frame_save,CV8000-Minimal-DataSet-2C-3W-4S-FP2-stack_D08_T0001F001L01A02Z01C02.tif,None
 0000/00/00,00:00:00,.000,-35533593,Portal,RemoteDevice,ReaderControl,--->,AF_MANU,34,0,OK,3.0,0
