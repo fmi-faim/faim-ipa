@@ -189,6 +189,7 @@ def test__stitch_well_image_2d(tmp_dir, plate_acquisition_2d, hcs_plate):
         chunks=(1, 1, 10, 1000, 1000),
         well_acquisition=well_acquisition,
         output_shape=plate_acquisition_2d.get_common_well_shape(),
+        build_acquisition_mask=False,
     )
     assert isinstance(well_img_da, dask.array.core.Array)
     assert well_img_da.shape == (1, 2, 4, 4000, 4000)
@@ -207,6 +208,7 @@ def test__stitch_well_image_3d(tmp_dir, plate_acquisition, hcs_plate):
         chunks=(1, 1, 10, 1000, 1000),
         well_acquisition=well_acquisition,
         output_shape=plate_acquisition.get_common_well_shape(),
+        build_acquisition_mask=False,
     )
     assert isinstance(well_img_da, dask.array.core.Array)
     assert well_img_da.shape == (1, 2, 4, 4000, 4000)
@@ -223,6 +225,7 @@ def test__bin_yx(tmp_dir, plate_acquisition, hcs_plate):
         chunks=(1, 1, 10, 1000, 1000),
         well_acquisition=well_acquisition,
         output_shape=plate_acquisition.get_common_well_shape(),
+        build_acquisition_mask=False,
     )
     binned_yx = converter._bin_yx(well_img_da)
     assert isinstance(binned_yx, dask.array.core.Array)
