@@ -1,6 +1,7 @@
 from pathlib import Path
 from typing import Optional, Union
 
+import numpy as np
 import tifffile
 from numpy._typing import NDArray
 
@@ -36,3 +37,6 @@ class StackedTile(Tile):
         data = self._apply_background_correction(data)
         data = self._apply_illumination_correction(data)
         return data
+
+    def load_data_mask(self) -> NDArray:
+        return np.ones(self.shape, dtype=bool)

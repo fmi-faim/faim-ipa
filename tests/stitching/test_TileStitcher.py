@@ -201,3 +201,22 @@ def test_stitch_overlapping(overlapping_tiles):
     assert_array_equal(stitched[..., 10:15, 5:10], np.ones((1, 1, 1, 5, 5)) * 5)
     assert_array_equal(stitched[..., 5:10, 10:15], np.ones((1, 1, 1, 5, 5)) * 4)
     assert_array_equal(stitched[..., 10:15, 10:15], np.ones((1, 1, 1, 5, 5)) * 3)
+
+
+def test_stitch_overlapping_mask(overlapping_tiles):
+    ts = DaskTileStitcher(tiles=overlapping_tiles, chunk_shape=(5, 7))
+    stitched = ts.get_stitched_image(
+        transform_func=stitching_utils.translate_tiles_2d,
+        fuse_func=stitching_utils.fuse_sum,
+        build_acquisition_mask=True,
+    )
+    assert stitched.shape == (1, 1, 1, 15, 15)
+    assert_array_equal(stitched[..., :5, :5], np.ones((1, 1, 1, 5, 5), dtype=bool))
+    assert_array_equal(stitched[..., :5, 5:15], np.ones((1, 1, 1, 5, 10), dtype=bool))
+    assert_array_equal(stitched[..., 5:15, :5], np.ones((1, 1, 1, 10, 5), dtype=bool))
+    assert_array_equal(stitched[..., 5:10, 5:10], np.ones((1, 1, 1, 5, 5), dtype=bool))
+    assert_array_equal(stitched[..., 10:15, 5:10], np.ones((1, 1, 1, 5, 5), dtype=bool))
+    assert_array_equal(stitched[..., 5:10, 10:15], np.ones((1, 1, 1, 5, 5), dtype=bool))
+    assert_array_equal(
+        stitched[..., 10:15, 10:15], np.ones((1, 1, 1, 5, 5), dtype=bool)
+    )

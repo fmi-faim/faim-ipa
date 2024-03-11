@@ -109,6 +109,7 @@ class DaskTileStitcher:
         self,
         warp_func: Callable = stitching_utils.translate_tiles_2d,
         fuse_func: Callable = stitching_utils.fuse_mean,
+        build_acquisition_mask: bool = False,
     ) -> da.array:
         """
         Build the dask array for the stitched image.
@@ -128,6 +129,7 @@ class DaskTileStitcher:
             stitching_utils.assemble_chunk,
             warp_func=warp_func,
             fuse_func=fuse_func,
+            build_acquisition_mask=build_acquisition_mask,
         )
 
         return da.map_blocks(
@@ -143,6 +145,7 @@ class DaskTileStitcher:
         self,
         transform_func: Callable = stitching_utils.translate_tiles_2d,
         fuse_func: Callable = stitching_utils.fuse_mean,
+        build_acquisition_mask: bool = False,
     ) -> np.ndarray:
         """
         Stitch the tiles into a single image.
@@ -157,12 +160,16 @@ class DaskTileStitcher:
             Function to transform the tiles into the stitched image.
         fuse_func :
             Function to fuse the transformed tiles.
+        build_acquisition_mask :
+            Whether to build an acquisition mask instead of the raw data.
 
         Returns
         -------
         Fused image.
         """
         stitched = self.get_stitched_dask_array(
-            warp_func=transform_func, fuse_func=fuse_func
+            warp_func=transform_func,
+            fuse_func=fuse_func,
+            build_acquisition_mask=build_acquisition_mask,
         )
         return stitched.compute()
