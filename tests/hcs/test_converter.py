@@ -196,6 +196,20 @@ def test__stitch_well_image_2d(tmp_dir, plate_acquisition_2d, hcs_plate):
     assert well_img_da.dtype == np.uint16
 
 
+def test__stitch_well_image_mask_2d(tmp_dir, plate_acquisition_2d, hcs_plate):
+    converter = ConvertToNGFFPlate(hcs_plate)
+    well_acquisition = plate_acquisition_2d.get_well_acquisitions()[0]
+    well_img_da = converter._stitch_well_image(
+        chunks=(1, 1, 10, 1000, 1000),
+        well_acquisition=well_acquisition,
+        output_shape=plate_acquisition_2d.get_common_well_shape(),
+        build_acquisition_mask=True,
+    )
+    assert isinstance(well_img_da, dask.array.core.Array)
+    assert well_img_da.shape == (1, 2, 4, 4000, 4000)
+    assert well_img_da.dtype == bool
+
+
 def test__stitch_well_image_3d(tmp_dir, plate_acquisition, hcs_plate):
     import distributed
 
@@ -213,6 +227,25 @@ def test__stitch_well_image_3d(tmp_dir, plate_acquisition, hcs_plate):
     assert isinstance(well_img_da, dask.array.core.Array)
     assert well_img_da.shape == (1, 2, 4, 4000, 4000)
     assert well_img_da.dtype == np.uint16
+
+
+def test__stitch_well_image_mask_3d(tmp_dir, plate_acquisition, hcs_plate):
+    import distributed
+
+    converter = ConvertToNGFFPlate(
+        hcs_plate,
+        client=distributed.Client(threads_per_worker=1, processes=False, n_workers=1),
+    )
+    well_acquisition = plate_acquisition.get_well_acquisitions()[0]
+    well_img_da = converter._stitch_well_image(
+        chunks=(1, 1, 10, 1000, 1000),
+        well_acquisition=well_acquisition,
+        output_shape=plate_acquisition.get_common_well_shape(),
+        build_acquisition_mask=True,
+    )
+    assert isinstance(well_img_da, dask.array.core.Array)
+    assert well_img_da.shape == (1, 2, 4, 4000, 4000)
+    assert well_img_da.dtype == bool
 
 
 def test__bin_yx(tmp_dir, plate_acquisition, hcs_plate):
