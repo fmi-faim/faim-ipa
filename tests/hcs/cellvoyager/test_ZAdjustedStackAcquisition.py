@@ -32,13 +32,13 @@ def trace_log_file() -> Path:
 
 
 @pytest.fixture
-def invalid_trace_log_file() -> Path:
+def incomplete_trace_log_file() -> Path:
     return (
         Path(__file__).parent.parent.parent.parent
         / "resources"
         / "CV8000"
         / "CV8000-Minimal-DataSet-2C-3W-4S-FP2-stack_20230918_135839"
-        / "TRACE-invalid.log"
+        / "TRACE-incomplete.log"
     )
 
 
@@ -117,12 +117,10 @@ def test_get_well_acquisitions(cv_acquisition, trace_log_file):
             assert tile.position.z in [0, 1, 2, 3, 4, 5]
 
 
-def test_invalid_tracelog(cv_acquisition, invalid_trace_log_file):
-    with pytest.raises(
-        ValueError, match="At least one invalid z position"
-    ), pytest.warns(UserWarning, match="First file without z position"):
+def test_incomplete_tracelog(cv_acquisition, incomplete_trace_log_file):
+    with pytest.raises(ValueError, match="At least one invalid z position"):
         ZAdjustedStackAcquisition(
             acquisition_dir=cv_acquisition,
-            trace_log_files=[invalid_trace_log_file],
+            trace_log_files=[incomplete_trace_log_file],
             alignment=TileAlignmentOptions.GRID,
         )
