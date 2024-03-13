@@ -1,3 +1,4 @@
+0000/00/00,00:00:00,.000,-35533593,Portal,RemoteDevice,ReaderControl,--->,AF_MANU,34,0,OK,3.0,0
 0000/00/00,00:00:00,.000,-35533750,Measurement,Measurement.measure_timelapse,_m_Timelapse,_init_frame_save,CV8000-Minimal-DataSet-2C-3W-4S-FP2-stack_D08_T0001F001L01A01Z01C01.tif,None
 0000/00/00,00:00:00,.000,-35533593,Portal,RemoteDevice,ReaderControl,--->,AF_MANU,34,0,OK,3.0,0
 0000/00/00,00:00:00,.000,-35533750,Measurement,Measurement.measure_timelapse,_m_Timelapse,_init_frame_save,CV8000-Minimal-DataSet-2C-3W-4S-FP2-stack_D08_T0001F001L01A01Z02C01.tif,None
