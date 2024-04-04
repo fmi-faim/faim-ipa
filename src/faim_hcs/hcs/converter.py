@@ -234,7 +234,7 @@ class ConvertToNGFFPlate:
             output_shape=plate_acquisition.get_common_well_shape(),
             build_acquisition_mask=build_acquisition_mask,
         )
-        binned_da = self._bin_yx(stitched_well_da).squeeze()
+        binned_da = self._drop_missing_axes(stitched_well_da, well_acquisition)
         rechunked_da = binned_da.rechunk(self._out_chunks(binned_da.shape, chunks))
         options = self._get_storage_options(storage_options, rechunked_da.shape, chunks)
         wait(
@@ -252,6 +252,17 @@ class ConvertToNGFFPlate:
                 ),
             )
         )
+
+    def _drop_missing_axes(self, stitched_well_da, well_acquisition):
+        drop_axes = tuple(
+            i
+            for i, s in enumerate(["t", "c", "z", "y", "x"])
+            if s not in well_acquisition.get_axes()
+        )
+        binned_da = self._bin_yx(stitched_well_da)
+        if len(drop_axes) > 0:
+            binned_da = binned_da.squeeze(drop_axes)
+        return binned_da
 
     def _build_pyramid(
         self,

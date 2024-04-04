@@ -364,3 +364,22 @@ def test_provide_client(tmp_dir, plate_acquisition, hcs_plate):
         client=Client(),
     )
     assert converter._client is not None
+
+
+def test__drop_missing_axes(tmp_dir, plate_acquisition_2d, hcs_plate):
+    converter = ConvertToNGFFPlate(hcs_plate)
+    well_acquisition = plate_acquisition_2d.get_well_acquisitions()[0]
+    well_img_da = converter._stitch_well_image(
+        chunks=(1, 1, 10, 1000, 1000),
+        well_acquisition=well_acquisition,
+        output_shape=plate_acquisition_2d.get_common_well_shape(),
+        build_acquisition_mask=False,
+    )
+
+    well_acquisition.get_axes = lambda: ["t", "c", "z", "y", "x"]
+    well_img_da = converter._drop_missing_axes(well_img_da, well_acquisition)
+    assert well_img_da.shape == (1, 2, 4, 4000, 4000)
+
+    well_acquisition.get_axes = lambda: ["c", "z", "y", "x"]
+    well_img_da = converter._drop_missing_axes(well_img_da, well_acquisition)
+    assert well_img_da.shape == (2, 4, 4000, 4000)
