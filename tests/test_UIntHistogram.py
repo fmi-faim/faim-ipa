@@ -3,6 +3,7 @@ import unittest
 from os.path import join
 from pathlib import Path
 
+import dask.array
 import numpy as np
 from numpy.testing import assert_almost_equal, assert_array_equal, assert_equal
 
@@ -14,6 +15,12 @@ ROOT_DIR = Path(__file__).parent
 class TestUIntHistogram(unittest.TestCase):
     def test_bins(self):
         data = np.array([4, 5, 6])
+        hist = UIntHistogram(data)
+        assert hist.n_bins() == len(hist.frequencies)
+
+    def test_dask_array(self):
+        data = dask.array.from_array(np.array([4, 5, 6]), chunks=(3,))
+        assert isinstance(data, dask.array.core.Array)
         hist = UIntHistogram(data)
         assert hist.n_bins() == len(hist.frequencies)
 

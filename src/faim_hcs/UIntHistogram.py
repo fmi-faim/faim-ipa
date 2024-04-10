@@ -1,3 +1,4 @@
+import dask.array as da
 import numpy as np
 from matplotlib import pyplot as plt
 
@@ -35,7 +36,15 @@ class UIntHistogram:
         """
         offset = int(data.min())
         bins = int(data.max()) + 1 - offset
-        freq = np.histogram(data, np.arange(offset, offset + bins + 1))[0].tolist()
+        if isinstance(data, da.core.Array):
+            freq = (
+                da.histogram(data, np.arange(offset, offset + bins + 1))[0]
+                .compute()
+                .tolist()
+            )
+        else:
+            freq = np.histogram(data, np.arange(offset, offset + bins + 1))[0].tolist()
+
         return offset, bins, freq
 
     def _aggregate_histograms(self, offset_data, bins, freq):
