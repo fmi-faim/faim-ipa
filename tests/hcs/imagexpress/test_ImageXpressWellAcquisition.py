@@ -5,8 +5,8 @@ from pathlib import Path
 import pandas as pd
 import pytest
 
-from faim_hcs.hcs.acquisition import TileAlignmentOptions
-from faim_hcs.hcs.imagexpress import ImageXpressWellAcquisition
+from faim_ipa.hcs.acquisition import TileAlignmentOptions
+from faim_ipa.hcs.imagexpress import ImageXpressWellAcquisition
 
 
 @pytest.fixture

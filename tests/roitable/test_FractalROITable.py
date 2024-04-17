@@ -6,9 +6,9 @@ import zarr
 from numpy.testing import assert_array_almost_equal
 from ome_zarr.io import parse_url
 
-from faim_hcs.hcs.acquisition import TileAlignmentOptions
-from faim_hcs.hcs.imagexpress import StackAcquisition
-from faim_hcs.roitable.FractalROITable import (
+from faim_ipa.hcs.acquisition import TileAlignmentOptions
+from faim_ipa.hcs.imagexpress import StackAcquisition
+from faim_ipa.roitable.FractalROITable import (
     create_fov_ROI_table,
     create_ROI_tables,
     create_well_ROI_table,

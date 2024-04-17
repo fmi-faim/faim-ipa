@@ -3,8 +3,8 @@ import numpy as np
 import pandas as pd
 from zarr import Group
 
-from faim_hcs.hcs.acquisition import PlateAcquisition, WellAcquisition
-from faim_hcs.stitching import Tile
+from faim_ipa.hcs.acquisition import PlateAcquisition, WellAcquisition
+from faim_ipa.stitching import Tile
 
 
 def create_ROI_tables(plate_acquistion: PlateAcquisition, calibration_dict):

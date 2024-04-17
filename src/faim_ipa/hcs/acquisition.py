@@ -7,8 +7,8 @@ from typing import Any, Optional, Union
 import numpy as np
 import pandas as pd
 
-from faim_hcs.io.ChannelMetadata import ChannelMetadata
-from faim_hcs.stitching import Tile
+from faim_ipa.io.ChannelMetadata import ChannelMetadata
+from faim_ipa.stitching import Tile
 
 
 class TileAlignmentOptions(Enum):
@@ -198,12 +198,12 @@ class WellAcquisition(ABC):
 
     def _align_tiles(self, tiles: list[Tile]) -> list[Tile]:
         if self._alignment == TileAlignmentOptions.STAGE_POSITION:
-            from faim_hcs.alignment import StageAlignment
+            from faim_ipa.alignment import StageAlignment
 
             return StageAlignment(tiles=tiles).get_tiles()
 
         if self._alignment == TileAlignmentOptions.GRID:
-            from faim_hcs.alignment import GridAlignment
+            from faim_ipa.alignment import GridAlignment
 
             return GridAlignment(tiles=tiles).get_tiles()
 

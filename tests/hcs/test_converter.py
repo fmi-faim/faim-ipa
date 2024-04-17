@@ -8,13 +8,13 @@ import zarr
 from distributed import Client, LocalCluster
 from numcodecs import Blosc
 
-from faim_hcs import dask_utils
-from faim_hcs.hcs.acquisition import TileAlignmentOptions
-from faim_hcs.hcs.cellvoyager import StackAcquisition
-from faim_hcs.hcs.converter import ConvertToNGFFPlate, NGFFPlate
-from faim_hcs.hcs.plate import PlateLayout
-from faim_hcs.stitching import Tile
-from faim_hcs.stitching.Tile import TilePosition
+from faim_ipa import dask_utils
+from faim_ipa.hcs.acquisition import TileAlignmentOptions
+from faim_ipa.hcs.cellvoyager import StackAcquisition
+from faim_ipa.hcs.converter import ConvertToNGFFPlate, NGFFPlate
+from faim_ipa.hcs.plate import PlateLayout
+from faim_ipa.stitching import Tile
+from faim_ipa.stitching.Tile import TilePosition
 
 
 def test_NGFFPlate():

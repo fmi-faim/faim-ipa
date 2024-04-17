@@ -3,7 +3,7 @@ from copy import copy
 
 import numpy as np
 
-from faim_hcs.stitching import Tile, stitching_utils
+from faim_ipa.stitching import Tile, stitching_utils
 
 
 class AbstractAlignment(ABC):

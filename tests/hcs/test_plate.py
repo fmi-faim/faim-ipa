@@ -1,6 +1,6 @@
 import pytest
 
-from faim_hcs.hcs.plate import PlateLayout, get_rows_and_columns
+from faim_ipa.hcs.plate import PlateLayout, get_rows_and_columns
 
 
 def test_plate_layout():

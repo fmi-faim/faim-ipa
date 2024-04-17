@@ -6,8 +6,8 @@ import numpy as np
 from dask import array as da
 from dask.array.core import normalize_chunks
 
-from faim_hcs.stitching import BoundingBox5D, stitching_utils
-from faim_hcs.stitching.Tile import Tile
+from faim_ipa.stitching import BoundingBox5D, stitching_utils
+from faim_ipa.stitching.Tile import Tile
 
 
 class DaskTileStitcher:

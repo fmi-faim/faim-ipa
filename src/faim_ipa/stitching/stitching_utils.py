@@ -4,7 +4,7 @@ import numpy as np
 from numpy._typing import NDArray
 from scipy.ndimage import distance_transform_edt
 
-from faim_hcs.stitching.Tile import Tile, TilePosition
+from faim_ipa.stitching.Tile import Tile, TilePosition
 
 
 def fuse_linear(warped_tiles: NDArray, warped_masks: NDArray) -> NDArray:

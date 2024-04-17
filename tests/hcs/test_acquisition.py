@@ -5,14 +5,14 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from faim_hcs.hcs.acquisition import (
+from faim_ipa.hcs.acquisition import (
     PlateAcquisition,
     TileAlignmentOptions,
     WellAcquisition,
 )
-from faim_hcs.io.ChannelMetadata import ChannelMetadata
-from faim_hcs.stitching import Tile
-from faim_hcs.stitching.Tile import TilePosition
+from faim_ipa.io.ChannelMetadata import ChannelMetadata
+from faim_ipa.stitching import Tile
+from faim_ipa.stitching.Tile import TilePosition
 
 
 @pytest.fixture

@@ -6,8 +6,8 @@ import lxml
 import numpy as np
 from lxml import etree
 
-from faim_hcs.io.ChannelMetadata import ChannelMetadata
-from faim_hcs.utils import rgb_to_hex, wavelength_to_rgb
+from faim_ipa.io.ChannelMetadata import ChannelMetadata
+from faim_ipa.utils import rgb_to_hex, wavelength_to_rgb
 
 SCHEMA = "{http://www.openmicroscopy.org/Schemas/OME/2016-06}"
 

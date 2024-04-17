@@ -7,7 +7,7 @@ import dask.array
 import numpy as np
 from numpy.testing import assert_almost_equal, assert_array_equal, assert_equal
 
-from faim_hcs.UIntHistogram import UIntHistogram
+from faim_ipa.UIntHistogram import UIntHistogram
 
 ROOT_DIR = Path(__file__).parent
 

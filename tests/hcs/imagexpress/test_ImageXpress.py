@@ -4,13 +4,13 @@ from pathlib import Path
 import pytest
 from numpy.testing import assert_almost_equal
 
-from faim_hcs.hcs import imagexpress
-from faim_hcs.hcs.acquisition import (
+from faim_ipa.hcs import imagexpress
+from faim_ipa.hcs.acquisition import (
     PlateAcquisition,
     TileAlignmentOptions,
     WellAcquisition,
 )
-from faim_hcs.hcs.imagexpress import (
+from faim_ipa.hcs.imagexpress import (
     ImageXpressPlateAcquisition,
     SinglePlaneAcquisition,
     StackAcquisition,

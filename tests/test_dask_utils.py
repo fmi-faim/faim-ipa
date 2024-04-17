@@ -4,7 +4,7 @@ from multiprocessing import Process, Queue
 import pytest
 from distributed import Client
 
-from faim_hcs.dask_utils import LocalClusterFactory
+from faim_ipa.dask_utils import LocalClusterFactory
 
 
 @pytest.mark.skipif(sys.platform == "win32", reason="does not run on windows")

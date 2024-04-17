@@ -18,10 +18,10 @@ from ome_zarr.writer import (
 from pint import Unit
 from pydantic import BaseModel
 
-from faim_hcs import dask_utils
-from faim_hcs.hcs.acquisition import PlateAcquisition
-from faim_hcs.hcs.plate import PlateLayout, get_rows_and_columns
-from faim_hcs.stitching import stitching_utils
+from faim_ipa import dask_utils
+from faim_ipa.hcs.acquisition import PlateAcquisition
+from faim_ipa.hcs.plate import PlateLayout, get_rows_and_columns
+from faim_ipa.stitching import stitching_utils
 
 
 class NGFFPlate(BaseModel):
@@ -333,7 +333,7 @@ class ConvertToNGFFPlate:
         output_shape: tuple[int, int, int, int, int],
         build_acquisition_mask: bool,
     ):
-        from faim_hcs.stitching import DaskTileStitcher
+        from faim_ipa.stitching import DaskTileStitcher
 
         tile_data_ndims = well_acquisition.get_tiles()[0].load_data().ndim
         if tile_data_ndims == 2:

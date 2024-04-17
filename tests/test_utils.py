@@ -1,6 +1,6 @@
 from os.path import basename
 
-from faim_hcs.utils import create_logger, wavelength_to_rgb
+from faim_ipa.utils import create_logger, wavelength_to_rgb
 
 
 def test_wavelength_to_rgb():

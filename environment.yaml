@@ -1,4 +1,4 @@
-name: faim-hcs
+name: faim-ipa
 channels:
   - conda-forge
   - nodefaults

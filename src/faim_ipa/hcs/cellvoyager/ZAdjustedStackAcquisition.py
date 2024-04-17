@@ -6,8 +6,8 @@ from warnings import warn
 import numpy as np
 from pandas.core.api import DataFrame as DataFrame
 
-from faim_hcs.hcs.acquisition import TileAlignmentOptions
-from faim_hcs.hcs.cellvoyager.StackAcquisition import StackAcquisition
+from faim_ipa.hcs.acquisition import TileAlignmentOptions
+from faim_ipa.hcs.cellvoyager.StackAcquisition import StackAcquisition
 
 
 class ZAdjustedStackAcquisition(StackAcquisition):
