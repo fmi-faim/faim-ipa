@@ -73,9 +73,6 @@ dependencies = [
 [tool.hatch.envs.types.scripts]
 check = "mypy --install-types --non-interactive {args:src/faim_ipa tests}"
 
-[tool.hatch.build.targets.wheel]
-packages = ["src/faim_ipa"]
-
 [tool.hatch.metadata]
 allow-direct-references = true
 
@@ -88,7 +85,7 @@ omit = [
 ]
 
 [tool.coverage.paths]
-faim_hcs = ["src/faim_ipa", "*/faim-ipa/src/faim_ipa"]
+faim_ipa = ["src/faim_ipa", "*/faim-ipa/src/faim_ipa"]
 tests = ["tests", "*/faim-ipa/tests"]
 
 [tool.coverage.report]
