@@ -25,24 +25,15 @@ classifiers = [
   "Programming Language :: Python :: Implementation :: PyPy",
 ]
 dependencies = [
-  "anndata>=0.8.0,<=0.9.2",
-  "dask",
-  "distributed",
-  "fsspec<=2023.6.0",
-  "imagecodecs",
-  "lxml",
-  "matplotlib",
-  "mobie@git+https://github.com/mobie/mobie-utils-python@0.4.5",
-  "numpy",
-  "ome-zarr",
-  "pandas",
-  "pint",
   "pydantic==1.10.13",
+  "distributed",
+  "numpy",
+  "matplotlib",
   "scikit-image>=0.20.0",
-  "threadpoolctl",
-  "tifffile",
+  "pandas",
+  "ome-zarr",
   "tqdm",
-  "zarr",
+  "pint"
 ]
 
 [project.urls]
