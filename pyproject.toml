@@ -3,9 +3,9 @@ requires = ["hatchling", "hatch-vcs"]
 build-backend = "hatchling.build"
 
 [project]
-name = "faim-hcs"
+name = "faim-ipa"
 dynamic = ["version"]
-description = 'Tools used at FMI-FAIM to handle HCS data.'
+description = 'Tools used at FMI-FAIM for Image Processing and Analysis.'
 readme = "README.md"
 requires-python = ">=3.9"
 license = "BSD-3-Clause"
@@ -46,11 +46,11 @@ dependencies = [
 ]
 
 [project.urls]
-"Bug Tracker" = "https://github.com/fmi-faim/faim-hcs/issues"
-Documentation = "https://github.com/fmi-faim/faim-hcs#README.md"
-Homepage = "https://github.com/fmi-faim/faim-hcs.git"
-"Source Code" = "https://github.com/fmi-faim/faim-hcs"
-"User Support" = "https://github.com/fmi-faim/faim-hcs/issues"
+"Bug Tracker" = "https://github.com/fmi-faim/faim-ipa/issues"
+Documentation = "https://github.com/fmi-faim/faim-ipa#README.md"
+Homepage = "https://github.com/fmi-faim/faim-ipa.git"
+"Source Code" = "https://github.com/fmi-faim/faim-ipa"
+"User Support" = "https://github.com/fmi-faim/faim-ipa/issues"
 
 [tool.hatch.version]
 source = "vcs"
@@ -80,22 +80,25 @@ dependencies = [
   "mypy>=1.0.0",
 ]
 [tool.hatch.envs.types.scripts]
-check = "mypy --install-types --non-interactive {args:src/faim_hcs tests}"
+check = "mypy --install-types --non-interactive {args:src/faim_ipa tests}"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/faim_ipa"]
 
 [tool.hatch.metadata]
 allow-direct-references = true
 
 [tool.coverage.run]
-source_pkgs = ["faim_hcs", "tests"]
+source_pkgs = ["faim_ipa", "tests"]
 branch = true
 parallel = true
 omit = [
-  "src/faim_hcs/__about__.py",
+  "src/faim_ipa/__about__.py",
 ]
 
 [tool.coverage.paths]
-faim_hcs = ["src/faim_hcs", "*/faim-hcs/src/faim_hcs"]
-tests = ["tests", "*/faim-hcs/tests"]
+faim_hcs = ["src/faim_ipa", "*/faim-ipa/src/faim_ipa"]
+tests = ["tests", "*/faim-ipa/tests"]
 
 [tool.coverage.report]
 exclude_lines = [
