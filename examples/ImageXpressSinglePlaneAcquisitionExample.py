@@ -1,11 +1,11 @@
 import shutil
 from pathlib import Path
 
-from faim_hcs.hcs.acquisition import TileAlignmentOptions
-from faim_hcs.hcs.converter import ConvertToNGFFPlate, NGFFPlate
-from faim_hcs.hcs.imagexpress import SinglePlaneAcquisition
-from faim_hcs.hcs.plate import PlateLayout
-from faim_hcs.stitching import stitching_utils
+from faim_ipa.hcs.acquisition import TileAlignmentOptions
+from faim_ipa.hcs.converter import ConvertToNGFFPlate, NGFFPlate
+from faim_ipa.hcs.imagexpress import SinglePlaneAcquisition
+from faim_ipa.hcs.plate import PlateLayout
+from faim_ipa.stitching import stitching_utils
 
 
 def main():
