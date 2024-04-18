@@ -4,10 +4,10 @@ from multiprocessing import Process, Queue
 import pytest
 from distributed import Client
 
-from faim_hcs.dask_utils import LocalClusterFactory
+from faim_ipa.dask_utils import LocalClusterFactory
 
 
-@pytest.mark.skipif(sys.platform == "win32", reason="does not run on windows")
+@pytest.mark.skipif(sys.platform in ["win32", "darwin"], reason="only runs on Linux")
 def test_local_cluster_factory(tmp_path_factory):
     fac = LocalClusterFactory(
         n_workers=1,
@@ -41,7 +41,7 @@ def test_local_cluster_factory(tmp_path_factory):
     fac._shutdown()
 
 
-@pytest.mark.skipif(sys.platform == "win32", reason="does not run on windows")
+@pytest.mark.skipif(sys.platform in ["win32", "darwin"], reason="only runs on Linux")
 def test__start_local_cluster(tmp_path_factory):
     queue = Queue(1)
     p = Process(

@@ -19,7 +19,7 @@ from mobie.tables import read_table
 from skimage.measure import regionprops_table
 from tqdm.auto import tqdm
 
-from faim_hcs.UIntHistogram import UIntHistogram
+from faim_ipa.UIntHistogram import UIntHistogram
 
 
 def hex_to_rgba(h) -> str:

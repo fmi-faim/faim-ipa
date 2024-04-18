@@ -1,4 +1,4 @@
-from faim_hcs.stitching import BoundingBox5D
+from faim_ipa.stitching import BoundingBox5D
 
 
 def test_overlap_exact():

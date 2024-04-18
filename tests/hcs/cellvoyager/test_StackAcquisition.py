@@ -4,9 +4,9 @@ from pathlib import Path
 import pytest
 from tifffile import imread
 
-from faim_hcs.hcs.acquisition import TileAlignmentOptions
-from faim_hcs.hcs.cellvoyager import StackAcquisition
-from faim_hcs.hcs.cellvoyager.StackedTile import StackedTile
+from faim_ipa.hcs.acquisition import TileAlignmentOptions
+from faim_ipa.hcs.cellvoyager import StackAcquisition
+from faim_ipa.hcs.cellvoyager.StackedTile import StackedTile
 
 
 @pytest.fixture

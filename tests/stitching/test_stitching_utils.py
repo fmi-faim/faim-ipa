@@ -4,8 +4,8 @@ import numpy as np
 import pytest
 from numpy.testing import assert_array_equal
 
-from faim_hcs.stitching import Tile
-from faim_hcs.stitching.stitching_utils import (
+from faim_ipa.stitching import Tile
+from faim_ipa.stitching.stitching_utils import (
     assemble_chunk,
     fuse_linear,
     fuse_mean,
@@ -14,7 +14,7 @@ from faim_hcs.stitching.stitching_utils import (
     shift_yx,
     translate_tiles_2d,
 )
-from faim_hcs.stitching.Tile import TilePosition
+from faim_ipa.stitching.Tile import TilePosition
 
 
 @pytest.fixture

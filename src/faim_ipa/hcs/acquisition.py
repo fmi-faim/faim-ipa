@@ -7,8 +7,8 @@ from typing import Any, Optional, Union
 import numpy as np
 import pandas as pd
 
-from faim_hcs.io.ChannelMetadata import ChannelMetadata
-from faim_hcs.stitching import Tile
+from faim_ipa.io.ChannelMetadata import ChannelMetadata
+from faim_ipa.stitching import Tile
 
 
 class TileAlignmentOptions(Enum):
@@ -49,12 +49,12 @@ class PlateAcquisition(ABC):
         DataFrame
             Table of all files in the acquisition.
         """
-        raise NotImplementedError()
+        raise NotImplementedError
 
     @abstractmethod
     def _build_well_acquisitions(self, files: pd.DataFrame) -> list["WellAcquisition"]:
         """List of wells."""
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def get_well_acquisitions(
         self, selection: Optional[list[str]] = None
@@ -67,7 +67,7 @@ class PlateAcquisition(ABC):
     @abstractmethod
     def get_channel_metadata(self) -> dict[int, ChannelMetadata]:
         """Channel metadata."""
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def get_well_names(self, wells: Optional[list[str]] = None) -> Iterable[str]:
         """
@@ -181,7 +181,7 @@ class WellAcquisition(ABC):
     @abstractmethod
     def _assemble_tiles(self) -> list[Tile]:
         """Parse all tiles in the well."""
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def get_dtype(self) -> np.dtype:
         """
@@ -198,12 +198,12 @@ class WellAcquisition(ABC):
 
     def _align_tiles(self, tiles: list[Tile]) -> list[Tile]:
         if self._alignment == TileAlignmentOptions.STAGE_POSITION:
-            from faim_hcs.alignment import StageAlignment
+            from faim_ipa.alignment import StageAlignment
 
             return StageAlignment(tiles=tiles).get_tiles()
 
         if self._alignment == TileAlignmentOptions.GRID:
-            from faim_hcs.alignment import GridAlignment
+            from faim_ipa.alignment import GridAlignment
 
             return GridAlignment(tiles=tiles).get_tiles()
 
@@ -228,21 +228,21 @@ class WellAcquisition(ABC):
         """
         Get the axes of the well acquisition.
         """
-        raise NotImplementedError()
+        raise NotImplementedError
 
     @abstractmethod
     def get_yx_spacing(self) -> tuple[float, float]:
         """
         Get the yx spacing of the well acquisition.
         """
-        raise NotImplementedError()
+        raise NotImplementedError
 
     @abstractmethod
     def get_z_spacing(self) -> Optional[float]:
         """
         Get the z spacing of the well acquisition.
         """
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def get_coordinate_transformations(
         self,

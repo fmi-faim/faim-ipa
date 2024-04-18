@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from faim_hcs.MetaSeriesUtils_dask import fuse_fw, fuse_random_gradient, fuse_rev
+from faim_ipa.MetaSeriesUtils_dask import fuse_fw, fuse_random_gradient, fuse_rev
 
 
 def tiles():

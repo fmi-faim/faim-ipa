@@ -1,6 +1,7 @@
+import os
 from os.path import basename
 
-from faim_hcs.utils import create_logger, wavelength_to_rgb
+from faim_ipa.utils import create_logger, wavelength_to_rgb
 
 
 def test_wavelength_to_rgb():
@@ -15,7 +16,8 @@ def test_wavelength_to_rgb():
     assert wavelength_to_rgb(751) == (0, 0, 0)
 
 
-def test_create_logger():
+def test_create_logger(tmp_path_factory):
+    os.chdir(tmp_path_factory.mktemp("logs"))
     logger = create_logger("test")
     assert logger.name == "Test"
     assert basename(logger.handlers[0].baseFilename).endswith("-test.log")

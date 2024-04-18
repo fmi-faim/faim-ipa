@@ -4,8 +4,8 @@ from pathlib import Path
 import pytest
 from tifffile import imread
 
-from faim_hcs.hcs.acquisition import TileAlignmentOptions
-from faim_hcs.hcs.cellvoyager import ZAdjustedStackAcquisition
+from faim_ipa.hcs.acquisition import TileAlignmentOptions
+from faim_ipa.hcs.cellvoyager import ZAdjustedStackAcquisition
 
 
 @pytest.fixture
@@ -105,7 +105,7 @@ def test_get_well_acquisitions(cv_acquisition, trace_log_file):
                 f"{str(tile.position.channel + 1).zfill(2)}\\.tif"
             )
             re_file_name = re.compile(file_name)
-            from faim_hcs.hcs.cellvoyager.StackedTile import StackedTile
+            from faim_ipa.hcs.cellvoyager.StackedTile import StackedTile
 
             assert isinstance(tile, StackedTile)
             assert re_file_name.match(tile._paths[0])

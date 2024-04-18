@@ -7,17 +7,17 @@ from typing import Optional, Union
 import pandas as pd
 from tqdm import tqdm
 
-from faim_hcs.hcs.acquisition import (
+from faim_ipa.hcs.acquisition import (
     PlateAcquisition,
     TileAlignmentOptions,
     WellAcquisition,
 )
-from faim_hcs.hcs.imagexpress.ImageXpressWellAcquisition import (
+from faim_ipa.hcs.imagexpress.ImageXpressWellAcquisition import (
     ImageXpressWellAcquisition,
 )
-from faim_hcs.io.ChannelMetadata import ChannelMetadata
-from faim_hcs.io.MetaSeriesTiff import load_metaseries_tiff_metadata
-from faim_hcs.utils import rgb_to_hex, wavelength_to_rgb
+from faim_ipa.io.ChannelMetadata import ChannelMetadata
+from faim_ipa.io.MetaSeriesTiff import load_metaseries_tiff_metadata
+from faim_ipa.utils import rgb_to_hex, wavelength_to_rgb
 
 
 class ImageXpressPlateAcquisition(PlateAcquisition):
@@ -75,12 +75,12 @@ class ImageXpressPlateAcquisition(PlateAcquisition):
     @abstractmethod
     def _get_root_re(self) -> re.Pattern:
         """Regular expression for matching the root directory of the acquisition."""
-        raise NotImplementedError()
+        raise NotImplementedError
 
     @abstractmethod
     def _get_filename_re(self) -> re.Pattern:
         """Regular expression for matching the filename of the acquisition."""
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def _build_well_acquisitions(self, files: pd.DataFrame) -> list[WellAcquisition]:
         wells = []
@@ -99,7 +99,7 @@ class ImageXpressPlateAcquisition(PlateAcquisition):
 
     @abstractmethod
     def _get_z_spacing(self) -> Optional[float]:
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def get_channel_metadata(self) -> dict[int, ChannelMetadata]:
         ch_metadata = {}

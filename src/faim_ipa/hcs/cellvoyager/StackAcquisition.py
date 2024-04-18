@@ -6,15 +6,15 @@ from xml.etree import ElementTree as ET
 import pandas as pd
 from tqdm import tqdm
 
-from faim_hcs.hcs.acquisition import (
+from faim_ipa.hcs.acquisition import (
     PlateAcquisition,
     TileAlignmentOptions,
     WellAcquisition,
 )
-from faim_hcs.hcs.cellvoyager.CellVoyagerWellAcquisition import (
+from faim_ipa.hcs.cellvoyager.CellVoyagerWellAcquisition import (
     CellVoyagerWellAcquisition,
 )
-from faim_hcs.io.ChannelMetadata import ChannelMetadata
+from faim_ipa.io.ChannelMetadata import ChannelMetadata
 
 BTS_NS = "{http://www.yokogawa.co.jp/BTS/BTSSchema/1.0}"
 

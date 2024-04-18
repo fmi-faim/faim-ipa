@@ -6,10 +6,10 @@ import numpy as np
 import pandas as pd
 from tifffile import imread
 
-from faim_hcs.hcs.acquisition import TileAlignmentOptions, WellAcquisition
-from faim_hcs.hcs.cellvoyager.StackedTile import StackedTile
-from faim_hcs.stitching import Tile
-from faim_hcs.stitching.Tile import TilePosition
+from faim_ipa.hcs.acquisition import TileAlignmentOptions, WellAcquisition
+from faim_ipa.hcs.cellvoyager.StackedTile import StackedTile
+from faim_ipa.stitching import Tile
+from faim_ipa.stitching.Tile import TilePosition
 
 
 class CellVoyagerWellAcquisition(WellAcquisition):

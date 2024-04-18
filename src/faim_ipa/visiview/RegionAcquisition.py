@@ -5,12 +5,12 @@ import pandas as pd
 from numpy._typing import NDArray
 from tifffile import TiffFile
 
-from faim_hcs.hcs.acquisition import TileAlignmentOptions, WellAcquisition
-from faim_hcs.io.ChannelMetadata import ChannelMetadata
-from faim_hcs.stitching import Tile
-from faim_hcs.stitching.Tile import TilePosition
-from faim_hcs.visiview.ome_companion_utils import parse_basic_metadata
-from faim_hcs.visiview.StackedTile import StackedTile
+from faim_ipa.hcs.acquisition import TileAlignmentOptions, WellAcquisition
+from faim_ipa.io.ChannelMetadata import ChannelMetadata
+from faim_ipa.stitching import Tile
+from faim_ipa.stitching.Tile import TilePosition
+from faim_ipa.visiview.ome_companion_utils import parse_basic_metadata
+from faim_ipa.visiview.StackedTile import StackedTile
 
 
 class RegionAcquisitionSTK(WellAcquisition):
@@ -21,6 +21,7 @@ class RegionAcquisitionSTK(WellAcquisition):
         background_correction_matrices: Optional[dict[str, NDArray]],
         illumination_correction_matrices: Optional[dict[str, NDArray]],
         axes: list[str] = ["c", "z", "y", "x"],
+        *,
         memmap: bool = True,
     ):
         path = files.iloc[0]["path"]
