@@ -76,6 +76,17 @@ check = "mypy --install-types --non-interactive {args:src/faim_ipa tests}"
 [tool.hatch.metadata]
 allow-direct-references = true
 
+[tool.hatch.build.targets.sdist]
+exclude = [
+   "/examples",
+  "/resources",
+  "*/__pycache__",
+  "/tests",
+  "/scratchpad",
+  "/.github",
+  ".pre-commit-config.yaml",
+]
+
 [tool.coverage.run]
 source_pkgs = ["faim_ipa", "tests"]
 branch = true
