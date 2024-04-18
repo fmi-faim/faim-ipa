@@ -10,7 +10,6 @@ from faim_ipa.stitching.Tile import TilePosition
 
 
 class StackedTile(Tile):
-
     def __init__(
         self,
         paths: list[Union[Path, str]],
