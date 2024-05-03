@@ -1,6 +1,8 @@
 import shutil
 from pathlib import Path
 
+import distributed
+
 from faim_ipa.hcs.acquisition import TileAlignmentOptions
 from faim_ipa.hcs.converter import ConvertToNGFFPlate, NGFFPlate
 from faim_ipa.hcs.imagexpress import SinglePlaneAcquisition
@@ -34,6 +36,7 @@ def main():
         stitching_yx_chunk_size_factor=2,
         warp_func=stitching_utils.translate_tiles_2d,
         fuse_func=stitching_utils.fuse_mean,
+        client=distributed.Client(threads_per_worker=1, processes=False, n_workers=1),
     )
 
     plate = converter.create_zarr_plate(plate_acquisition)
@@ -43,7 +46,7 @@ def main():
         plate=plate,
         plate_acquisition=plate_acquisition,
         well_sub_group="0",
-        chunks=(1, 512, 512),
+        chunks=(512, 512),
         max_layer=2,
     )
 
