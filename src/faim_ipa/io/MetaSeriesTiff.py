@@ -159,9 +159,10 @@ def load_stk_tiff_metadata(path: Path) -> tuple[ArrayLike, dict]:
         }
 
         if tiff.stk_metadata["StagePosition"].shape == (1, 2):
-            metadata["stage-position-x"], metadata["stage-position-y"] = (
-                tiff.stk_metadata["StagePosition"][0]
-            )
+            (
+                metadata["stage-position-x"],
+                metadata["stage-position-y"],
+            ) = tiff.stk_metadata["StagePosition"][0]
         else:
             raise NotImplementedError("Only non-zstack STK files are supported.")
 
