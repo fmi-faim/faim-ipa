@@ -43,7 +43,6 @@ class ConvertToNGFFPlate:
         self,
         ngff_plate: NGFFPlate,
         yx_binning: int = 1,
-        stitching_yx_chunk_size_factor: int = 1,
         warp_func: Callable = stitching_utils.translate_tiles_2d,
         fuse_func: Callable = stitching_utils.fuse_mean,
         client: Client = None,
@@ -67,7 +66,6 @@ class ConvertToNGFFPlate:
         ), "yx_binning must be an integer >= 1."
         self._ngff_plate = ngff_plate
         self._yx_binning = yx_binning
-        self._stitching_yx_chunk_size_factor = stitching_yx_chunk_size_factor
         self._warp_func = warp_func
         self._fuse_func = fuse_func
         self._client = client
