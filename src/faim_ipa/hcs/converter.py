@@ -43,7 +43,6 @@ class ConvertToNGFFPlate:
         self,
         ngff_plate: NGFFPlate,
         yx_binning: int = 1,
-        stitching_yx_chunk_size_factor: int = 1,
         warp_func: Callable = stitching_utils.translate_tiles_2d,
         fuse_func: Callable = stitching_utils.fuse_mean,
         client: Client = None,
@@ -67,7 +66,6 @@ class ConvertToNGFFPlate:
         ), "yx_binning must be an integer >= 1."
         self._ngff_plate = ngff_plate
         self._yx_binning = yx_binning
-        self._stitching_yx_chunk_size_factor = stitching_yx_chunk_size_factor
         self._warp_func = warp_func
         self._fuse_func = fuse_func
         self._client = client
@@ -159,6 +157,7 @@ class ConvertToNGFFPlate:
                 plate,
                 well_acquisition,
                 well_sub_group,
+                add_to_well_images=not build_acquisition_mask,
             )
             group = well_group[well_sub_group]
             self._write_stitched_image(
@@ -365,11 +364,21 @@ class ConvertToNGFFPlate:
         )
         return image_da
 
-    def _create_well_group(self, plate, well_acquisition, well_sub_group):
+    def _create_well_group(
+        self, plate, well_acquisition, well_sub_group, add_to_well_images=True
+    ):
         row, col = well_acquisition.get_row_col()
         well_group = plate.require_group(row).require_group(col)
         well_group.require_group(well_sub_group)
-        write_well_metadata(well_group, [{"path": well_sub_group}])
+        if add_to_well_images:
+            zattrs = well_group.attrs.asdict()
+            if "well" in zattrs.keys() and "images" in zattrs["well"].keys():
+                existing_images = well_group.attrs.asdict()["well"]["images"]
+            else:
+                existing_images = []
+            write_well_metadata(
+                well_group, existing_images + [{"path": well_sub_group}]
+            )
         return well_group
 
     @staticmethod

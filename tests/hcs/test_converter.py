@@ -181,6 +181,30 @@ def test__create_well_group(tmp_dir, plate_acquisition, hcs_plate):
     assert exists(join(tmp_dir, "plate_name.zarr", "D", "08", "0"))
     assert isinstance(well_group, zarr.Group)
 
+    mask_group = converter._create_well_group(
+        plate=zarr_plate,
+        well_acquisition=plate_acquisition.get_well_acquisitions()[0],
+        well_sub_group="0/mask",
+        add_to_well_images=False,
+    )
+    assert exists(join(tmp_dir, "plate_name.zarr", "D", "08", "0", "mask"))
+    assert isinstance(mask_group, zarr.Group)
+
+    assert mask_group.attrs.asdict()["well"]["images"] == [{"path": "0"}]
+
+    another_group = converter._create_well_group(
+        plate=zarr_plate,
+        well_acquisition=plate_acquisition.get_well_acquisitions()[0],
+        well_sub_group="0/another",
+        add_to_well_images=True,
+    )
+    assert exists(join(tmp_dir, "plate_name.zarr", "D", "08", "0", "another"))
+    assert isinstance(another_group, zarr.Group)
+    assert another_group.attrs.asdict()["well"]["images"] == [
+        {"path": "0"},
+        {"path": "0/another"},
+    ]
+
 
 def test__stitch_well_image_2d(tmp_dir, plate_acquisition_2d, hcs_plate):
     converter = ConvertToNGFFPlate(hcs_plate)
