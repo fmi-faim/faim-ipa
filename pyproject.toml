@@ -58,6 +58,11 @@ cov-report = [
   "- coverage combine",
   "coverage report",
 ]
+cov-html = [
+  "test-cov",
+  "- coverage combine",
+  "coverage html",
+]
 cov = [
   "test-cov",
   "cov-report",
