@@ -60,7 +60,7 @@ class StackAcquisition(ImageXpressPlateAcquisition):
 
     def _get_root_re(self) -> re.Pattern:
         return re.compile(
-            r".*[\/\\](?P<date>\d{4}-\d{2}-\d{2})[\/\\](?P<acq_id>\d+)(?:[\/\\]ZStep_(?P<z>\d+))"
+            r".*[\/\\](?P<date>\d{4}-\d{2}-\d{2})[\/\\](?P<acq_id>\d+)(?:[\/\\]TimePoint_(?P<t>\d+))?(?:[\/\\]ZStep_(?P<z>\d+))"
         )
 
     def _get_filename_re(self) -> re.Pattern:

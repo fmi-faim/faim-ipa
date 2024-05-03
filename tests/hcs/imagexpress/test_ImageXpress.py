@@ -19,7 +19,12 @@ from faim_ipa.hcs.imagexpress import (
 
 @pytest.fixture
 def acquisition_dir():
-    return Path(__file__).parent.parent.parent.parent / "resources" / "Projection-Mix"
+    return (
+        Path(__file__).parent.parent.parent.parent
+        / "resources"
+        / "ImageXpress"
+        / "Projection-Mix"
+    )
 
 
 @pytest.fixture
@@ -270,7 +275,12 @@ def test_raise_not_implemented_error(dummy_plate):
 
 @pytest.fixture
 def acquisition_dir_single_channel():
-    return Path(__file__).parent.parent.parent.parent / "resources" / "SingleChannel"
+    return (
+        Path(__file__).parent.parent.parent.parent
+        / "resources"
+        / "ImageXpress"
+        / "SingleChannel"
+    )
 
 
 @pytest.fixture
@@ -314,3 +324,34 @@ def test_single_channel_acquistion(single_channel_acquisition: PlateAcquisition)
             assert tile.position.y in [0]
             assert tile.position.x in [0, 512]
             assert tile.shape == (512, 512)
+
+
+@pytest.fixture
+def acquisition_dir_time_lapse():
+    return (
+        Path(__file__).parent.parent.parent.parent
+        / "resources"
+        / "ImageXpress"
+        / "1well-3C-2S-Zmix-T"
+    )
+
+
+@pytest.fixture
+def time_lapse_acquisition(acquisition_dir_time_lapse):
+    return SinglePlaneAcquisition(
+        acquisition_dir_time_lapse, alignment=TileAlignmentOptions.STAGE_POSITION
+    )
+
+
+def test_time_lapse_acquistion(time_lapse_acquisition: PlateAcquisition):
+    wells = time_lapse_acquisition.get_well_acquisitions()
+    for well in wells:
+        assert isinstance(well, WellAcquisition)
+        assert len(well.get_tiles()) == 12
+        for tile in well.get_tiles():
+            assert tile.position.time in [0, 1]
+            assert tile.position.channel in [0, 1, 2]
+            assert tile.position.z == 0
+            assert tile.position.y in [0, 256]
+            assert tile.position.x in [0]
+            assert tile.shape == (256, 256)

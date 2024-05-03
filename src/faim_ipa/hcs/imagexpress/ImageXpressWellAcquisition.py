@@ -30,7 +30,7 @@ class ImageXpressWellAcquisition(WellAcquisition):
         tiles = []
         for i, row in self._files.iterrows():
             file = row["path"]
-            time_point = 0
+            time_point = row["t"] if "t" in row.index and row["t"] is not None else 0
             channel = row["channel"]
             metadata = load_metaseries_tiff_metadata(file)
             if self._z_spacing is None:
@@ -77,12 +77,15 @@ class ImageXpressWellAcquisition(WellAcquisition):
         return self._z_spacing
 
     def get_axes(self) -> list[str]:
+        axes = ["y", "x"]
+
         if "z" in self._files.columns:
-            axes = ["z", "y", "x"]
-        else:
-            axes = ["y", "x"]
+            axes = ["z"] + axes
 
         if self._files["channel"].nunique() > 1:
             axes = ["c"] + axes
+
+        if "t" in self._files.columns and self._files["t"].nunique() > 1:
+            axes = ["t"] + axes
 
         return axes
