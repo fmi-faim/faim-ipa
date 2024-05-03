@@ -159,6 +159,7 @@ class ConvertToNGFFPlate:
                 plate,
                 well_acquisition,
                 well_sub_group,
+                add_to_well_images=not build_acquisition_mask,
             )
             group = well_group[well_sub_group]
             self._write_stitched_image(
@@ -365,11 +366,21 @@ class ConvertToNGFFPlate:
         )
         return image_da
 
-    def _create_well_group(self, plate, well_acquisition, well_sub_group):
+    def _create_well_group(
+        self, plate, well_acquisition, well_sub_group, add_to_well_images=True
+    ):
         row, col = well_acquisition.get_row_col()
         well_group = plate.require_group(row).require_group(col)
         well_group.require_group(well_sub_group)
-        write_well_metadata(well_group, [{"path": well_sub_group}])
+        if add_to_well_images:
+            zattrs = well_group.attrs.asdict()
+            if "well" in zattrs.keys() and "images" in zattrs["well"].keys():
+                existing_images = well_group.attrs.asdict()["well"]["images"]
+            else:
+                existing_images = []
+            write_well_metadata(
+                well_group, existing_images + [{"path": well_sub_group}]
+            )
         return well_group
 
     @staticmethod
