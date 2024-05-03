@@ -19,7 +19,12 @@ from faim_ipa.hcs.imagexpress import (
 
 @pytest.fixture
 def acquisition_dir():
-    return Path(__file__).parent.parent.parent.parent / "resources" / "Projection-Mix"
+    return (
+        Path(__file__).parent.parent.parent.parent
+        / "resources"
+        / "ImageXpress"
+        / "Projection-Mix"
+    )
 
 
 @pytest.fixture
@@ -270,7 +275,12 @@ def test_raise_not_implemented_error(dummy_plate):
 
 @pytest.fixture
 def acquisition_dir_single_channel():
-    return Path(__file__).parent.parent.parent.parent / "resources" / "SingleChannel"
+    return (
+        Path(__file__).parent.parent.parent.parent
+        / "resources"
+        / "ImageXpress"
+        / "SingleChannel"
+    )
 
 
 @pytest.fixture

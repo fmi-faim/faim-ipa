@@ -14,7 +14,10 @@ def main():
 
     # Parse MD plate acquisition.
     plate_acquisition = SinglePlaneAcquisition(
-        acquisition_dir=Path(__file__).parent.parent / "resources" / "Projection-Mix",
+        acquisition_dir=Path(__file__).parent.parent
+        / "resources"
+        / "ImageXpress"
+        / "Projection-Mix",
         alignment=TileAlignmentOptions.GRID,
     )
 

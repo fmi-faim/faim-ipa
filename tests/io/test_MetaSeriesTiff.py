@@ -18,6 +18,7 @@ class TestMetaSeriesTiff(unittest.TestCase):
         path = join(
             ROOT_DIR.parent,
             "resources",
+            "ImageXpress",
             "Projection-Mix",
             "2023-02-21",
             "1334",
