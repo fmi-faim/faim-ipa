@@ -64,14 +64,14 @@ class ZAdjustedStackAcquisition(StackAcquisition):
                         and (tokens[8] == "MS_MANU")
                     ):
                         value = float(tokens[14])
-                    if (
+                    elif (
                         (len(tokens) > 12)
                         and (tokens[7] == "--->")
                         and (tokens[8] == "AF_MANU")
                         and (tokens[9] == "34")
                     ):
                         value = float(tokens[12])
-                    if (
+                    elif (
                         (len(tokens) > 8)
                         and (tokens[4] == "Measurement")
                         and (tokens[7] == "_init_frame_save")
@@ -82,7 +82,12 @@ class ZAdjustedStackAcquisition(StackAcquisition):
                         else:
                             filenames.append(join(self._acquisition_dir, filename))
                             z_pos.append(value)
-                            value = None
+                    elif (
+                        (len(tokens) > 7)
+                        and (tokens[6] == "EndPeriod")
+                        and (tokens[7] == "acquire frames")
+                    ):
+                        value = None
 
         if len(missing) > 0:
             warn("Z position information missing for some files.")
