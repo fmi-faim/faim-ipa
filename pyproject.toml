@@ -25,11 +25,11 @@ classifiers = [
   "Programming Language :: Python :: Implementation :: PyPy",
 ]
 dependencies = [
-  "pydantic==1.10.13",
+  "pydantic",
   "distributed",
   "numpy",
   "matplotlib",
-  "scikit-image>=0.20.0",
+  "scikit-image",
   "pandas",
   "ome-zarr",
   "tqdm",
