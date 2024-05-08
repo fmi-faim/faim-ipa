@@ -29,7 +29,7 @@ dependencies = [
   "distributed",
   "numpy",
   "matplotlib",
-  "scikit-image>=0.20.0",
+  "scikit-image",
   "pandas",
   "ome-zarr",
   "tqdm",
