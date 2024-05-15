@@ -1,5 +1,7 @@
 import logging
 from datetime import datetime
+import os.path
+from pathlib import Path
 
 
 def wavelength_to_rgb(wavelength, gamma=0.8):
@@ -75,3 +77,60 @@ def create_logger(name: str) -> logging.Logger:
     handler.setFormatter(formatter)
     logger.addHandler(handler)
     return logger
+
+
+def get_git_root() -> Path:
+    """
+    Recursively search for the directory containing the .git folder.
+
+    Returns
+    -------
+    Path
+        Path to the root of the git repository.
+    """
+    parent_dir = Path(__file__).parent
+    while not (parent_dir / ".git").exists():
+        parent_dir = parent_dir.parent
+
+    return parent_dir
+
+
+def resolve_with_git_root(relative_path: Path) -> Path:
+    """
+    Takes a relative path and resolves it relative to the git_root directory.
+
+    Parameters
+    ----------
+    relative_path
+        Path relative to the git root.
+
+    Returns
+    -------
+    Path
+        Absolute path to the file.
+    """
+    git_root = get_git_root()
+    return (git_root / relative_path).resolve()
+
+
+def make_relative_to_git_root(path: Path) -> Path:
+    """
+    Convert an absolute path to a path relative to the git_root directory.
+
+    Parameters
+    ----------
+    path
+        Absolute path to a file.
+
+    Returns
+    -------
+    Path
+        Path relative to the git root.
+    """
+    git_root = get_git_root()
+    try:
+        # requires Python >= 3.12
+        return path.relative_to(git_root, walk_up=True)
+    except (ValueError, TypeError):
+        # fallback for Python < 3.12
+        return Path(os.path.relpath(path, git_root))
