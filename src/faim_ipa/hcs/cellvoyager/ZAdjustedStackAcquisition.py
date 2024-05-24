@@ -42,9 +42,34 @@ class ZAdjustedStackAcquisition(StackAcquisition):
         z_spacing = np.mean(
             merged[merged["ZIndex"].astype(int) == 2]["Z"].astype(float)
         ) - np.mean(merged[merged["ZIndex"].astype(int) == 1]["Z"].astype(float))
-        merged["ZIndex"] = np.round(
-            (merged["z_pos"].astype(float) - min_z) / z_spacing
-        ).astype(int)
+        # Shift ZIndex for each field in each well according to the auto-focus value
+        for well in merged["well"].unique():
+            for field in merged[merged["well"] == well]["FieldIndex"].unique():
+                for ch in merged.query(f"well == '{well}' & FieldIndex == '{field}'")[
+                    "Ch"
+                ].unique():
+                    z_index_offset = int(
+                        np.round(
+                            (
+                                np.min(
+                                    merged.query(
+                                        f"well == '{well}' & FieldIndex == '{field}' & Ch == '{ch}'"
+                                    )["z_pos"]
+                                )
+                                - min_z
+                            )
+                            / z_spacing
+                        )
+                    )
+                    merged.loc[
+                        (merged["well"] == well)
+                        & (merged["FieldIndex"] == field)
+                        & (merged["Ch"] == ch),
+                        "ZIndex",
+                    ] += z_index_offset
+
+        # Start at 0
+        merged["ZIndex"] = merged["ZIndex"] - merged["ZIndex"].min()
         # update Z
         merged["Z"] = merged["z_pos"]
         return merged
