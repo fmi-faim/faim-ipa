@@ -193,4 +193,4 @@ def load_imagexpress_tiff(path: Path) -> tuple[ArrayLike, dict]:
 
 
 # Avoid breaking changes
-load_imagexpress_tiff = load_metaseries_tiff
+load_metaseries_tiff = load_imagexpress_tiff
