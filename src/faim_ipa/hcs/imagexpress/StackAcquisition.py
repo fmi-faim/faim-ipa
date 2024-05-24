@@ -8,7 +8,7 @@ import pandas as pd
 
 from faim_ipa.hcs.acquisition import TileAlignmentOptions
 from faim_ipa.hcs.imagexpress import ImageXpressPlateAcquisition
-from faim_ipa.io.MetaSeriesTiff import load_imagexpress_tiff_metadata
+from faim_ipa.io.MetaSeriesTiff import load_imagexpress_metadata
 
 
 class StackAcquisition(ImageXpressPlateAcquisition):
@@ -83,7 +83,7 @@ class StackAcquisition(ImageXpressPlateAcquisition):
         for i, row in subset.iterrows():
             file = row["path"]
             if "z" in row.keys() and row["z"] is not None:
-                metadata = load_imagexpress_tiff_metadata(file)
+                metadata = load_imagexpress_metadata(file)
                 z_position = metadata["stage-position-z"]
                 plane_positions.append(z_position)
 

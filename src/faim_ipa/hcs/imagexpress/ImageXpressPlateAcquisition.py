@@ -13,7 +13,7 @@ from faim_ipa.hcs.acquisition import (
     PlateAcquisition,
     TileAlignmentOptions,
 )
-from faim_ipa.io.MetaSeriesTiff import load_imagexpress_tiff_metadata
+from faim_ipa.io.MetaSeriesTiff import load_imagexpress_metadata
 from faim_ipa.io.ChannelMetadata import ChannelMetadata
 from faim_ipa.hcs.imagexpress.ImageXpressWellAcquisition import (
     ImageXpressWellAcquisition,
@@ -107,7 +107,7 @@ class ImageXpressPlateAcquisition(PlateAcquisition):
         for ch in _files["channel"].unique():
             channel_files = _files[_files["channel"] == ch]
             path = channel_files["path"].iloc[0]
-            metadata = load_imagexpress_tiff_metadata(path=path)
+            metadata = load_imagexpress_metadata(path=path)
             index = int(ch[1:]) - 1
             if "Z Projection Method" in metadata.keys():
                 name = (
