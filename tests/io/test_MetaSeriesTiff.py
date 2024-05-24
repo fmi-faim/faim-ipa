@@ -8,13 +8,13 @@ from pathlib import Path
 
 import numpy as np
 
-from faim_ipa.io.MetaSeriesTiff import load_metaseries_tiff
+from faim_ipa.io.MetaSeriesTiff import load_imagexpress_tiff
 
 ROOT_DIR = Path(__file__).parent.parent
 
 
 class TestMetaSeriesTiff(unittest.TestCase):
-    def test_load_metaseries_tiff(self):
+    def test_load_imagexpress_tiff(self):
         path = join(
             ROOT_DIR.parent,
             "resources",
@@ -25,7 +25,7 @@ class TestMetaSeriesTiff(unittest.TestCase):
             "Projection-Mix_E07_s1_w1E94C24BD-45E4-450A-9919-257C714278F7.tif",
         )
 
-        img, metadata = load_metaseries_tiff(path=path)
+        img, metadata = load_imagexpress_tiff(path=path)
 
         assert img.shape == (512, 512)
         assert img.dtype == np.uint16

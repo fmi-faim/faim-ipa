@@ -1,12 +1,12 @@
+from typing import Union, Optional
 from pathlib import Path
-from typing import Optional, Union
 
 import pandas as pd
 
-from faim_ipa.hcs.acquisition import TileAlignmentOptions, WellAcquisition
-from faim_ipa.io.MetaSeriesTiff import load_metaseries_tiff_metadata
 from faim_ipa.stitching import Tile
 from faim_ipa.stitching.Tile import TilePosition
+from faim_ipa.hcs.acquisition import WellAcquisition, TileAlignmentOptions
+from faim_ipa.io.MetaSeriesTiff import load_imagexpress_metadata
 
 
 class ImageXpressWellAcquisition(WellAcquisition):
@@ -32,7 +32,7 @@ class ImageXpressWellAcquisition(WellAcquisition):
             file = row["path"]
             time_point = row["t"] if "t" in row.index and row["t"] is not None else 0
             channel = row["channel"]
-            metadata = load_metaseries_tiff_metadata(file)
+            metadata = load_imagexpress_metadata(file)
             if self._z_spacing is None:
                 z = 1
             else:
@@ -70,7 +70,7 @@ class ImageXpressWellAcquisition(WellAcquisition):
         return tiles
 
     def get_yx_spacing(self) -> tuple[float, float]:
-        metadata = load_metaseries_tiff_metadata(self._files.iloc[0]["path"])
+        metadata = load_imagexpress_metadata(self._files.iloc[0]["path"])
         return (metadata["spatial-calibration-y"], metadata["spatial-calibration-x"])
 
     def get_z_spacing(self) -> Optional[float]:
