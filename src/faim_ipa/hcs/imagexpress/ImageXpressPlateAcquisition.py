@@ -1,23 +1,23 @@
 import os
 import re
 from abc import abstractmethod
+from typing import Union, Optional
 from pathlib import Path
-from typing import Optional, Union
 
 import pandas as pd
 from tqdm import tqdm
 
+from faim_ipa.utils import rgb_to_hex, wavelength_to_rgb
 from faim_ipa.hcs.acquisition import (
+    WellAcquisition,
     PlateAcquisition,
     TileAlignmentOptions,
-    WellAcquisition,
 )
+from faim_ipa.io.MetaSeriesTiff import load_imagexpress_tiff_metadata
+from faim_ipa.io.ChannelMetadata import ChannelMetadata
 from faim_ipa.hcs.imagexpress.ImageXpressWellAcquisition import (
     ImageXpressWellAcquisition,
 )
-from faim_ipa.io.ChannelMetadata import ChannelMetadata
-from faim_ipa.io.MetaSeriesTiff import load_metaseries_tiff_metadata
-from faim_ipa.utils import rgb_to_hex, wavelength_to_rgb
 
 
 class ImageXpressPlateAcquisition(PlateAcquisition):
@@ -107,7 +107,7 @@ class ImageXpressPlateAcquisition(PlateAcquisition):
         for ch in _files["channel"].unique():
             channel_files = _files[_files["channel"] == ch]
             path = channel_files["path"].iloc[0]
-            metadata = load_metaseries_tiff_metadata(path=path)
+            metadata = load_imagexpress_tiff_metadata(path=path)
             index = int(ch[1:]) - 1
             if "Z Projection Method" in metadata.keys():
                 name = (

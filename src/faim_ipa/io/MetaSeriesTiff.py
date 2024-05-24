@@ -1,11 +1,11 @@
 from pathlib import Path
 
-from numpy._typing import ArrayLike
 from tifffile import tifffile
+from numpy._typing import ArrayLike
 
 
-def load_metaseries_tiff_metadata(path: Path) -> tuple[ArrayLike, dict]:
-    """Load parts of the metadata of a metaseries tiff file.
+def load_imagexpress_metadata(path: Path) -> tuple[ArrayLike, dict]:
+    """Load parts of the metadata of a imagexpress tiff file.
 
     The following metadata is collected:
     * pixel-size-x
@@ -40,8 +40,8 @@ def load_metaseries_tiff_metadata(path: Path) -> tuple[ArrayLike, dict]:
     """
     with tifffile.TiffFile(path) as tiff:
         assert (
-            tiff.is_metaseries or tiff.is_stk
-        ), f"{path} is not a metamorph or legacy STK file."
+            tiff.is_metaseries or tiff.is_stk or tiff.is_shaped
+        ), f"{path} is not a metamorph, STK file, or shaped file"
 
         if tiff.is_metaseries:
             selected_keys = [
@@ -80,7 +80,7 @@ def load_metaseries_tiff_metadata(path: Path) -> tuple[ArrayLike, dict]:
             metadata.pop("ImageXpress Micro Y")
             metadata.pop("ImageXpress Micro Z")
         else:
-            metadata = load_stk_tiff_metadata(path)
+            metadata = load_alternative_imagexpress_metadata(path)
 
     return metadata
 
@@ -103,8 +103,8 @@ def parse_stk_plane_description(tiff: tifffile.TiffFile) -> dict:
     return parsed_metadata
 
 
-def load_stk_tiff_metadata(path: Path) -> tuple[ArrayLike, dict]:
-    """Load parts of the metadata of a metaseries tiff file.
+def load_alternative_imagexpress_metadata(path: Path) -> tuple[ArrayLike, dict]:
+    """Load parts of the metadata of a non-metaseries tiff file.
 
     The following metadata is collected:
     * pixel-size-x
@@ -128,7 +128,7 @@ def load_stk_tiff_metadata(path: Path) -> tuple[ArrayLike, dict]:
     image_data, metadata-dict
     """
     with tifffile.TiffFile(path) as tiff:
-        assert tiff.is_stk, f"{path} is not a STK file."
+        assert tiff.is_stk or tiff.is_shaped, f"{path} is not an STK or shaped file."
 
         selected_keys = [
             "Name",  # remap to _IllumSetting_
@@ -150,7 +150,7 @@ def load_stk_tiff_metadata(path: Path) -> tuple[ArrayLike, dict]:
             "Exposure": "Exposure Time",
             "Shading": "ShadingCorrection",
         }
-        plane_info = tiff.stk_metadata
+        plane_info = tiff.stk_metadata if tiff.is_stk else tiff.shaped_metadata
 
         metadata = {
             k: plane_info[k]
@@ -158,11 +158,13 @@ def load_stk_tiff_metadata(path: Path) -> tuple[ArrayLike, dict]:
             if k in selected_keys or k.endswith("Intensity")
         }
 
-        if tiff.stk_metadata["StagePosition"].shape == (1, 2):
+        if plane_info["StagePosition"].shape == (1, 2):
             (
                 metadata["stage-position-x"],
                 metadata["stage-position-y"],
-            ) = tiff.stk_metadata["StagePosition"][0]
+            ) = plane_info[
+                "StagePosition"
+            ][0]
         else:
             raise NotImplementedError("Only non-zstack STK files are supported.")
 
@@ -182,9 +184,13 @@ def load_stk_tiff_metadata(path: Path) -> tuple[ArrayLike, dict]:
     return metadata
 
 
-def load_metaseries_tiff(path: Path) -> tuple[ArrayLike, dict]:
+def load_imagexpress_tiff(path: Path) -> tuple[ArrayLike, dict]:
     with tifffile.TiffFile(path) as tiff:
         data = tiff.asarray()
-    metadata = load_metaseries_tiff_metadata(path=path)
+    metadata = load_imagexpress_metadata(path=path)
     metadata["PixelType"] = str(data.dtype)
     return data, metadata
+
+
+# Avoid breaking changes
+load_imagexpress_tiff = load_imagexpress_tiff
