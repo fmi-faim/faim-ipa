@@ -78,9 +78,7 @@ class StackAcquisition(ImageXpressPlateAcquisition):
         subset = subset[subset["well"] == np.sort(subset["well"].unique())[0]]
         first_field = np.sort(subset["field"].unique())[0]
         if first_field is not None:
-            subset = subset[
-                subset["field"] == np.sort(subset["field"].unique())[0]
-            ]
+            subset = subset[subset["field"] == np.sort(subset["field"].unique())[0]]
 
         plane_positions = []
 
