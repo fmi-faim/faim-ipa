@@ -76,7 +76,9 @@ class StackAcquisition(ImageXpressPlateAcquisition):
         channel_with_stack = np.sort(files[files["z"] == "2"]["channel"].unique())[0]
         subset = files[files["channel"] == channel_with_stack]
         subset = subset[subset["well"] == np.sort(subset["well"].unique())[0]]
-        subset = subset[subset["field"] == np.sort(subset["field"].unique())[0]]
+        first_field = np.sort(subset["field"].unique())[0]
+        if first_field is not None:
+            subset = subset[subset["field"] == np.sort(subset["field"].unique())[0]]
 
         plane_positions = []
 
