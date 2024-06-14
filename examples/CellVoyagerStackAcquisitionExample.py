@@ -21,7 +21,7 @@ def main():
         / "CV8000"
         / "CV8000-Minimal-DataSet-2C-3W-4S-FP2-stack_20230918_135839"
         / "CV8000-Minimal-DataSet-2C-3W-4S-FP2-stack",
-        alignment=TileAlignmentOptions.GRID,
+        alignment=TileAlignmentOptions.STAGE_POSITION,
         n_planes_in_stacked_tile=3,
     )
 
@@ -30,15 +30,14 @@ def main():
         ngff_plate=NGFFPlate(
             root_dir=".",
             name="cv-stack",
-            layout=PlateLayout.I384,
+            layout=PlateLayout.I18,
             order_name="order",
             barcode="barcode",
         ),
         yx_binning=2,
-        stitching_yx_chunk_size_factor=2,
         warp_func=stitching_utils.translate_tiles_2d,
         fuse_func=stitching_utils.fuse_mean,
-        client=distributed.Client(threads_per_worker=1, processes=False, n_workers=1),
+        client=distributed.Client(threads_per_worker=1, processes=True, n_workers=8),
     )
 
     plate = converter.create_zarr_plate(plate_acquisition)
