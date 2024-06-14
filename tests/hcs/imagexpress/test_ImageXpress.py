@@ -355,3 +355,18 @@ def test_time_lapse_acquistion(time_lapse_acquisition: PlateAcquisition):
             assert tile.position.y in [0, 256]
             assert tile.position.x in [0]
             assert tile.shape == (256, 256)
+
+
+def test_single_field_stack_acquistion(stack_acquisition: PlateAcquisition):
+    # Regular z spacing in dataset
+    files = stack_acquisition._parse_files()
+    z_step = stack_acquisition._compute_z_spacing(files)
+    assert z_step == 5
+
+    # Select the subset of only a single field to process
+    files = files[files["field"] == "s1"]
+    # When only a single field is available per well, the files dataframe
+    # has it set to None
+    files["field"] = None
+    z_step = stack_acquisition._compute_z_spacing(files)
+    assert z_step == 5
