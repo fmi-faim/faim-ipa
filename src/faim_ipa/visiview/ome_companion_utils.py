@@ -152,9 +152,9 @@ def get_stage_positions(
             y_pos = float(stage_label["Y"])
             x_pos = float(stage_label["X"])
             positions[str(i + 1)] = (y_pos, x_pos)
-        except StopIteration:
-            # No stage positions
-            pass
+        except (StopIteration, KeyError):
+            # No stage positions in metadata
+            positions[str(i + 1)] = (0, 0)
 
     return positions
 
