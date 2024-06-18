@@ -4,7 +4,7 @@ from numpy._typing import ArrayLike
 from tifffile import tifffile
 
 
-def load_metaseries_tiff_metadata(path: Path) -> tuple[ArrayLike, dict]:
+def load_metaseries_tiff_metadata(path: Path) -> dict:
     """Load parts of the metadata of a metaseries tiff file.
 
     The following metadata is collected:
