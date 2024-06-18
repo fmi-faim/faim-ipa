@@ -27,7 +27,7 @@ classifiers = [
 dependencies = [
   "pydantic",
   "distributed",
-  "numpy",
+  "numpy<2",
   "matplotlib",
   "scikit-image",
   "pandas",
