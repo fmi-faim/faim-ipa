@@ -63,6 +63,11 @@ cov-html = [
   "- coverage combine",
   "coverage html",
 ]
+cov-xml = [
+  "test-cov",
+  "- coverage combine",
+  "coverage xml",
+]
 cov = [
   "test-cov",
   "cov-report",
@@ -105,6 +110,7 @@ faim_ipa = ["src/faim_ipa", "*/faim-ipa/src/faim_ipa"]
 tests = ["tests", "*/faim-ipa/tests"]
 
 [tool.coverage.report]
+show_missing = true
 exclude_lines = [
   "no cov",
   "if __name__ == .__main__.:",
