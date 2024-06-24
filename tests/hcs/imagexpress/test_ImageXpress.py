@@ -32,7 +32,7 @@ def single_plane_acquisition(acquisition_dir):
     return SinglePlaneAcquisition(acquisition_dir, alignment=TileAlignmentOptions.GRID)
 
 
-def test_single_plane_acquistion(single_plane_acquisition: PlateAcquisition):
+def test_single_plane_acquisition(single_plane_acquisition: PlateAcquisition):
     wells = single_plane_acquisition.get_well_acquisitions()
 
     assert wells is not None
@@ -99,7 +99,7 @@ def stack_acquisition(acquisition_dir):
     return StackAcquisition(acquisition_dir, alignment=TileAlignmentOptions.GRID)
 
 
-def test_stack_acquistion(stack_acquisition: PlateAcquisition):
+def test_stack_acquisition(stack_acquisition: PlateAcquisition):
     wells = stack_acquisition.get_well_acquisitions()
 
     assert wells is not None
@@ -290,7 +290,7 @@ def single_channel_acquisition(acquisition_dir_single_channel):
     )
 
 
-def test_single_channel_acquistion(single_channel_acquisition: PlateAcquisition):
+def test_single_channel_acquisition(single_channel_acquisition: PlateAcquisition):
     wells = single_channel_acquisition.get_well_acquisitions()
 
     assert wells is not None
@@ -343,7 +343,7 @@ def time_lapse_acquisition(acquisition_dir_time_lapse):
     )
 
 
-def test_time_lapse_acquistion(time_lapse_acquisition: PlateAcquisition):
+def test_time_lapse_acquisition(time_lapse_acquisition: PlateAcquisition):
     wells = time_lapse_acquisition.get_well_acquisitions()
     for well in wells:
         assert isinstance(well, WellAcquisition)
@@ -357,7 +357,7 @@ def test_time_lapse_acquistion(time_lapse_acquisition: PlateAcquisition):
             assert tile.shape == (256, 256)
 
 
-def test_single_field_stack_acquistion(stack_acquisition: PlateAcquisition):
+def test_single_field_stack_acquisition(stack_acquisition: PlateAcquisition):
     # Regular z spacing in dataset
     files = stack_acquisition._parse_files()
     z_step = stack_acquisition._compute_z_spacing(files)

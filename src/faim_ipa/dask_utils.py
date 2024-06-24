@@ -40,8 +40,8 @@ class LocalClusterFactory:
 
     def _get_scheduler_address(self):
         if self._scheduler_address is None:
-            scheduler_adress = self._queue.get()
-            self._scheduler_address = scheduler_adress
+            scheduler_address = self._queue.get()
+            self._scheduler_address = scheduler_address
             self._queue.close()
             self._queue = None
 
