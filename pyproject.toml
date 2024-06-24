@@ -119,3 +119,12 @@ exclude_lines = [
 
 [tool.setuptools_scm]
 write_to = "src/faim_ipa/_version.py"
+
+[tool.typos.default]
+extend-ignore-words-re = [
+  # Hexadecimal identifiers in file names
+  "^[A-F0-9]*$",
+]
+
+[tool.typos.default.extend-words]
+ome = "ome"

@@ -236,7 +236,7 @@ def test_raise_not_implemented_errors(dummy_well):
         dummy_well.get_z_spacing()
 
 
-def test_get_coordiante_transformations_3d(dummy_well):
+def test_get_coordinate_transformations_3d(dummy_well):
     dummy_well.get_z_spacing = lambda: 1.0
     dummy_well.get_yx_spacing = lambda: (2.0, 3.0)
     ct = dummy_well.get_coordinate_transformations(
@@ -280,7 +280,7 @@ def test_get_coordiante_transformations_3d(dummy_well):
     ]
 
 
-def test_get_coordiante_transformations_2d(dummy_well):
+def test_get_coordinate_transformations_2d(dummy_well):
     dummy_well.get_z_spacing = lambda: None
     dummy_well.get_yx_spacing = lambda: (2.0, 3.0)
     ct = dummy_well.get_coordinate_transformations(max_layer=2, yx_binning=1, ndim=3)
