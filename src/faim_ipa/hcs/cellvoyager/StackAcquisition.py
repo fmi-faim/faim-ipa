@@ -1,5 +1,6 @@
 from os.path import exists, join
 from pathlib import Path
+import re
 from typing import Optional, Union
 from xml.etree import ElementTree as ET
 
@@ -50,7 +51,7 @@ class StackAcquisition(PlateAcquisition):
                 spatial_calibration_y=row["VerticalPixelDimension"],
                 spatial_calibration_units="um",
                 z_spacing=self.get_z_spacing(),
-                wavelength=row["Target"],
+                wavelength=self.__parse_filter_wavelength(row["Acquisition"]),
                 exposure_time=row["ExposureTime"],
                 exposure_time_unit="ms",
                 objective=row["Objective"],
@@ -77,6 +78,13 @@ class StackAcquisition(PlateAcquisition):
                 )
             )
         return wells
+
+    @staticmethod
+    def __parse_filter_wavelength(value) -> int:
+        try:
+            return int(re.match(r"BP(\d+)/", value).group(1))
+        except AttributeError:  # no cov
+            return 0
 
     def _parse_metadata(self) -> pd.DataFrame:
         mrf_file = join(self._acquisition_dir, "MeasurementDetail.mrf")

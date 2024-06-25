@@ -35,7 +35,7 @@ def test_get_channel_metadata(cv_acquisition):
     assert ch_metadata[0].spatial_calibration_y == 0.325
     assert ch_metadata[0].spatial_calibration_units == "um"
     assert ch_metadata[0].z_spacing == 3.0
-    assert int(ch_metadata[0].wavelength) == 405
+    assert ch_metadata[0].wavelength == 445
     assert ch_metadata[0].exposure_time == 100
     assert ch_metadata[0].exposure_time_unit == "ms"
     assert ch_metadata[0].objective == "20x v2"
@@ -46,7 +46,7 @@ def test_get_channel_metadata(cv_acquisition):
     assert ch_metadata[1].spatial_calibration_y == 0.325
     assert ch_metadata[1].spatial_calibration_units == "um"
     assert ch_metadata[1].z_spacing == 3.0
-    assert int(ch_metadata[1].wavelength) == 488
+    assert ch_metadata[1].wavelength == 525
     assert ch_metadata[1].exposure_time == 100
     assert ch_metadata[1].exposure_time_unit == "ms"
     assert ch_metadata[1].objective == "20x v2"
@@ -57,7 +57,7 @@ def test_get_channel_metadata(cv_acquisition):
     assert ch_metadata[2].spatial_calibration_y == 0.325
     assert ch_metadata[2].spatial_calibration_units == "um"
     assert ch_metadata[2].z_spacing == 3.0
-    assert int(ch_metadata[2].wavelength) == 561
+    assert ch_metadata[2].wavelength == 600
     assert ch_metadata[2].exposure_time == 250
     assert ch_metadata[2].exposure_time_unit == "ms"
     assert ch_metadata[2].objective == "20x v2"
@@ -68,7 +68,7 @@ def test_get_channel_metadata(cv_acquisition):
     assert ch_metadata[3].spatial_calibration_y == 0.325
     assert ch_metadata[3].spatial_calibration_units == "um"
     assert ch_metadata[3].z_spacing == 3.0
-    assert int(ch_metadata[3].wavelength) == 640
+    assert ch_metadata[3].wavelength == 676
     assert ch_metadata[3].exposure_time == 250
     assert ch_metadata[3].exposure_time_unit == "ms"
     assert ch_metadata[3].objective == "20x v2"
