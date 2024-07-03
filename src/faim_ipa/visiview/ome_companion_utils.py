@@ -106,7 +106,7 @@ def get_channels(metadata: lxml.etree.ElementTree) -> dict[str, ChannelMetadata]
             wavelength = int(channel["EmissionWavelength"])
             display_color = rgb_to_hex(*wavelength_to_rgb(wavelength))
         else:
-            wavelength = channel["Name"]
+            wavelength = None
             display_color = "#ffffff"
         ch_metadata[f"w{idx+1}"] = ChannelMetadata(
             channel_index=idx,
@@ -152,9 +152,9 @@ def get_stage_positions(
             y_pos = float(stage_label["Y"])
             x_pos = float(stage_label["X"])
             positions[str(i + 1)] = (y_pos, x_pos)
-        except StopIteration:
-            # No stage positions
-            pass
+        except (StopIteration, KeyError):
+            # No stage positions in metadata
+            positions[str(i + 1)] = (0, 0)
 
     return positions
 
