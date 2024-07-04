@@ -2,12 +2,12 @@ from copy import copy
 
 import numpy as np
 from numpy._typing import NDArray
-from scipy.ndimage import distance_transform_edt
+from scipy.ndimage import distance_transform_cdt
 
 from faim_ipa.stitching.Tile import Tile, TilePosition
 
 
-def fuse_linear(warped_tiles: NDArray, warped_masks: NDArray) -> NDArray:
+def fuse_linear(warped_tiles: NDArray, warped_distance_masks: NDArray) -> NDArray:
     """
     Fuse transformed tiles using a linear gradient to compute the weighted
     average where tiles are overlapping.
@@ -16,8 +16,10 @@ def fuse_linear(warped_tiles: NDArray, warped_masks: NDArray) -> NDArray:
     ----------
     warped_tiles :
         Tile images transformed to the final image space.
-    warped_masks :
-        Masks indicating foreground pixels for the transformed tiles.
+    warped_distance_masks :
+        Distance masks for the transformed tiles. They are non-zero for
+        foreground pixels, and the value is the distance to the closest edge of
+        the tile.
 
     Returns
     -------
@@ -25,29 +27,18 @@ def fuse_linear(warped_tiles: NDArray, warped_masks: NDArray) -> NDArray:
     """
     dtype = warped_tiles.dtype
     if warped_tiles.shape[0] > 1:
-        warped_masks = warped_masks[:, 0]
-        weights = np.zeros_like(warped_masks, dtype=np.float32)
-        for i, mask in enumerate(warped_masks):
-            weights[i] = distance_transform_edt(
-                warped_masks[i].astype(np.float32),
-            )
-
-        denominator = weights.sum(axis=0)
-        weights = np.true_divide(weights, denominator, where=denominator > 0)
-        weights = np.nan_to_num(weights, nan=0, posinf=1, neginf=0)
-        weights = np.clip(
-            weights,
-            0,
-            1,
+        denominator = warped_distance_masks.sum(axis=0)
+        weights = np.true_divide(
+            warped_distance_masks, denominator, where=denominator > 0
         )
-        weights = weights[:, np.newaxis, ...]
+        weights = np.clip(np.nan_to_num(weights, nan=0, posinf=1, neginf=0), 0, 1)
     else:
-        weights = warped_masks
+        weights = warped_distance_masks.astype(bool)
 
     return np.sum(warped_tiles * weights, axis=0).astype(dtype)
 
 
-def fuse_mean(warped_tiles: NDArray, warped_masks: NDArray) -> NDArray:
+def fuse_mean(warped_tiles: NDArray, warped_distance_masks: NDArray) -> NDArray:
     """
     Fuse transformed tiles and compute the mean of the overlapping pixels.
 
@@ -55,28 +46,25 @@ def fuse_mean(warped_tiles: NDArray, warped_masks: NDArray) -> NDArray:
     ----------
     warped_tiles :
         Tile images transformed to the final image space.
-    warped_masks :
-        Masks indicating foreground pixels for the transformed tiles.
+    warped_distance_masks :
+        Distance masks for the transformed tiles. They are non-zero for
+        foreground pixels, and the value is the distance to the closest edge of
+        the tile.
 
     Returns
     -------
     Fused image.
     """
-    warped_masks = warped_masks[:, 0]
+    warped_masks = warped_distance_masks.astype(bool)
     denominator = warped_masks.sum(axis=0)
     weights = np.true_divide(warped_masks, denominator, where=denominator > 0)
-    weights = np.clip(
-        np.nan_to_num(weights, nan=0, posinf=1, neginf=0),
-        0,
-        1,
-    )
-    weights = weights[:, np.newaxis, ...]
+    weights = np.clip(np.nan_to_num(weights, nan=0, posinf=1, neginf=0), 0, 1)
 
     fused_image = np.sum(warped_tiles * weights, axis=0)
     return fused_image.astype(warped_tiles.dtype)
 
 
-def fuse_sum(warped_tiles: NDArray, warped_masks: NDArray) -> NDArray:
+def fuse_sum(warped_tiles: NDArray, warped_distance_masks: NDArray) -> NDArray:
     """
     Fuse transformed tiles and compute the sum of the overlapping pixels.
 
@@ -84,8 +72,10 @@ def fuse_sum(warped_tiles: NDArray, warped_masks: NDArray) -> NDArray:
     ----------
     warped_tiles :
         Tile images transformed to the final image space.
-    warped_masks :
-        Masks indicating foreground pixels for the transformed tiles.
+    warped_distance_masks :
+        Distance masks for the transformed tiles. They are non-zero for
+        foreground pixels, and the value is the distance to the closest edge of
+        the tile.
 
     Returns
     -------
@@ -112,14 +102,19 @@ def translate_tiles_2d(
 
     Returns
     -------
-        translated tiles, translated masks
+        translated tiles, translated distance-masks
     """
     array_location = block_info[None]["array-location"]
     chunk_zyx_origin = np.array(
         [array_location[2][0], array_location[3][0], array_location[4][0]]
     )
+
+    if not all(tile.shape == tiles[0].shape for tile in tiles):
+        raise ValueError("All tiles must have the same shape.")
+    distance_mask = get_distance_mask(tiles[0].shape)
+
     warped_tiles = []
-    warped_masks = []
+    warped_distance_masks = []
     for tile in tiles:
         tile_origin = np.array(tile.get_zyx_position())
         if build_acquisition_mask:
@@ -128,19 +123,27 @@ def translate_tiles_2d(
             tile_data = tile.load_data()
         if tile_data.ndim == 2:
             tile_data = tile_data[np.newaxis, ...]
-        warped_mask, warped_tile = shift_yx(
-            chunk_zyx_origin, tile_data, tile_origin, chunk_shape
+            distance_mask = distance_mask[np.newaxis, ...]
+        warped_tile = shift_yx(chunk_zyx_origin, tile_data, tile_origin, chunk_shape)
+        warped_distance_mask = shift_yx(
+            chunk_zyx_origin, distance_mask, tile_origin, chunk_shape
         )
 
         warped_tiles.append(warped_tile)
-        warped_masks.append(warped_mask)
+        warped_distance_masks.append(warped_distance_mask)
 
-    return np.array(warped_tiles), np.array(warped_masks)
+    return np.array(warped_tiles), np.array(warped_distance_masks)
+
+
+def get_distance_mask(tile_shape):
+    mask = np.zeros(tile_shape, dtype=bool)
+    mask[..., 1:-1, 1:-1] = True
+    distance_mask = distance_transform_cdt(mask, metric="taxicab") + 1
+    return distance_mask
 
 
 def shift_yx(chunk_zyx_origin, tile_data, tile_origin, chunk_shape):
     warped_tile = np.zeros(chunk_shape, dtype=tile_data.dtype)
-    warped_mask = np.zeros(chunk_shape, dtype=bool)
     yx_shift = (tile_origin - chunk_zyx_origin)[1:]
     if yx_shift[0] < 0:
         tile_start_y = abs(yx_shift[0])
@@ -165,8 +168,7 @@ def shift_yx(chunk_zyx_origin, tile_data, tile_origin, chunk_shape):
         start_x = max(0, yx_shift[1])
         end_x = start_x + tile_data.shape[2]
         warped_tile[: tile_data.shape[0], start_y:end_y, start_x:end_x] = tile_data
-        warped_mask[: tile_data.shape[0], start_y:end_y, start_x:end_x] = True
-    return warped_mask, warped_tile
+    return warped_tile
 
 
 def assemble_chunk(
@@ -202,14 +204,14 @@ def assemble_chunk(
     tiles = tile_map[chunk_location]
 
     if len(tiles) > 0:
-        warped_tiles, warped_masks = warp_func(
+        warped_tiles, warped_distance_masks = warp_func(
             block_info, chunk_shape[-3:], tiles, build_acquisition_mask
         )
 
         if len(tiles) > 1:
             stitched_img = fuse_func(
                 warped_tiles,
-                warped_masks,
+                warped_distance_masks,
             )
             stitched_img = stitched_img[np.newaxis, np.newaxis, ...]
         else:
