@@ -112,6 +112,8 @@ def translate_tiles_2d(
     if not all(tile.shape == tiles[0].shape for tile in tiles):
         raise ValueError("All tiles must have the same shape.")
     distance_mask = get_distance_mask(tiles[0].shape)
+    if distance_mask.ndim == 2:
+        distance_mask = distance_mask[np.newaxis, ...]
 
     warped_tiles = []
     warped_distance_masks = []
@@ -123,7 +125,6 @@ def translate_tiles_2d(
             tile_data = tile.load_data()
         if tile_data.ndim == 2:
             tile_data = tile_data[np.newaxis, ...]
-            distance_mask = distance_mask[np.newaxis, ...]
         warped_tile = shift_yx(chunk_zyx_origin, tile_data, tile_origin, chunk_shape)
         warped_distance_mask = shift_yx(
             chunk_zyx_origin, distance_mask, tile_origin, chunk_shape
@@ -139,7 +140,7 @@ def get_distance_mask(tile_shape):
     mask = np.zeros(tile_shape, dtype=bool)
     mask[..., 1:-1, 1:-1] = True
     distance_mask = distance_transform_cdt(mask, metric="taxicab") + 1
-    return distance_mask
+    return distance_mask.astype(np.uint16)
 
 
 def shift_yx(chunk_zyx_origin, tile_data, tile_origin, chunk_shape):
