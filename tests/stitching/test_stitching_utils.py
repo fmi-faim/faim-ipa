@@ -110,7 +110,7 @@ def test_fuse_linear_random(tiles, distance_masks):
     )
     assert_array_equal(fused_result, expected_result)
 
-    fused_result = fuse_linear(
+    fused_result = fuse_linear_random(
         warped_tiles=tiles[:1], warped_distance_masks=distance_masks[:1]
     )
     assert fused_result.shape == (1, 10, 20)
