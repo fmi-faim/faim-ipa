@@ -195,7 +195,7 @@ def translate_tiles_2d(
 
     Returns
     -------
-        translated tiles, translated distance-masks
+        translated tiles, translated distance masks
     """
     array_location = block_info[None]["array-location"]
     chunk_zyx_origin = np.array(
