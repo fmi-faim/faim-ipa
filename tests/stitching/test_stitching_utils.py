@@ -6,7 +6,10 @@ from faim_ipa.stitching import Tile
 from faim_ipa.stitching.stitching_utils import (
     assemble_chunk,
     fuse_linear,
+    fuse_linear_random,
     fuse_mean,
+    fuse_overlay_bwd,
+    fuse_overlay_fwd,
     fuse_sum,
     get_distance_mask,
     shift_to_origin,
@@ -79,6 +82,60 @@ def test_fuse_linear(tiles, distance_masks):
     assert fused_result.shape == (1, 10, 20)
     assert fused_result.dtype == np.uint16
     assert_array_equal(fused_result, tiles[0])
+
+
+def test_fuse_linear_random(tiles, distance_masks):
+    fused_result = fuse_linear_random(
+        warped_tiles=tiles, warped_distance_masks=distance_masks
+    )
+    assert fused_result.shape == (1, 10, 20)
+    assert fused_result.dtype == np.uint16
+
+    expected_result = np.array(
+        [
+            [
+                [1, 1, 1, 1, 1, 1, 1, 4, 4, 1, 4, 4, 4, 4, 1, 4, 4, 4, 4, 4],
+                [1, 1, 1, 1, 1, 1, 1, 4, 1, 1, 1, 4, 4, 4, 1, 4, 4, 4, 4, 4],
+                [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 4, 4, 4, 1, 4, 4, 4, 4, 4, 4],
+                [1, 1, 1, 1, 1, 1, 4, 1, 4, 1, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4],
+                [1, 1, 1, 1, 1, 1, 1, 1, 1, 4, 1, 4, 1, 4, 4, 4, 4, 4, 4, 4],
+                [1, 1, 1, 1, 1, 1, 1, 1, 1, 4, 1, 4, 4, 4, 4, 4, 4, 4, 4, 4],
+                [1, 1, 1, 1, 1, 1, 1, 1, 4, 1, 4, 4, 1, 4, 4, 4, 4, 4, 4, 4],
+                [1, 1, 1, 1, 1, 1, 1, 4, 4, 4, 1, 4, 1, 4, 4, 4, 4, 4, 4, 4],
+                [1, 1, 1, 1, 1, 1, 1, 1, 4, 1, 4, 1, 1, 1, 4, 4, 4, 4, 4, 4],
+                [1, 1, 1, 1, 1, 1, 1, 1, 4, 1, 1, 1, 1, 4, 4, 4, 4, 4, 4, 4],
+            ]
+        ],
+        dtype=np.uint16,
+    )
+    assert_array_equal(fused_result, expected_result)
+
+    fused_result = fuse_linear(
+        warped_tiles=tiles[:1], warped_distance_masks=distance_masks[:1]
+    )
+    assert fused_result.shape == (1, 10, 20)
+    assert fused_result.dtype == np.uint16
+    assert_array_equal(fused_result, tiles[0])
+
+
+def test_fuse_overlay_fwd(tiles, distance_masks):
+    fused_result = fuse_overlay_fwd(
+        warped_tiles=tiles, warped_distance_masks=distance_masks
+    )
+    assert fused_result.shape == (1, 10, 20)
+    assert fused_result.dtype == np.uint16
+    assert_array_equal(fused_result[:, :, :5], 1)
+    assert_array_equal(fused_result[:, :, 5:], 4)
+
+
+def test_fuse_overlay_bwd(tiles, distance_masks):
+    fused_result = fuse_overlay_bwd(
+        warped_tiles=tiles, warped_distance_masks=distance_masks
+    )
+    assert fused_result.shape == (1, 10, 20)
+    assert fused_result.dtype == np.uint16
+    assert_array_equal(fused_result[:, :, :15], 1)
+    assert_array_equal(fused_result[:, :, 15:], 4)
 
 
 @dataclass

@@ -38,6 +38,43 @@ def fuse_linear(warped_tiles: NDArray, warped_distance_masks: NDArray) -> NDArra
     return np.sum(warped_tiles * weights, axis=0).astype(dtype)
 
 
+def fuse_linear_random(
+    warped_tiles: NDArray, warped_distance_masks: NDArray
+) -> NDArray:
+    """
+    Fuse transformed tiles by sampling random pixels where tiles are
+    overlapping, using a linear gradient to compute the random weights.
+
+    Parameters
+    ----------
+    warped_tiles :
+        Tile images transformed to the final image space.
+    warped_distance_masks :
+        Distance masks for the transformed tiles. They are non-zero for
+        foreground pixels, and the value is the distance to the closest edge of
+        the tile.
+
+    Returns
+    -------
+    Fused image.
+    """
+    np.random.seed(0)
+    dtype = warped_tiles.dtype
+    if warped_tiles.shape[0] > 1:
+        denominator = warped_distance_masks.sum(axis=0)
+        weights = np.true_divide(
+            warped_distance_masks, denominator, where=denominator > 0
+        )
+        weights = np.clip(np.nan_to_num(weights, nan=0, posinf=1, neginf=0), 0, 1)
+        weights = np.cumsum(weights, axis=0)
+        weights = np.insert(weights, 0, np.zeros_like(weights[0]), axis=0)
+        rand_tile = np.random.rand(*warped_tiles.shape[1:])
+        for i in range(len(warped_tiles)):
+            warped_tiles[i, (rand_tile < weights[i]) | (weights[i + 1] < rand_tile)] = 0
+
+    return np.sum(warped_tiles, axis=0).astype(dtype)
+
+
 def fuse_mean(warped_tiles: NDArray, warped_distance_masks: NDArray) -> NDArray:
     """
     Fuse transformed tiles and compute the mean of the overlapping pixels.
@@ -75,7 +112,7 @@ def fuse_sum(warped_tiles: NDArray, warped_distance_masks: NDArray) -> NDArray:
     warped_distance_masks :
         Distance masks for the transformed tiles. They are non-zero for
         foreground pixels, and the value is the distance to the closest edge of
-        the tile.
+        the tile. (Not used in this function)
 
     Returns
     -------
@@ -83,6 +120,62 @@ def fuse_sum(warped_tiles: NDArray, warped_distance_masks: NDArray) -> NDArray:
     """
     fused_image = np.sum(warped_tiles, axis=0)
     return fused_image.astype(warped_tiles.dtype)
+
+
+def fuse_overlay_fwd(warped_tiles: NDArray, warped_distance_masks: NDArray) -> NDArray:
+    """
+    Fuse transformed tiles. Where tiles overlap, the tile later in the sequence
+    overwrites the earlier one.
+
+    Parameters
+    ----------
+    warped_tiles :
+        Tile images transformed to the final image space.
+    warped_distance_masks :
+        Distance masks for the transformed tiles. They are non-zero for
+        foreground pixels, and the value is the distance to the closest edge of
+        the tile.
+
+    Returns
+    -------
+    Fused image.
+    """
+
+    warped_masks = warped_distance_masks.astype(bool)
+
+    fused_image = np.zeros_like(warped_tiles[0])
+    for tile, mask in zip(warped_tiles, warped_masks):
+        fused_image[mask] = tile[mask]
+
+    return fused_image
+
+
+def fuse_overlay_bwd(warped_tiles: NDArray, warped_distance_masks: NDArray) -> NDArray:
+    """
+    Fuse transformed tiles. Where tiles overlap, the tile earlier in the
+    sequence overwrites the later one.
+
+    Parameters
+    ----------
+    warped_tiles :
+        Tile images transformed to the final image space.
+    warped_distance_masks :
+        Distance masks for the transformed tiles. They are non-zero for
+        foreground pixels, and the value is the distance to the closest edge of
+        the tile.
+
+    Returns
+    -------
+    Fused image.
+    """
+
+    warped_masks = warped_distance_masks.astype(bool)
+
+    fused_image = np.zeros_like(warped_tiles[0])
+    for tile, mask in zip(reversed(warped_tiles), reversed(warped_masks)):
+        fused_image[mask] = tile[mask]
+
+    return fused_image
 
 
 def translate_tiles_2d(
