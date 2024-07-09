@@ -15,7 +15,7 @@ def detect_blobs(
     axial_sigma: float,
     lateral_sigma: float,
     h: int,
-    n_scale_levels: int,
+    scale_factors: list[int],
     overlap: float,
     background_img: Optional[np.ndarray] = None,
 ) -> np.ndarray:
@@ -36,8 +36,8 @@ def detect_blobs(
         YX extension of the spots.
     h :
         h-maxima threshold.
-    n_scale_levels :
-        Number of upscaling rounds.
+    scale_factors :
+        List of scaling factors to apply to the sigmas.
     overlap :
         A value between 0 and 1. If the fraction of area overlapping for 2
         blobs is greater than `overlap` the smaller blob is eliminated.
@@ -59,8 +59,7 @@ def detect_blobs(
     )
 
     sigmas = [
-        (axial_sigma * 2**i, lateral_sigma * 2**i, lateral_sigma * 2**i)
-        for i in range(n_scale_levels)
+        (axial_sigma * f, lateral_sigma * f, lateral_sigma * f) for f in scale_factors
     ]
 
     scale_cube = np.empty(image.shape + (len(sigmas),), dtype=np.uint8)

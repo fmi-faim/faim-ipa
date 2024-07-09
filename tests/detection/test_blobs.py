@@ -44,7 +44,7 @@ def test_detect_blobs():
         axial_sigma=2.07,
         lateral_sigma=0.75,
         h=200,
-        n_scale_levels=2,
+        scale_factors=[1, 2],
         overlap=0.875,
         background_img=None,
     )
@@ -68,7 +68,7 @@ def test_detect_blobs():
         axial_sigma=2.07,
         lateral_sigma=0.75,
         h=200,
-        n_scale_levels=2,
+        scale_factors=[1, 2],
         overlap=0.875,
         background_img=estimated_bg,
     )
