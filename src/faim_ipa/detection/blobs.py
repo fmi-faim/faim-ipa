@@ -65,11 +65,12 @@ def detect_blobs(
     scale_cube = np.empty(image.shape + (len(sigmas),), dtype=np.uint8)
 
     h_ = img_as_float32(np.array(h, dtype=img.dtype))
+    scale_norm = np.mean([axial_sigma, lateral_sigma, lateral_sigma])
     for i, sigma in enumerate(sigmas):
         log_img = (
             -gaussian_laplace(image, sigma=sigma)
             * rescale_factor
-            * (np.mean(sigma) / np.mean(sigmas[0])) ** 2
+            * (np.mean(sigma) / scale_norm) ** 2
         )
         scale_cube[..., i] = h_maxima(log_img, h=h_, footprint=ball(1))
 
