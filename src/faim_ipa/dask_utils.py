@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from multiprocessing import Process, Queue
 from time import sleep
 
@@ -9,11 +11,11 @@ class LocalClusterFactory:
 
     def __init__(
         self,
-        n_workers: int = None,
-        threads_per_worker: int = None,
-        processes: bool = None,
-        memory_limit: str = None,
-        local_directory: str = None,
+        n_workers: int | None = None,
+        threads_per_worker: int | None = None,
+        processes: bool | None = None,
+        memory_limit: str | None = None,
+        local_directory: str | None = None,
     ):
         self.n_workers = n_workers
         self.threads_per_worker = threads_per_worker
@@ -63,6 +65,7 @@ class LocalClusterFactory:
         queue: Queue,
         n_workers: int,
         threads_per_worker: int,
+        *,
         processes: bool,
         memory_limit: str,
         local_directory: str,

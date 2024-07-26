@@ -1,7 +1,6 @@
 import pytest
 
-from faim_ipa.stitching import Tile
-from faim_ipa.stitching.Tile import TilePosition
+from faim_ipa.stitching.tile import Tile, TilePosition
 
 
 @pytest.fixture
@@ -72,5 +71,5 @@ def test_GridAlignment(tiles):
 def test_AbstractAlignment(tiles):
     from faim_ipa.alignment.alignment import AbstractAlignment
 
-    with pytest.raises(NotImplementedError):
+    with pytest.raises(TypeError):
         AbstractAlignment(tiles)

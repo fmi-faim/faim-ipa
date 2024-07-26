@@ -4,7 +4,6 @@ from pathlib import Path
 import pytest
 from numpy.testing import assert_almost_equal
 
-from faim_ipa.hcs import imagexpress
 from faim_ipa.hcs.acquisition import (
     PlateAcquisition,
     TileAlignmentOptions,
@@ -12,6 +11,7 @@ from faim_ipa.hcs.acquisition import (
 )
 from faim_ipa.hcs.imagexpress import (
     ImageXpressPlateAcquisition,
+    MixedAcquisition,
     SinglePlaneAcquisition,
     StackAcquisition,
 )
@@ -167,7 +167,7 @@ def test_stack_acquisition(stack_acquisition: PlateAcquisition):
 
 @pytest.fixture
 def mixed_acquisition(acquisition_dir):
-    return imagexpress.MixedAcquisition(
+    return MixedAcquisition(
         acquisition_dir,
         alignment=TileAlignmentOptions.GRID,
     )

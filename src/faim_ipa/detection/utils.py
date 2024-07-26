@@ -1,8 +1,10 @@
 import numpy as np
-from scipy.ndimage import gaussian_laplace, gaussian_filter
+from scipy.ndimage import gaussian_filter, gaussian_laplace
 
 
-def compute_axial_sigma(wavelength: float, NA: float, axial_spacing: float):
+def compute_axial_sigma(
+    wavelength: float, NA: float, axial_spacing: float  # noqa: N803
+):
     """
     Sigma which produces a Gaussian with the same full width
     half maximum as described by Abbe's diffraction formula for axial resolution.
@@ -25,7 +27,9 @@ def compute_axial_sigma(wavelength: float, NA: float, axial_spacing: float):
     return 2 * wavelength / (NA**2) / (2 * np.sqrt(2 * np.log(2))) / axial_spacing
 
 
-def compute_lateral_sigma(wavelength: float, NA: float, lateral_spacing: float):
+def compute_lateral_sigma(
+    wavelength: float, NA: float, lateral_spacing: float  # noqa: N803
+):
     """
     Sigma which produces a Gaussian with the same full width
     half maximum as the theoretical resolution limit in Y/X described by E. Abbe.

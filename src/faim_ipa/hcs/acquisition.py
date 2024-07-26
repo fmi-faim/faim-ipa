@@ -7,8 +7,8 @@ from typing import Any, Optional, Union
 import numpy as np
 import pandas as pd
 
-from faim_ipa.io.ChannelMetadata import ChannelMetadata
-from faim_ipa.stitching import Tile
+from faim_ipa.io.metadata import ChannelMetadata
+from faim_ipa.stitching.tile import Tile
 
 
 class TileAlignmentOptions(Enum):
@@ -61,8 +61,7 @@ class PlateAcquisition(ABC):
     ) -> list["WellAcquisition"]:
         if selection is None:
             return self._wells
-        else:
-            return [well for well in self._wells if well.name in selection]
+        return [well for well in self._wells if well.name in selection]
 
     @abstractmethod
     def get_channel_metadata(self) -> dict[int, ChannelMetadata]:
@@ -88,7 +87,7 @@ class PlateAcquisition(ABC):
         ch_metadata = self.get_channel_metadata()
         max_channel = max(list(ch_metadata.keys()))
         for index in range(max_channel + 1):
-            if index in ch_metadata.keys():
+            if index in ch_metadata:
                 metadata = ch_metadata[index]
                 ome_channels.append(
                     {
@@ -137,10 +136,7 @@ class PlateAcquisition(ABC):
             (time, channel, z, y, x)
         """
         if self._common_well_shape is None:
-            well_shapes = []
-            for well in self.get_well_acquisitions():
-                well_shapes.append(well.get_shape())
-
+            well_shapes = [well.get_shape() for well in self.get_well_acquisitions()]
             self._common_well_shape = tuple(np.max(well_shapes, axis=0))
 
         return self._common_well_shape
@@ -167,9 +163,9 @@ class WellAcquisition(ABC):
         background_correction_matrices: Optional[dict[str, Union[Path, str]]],
         illumination_correction_matrices: Optional[dict[str, Union[Path, str]]],
     ) -> None:
-        assert (
-            files["well"].nunique() == 1
-        ), "WellAcquisition must contain files from a single well."
+        if files["well"].nunique() != 1:
+            msg = "WellAcquisition must contain files from a single well."
+            raise ValueError(msg)
         self.name = files["well"].iloc[0]
         self._files = files
         self._alignment = alignment
@@ -207,7 +203,8 @@ class WellAcquisition(ABC):
 
             return GridAlignment(tiles=tiles).get_tiles()
 
-        raise ValueError(f"Unknown alignment option: {self._alignment}")
+        msg = f"Unknown alignment option: {self._alignment}"
+        raise ValueError(msg)
 
     def get_tiles(self) -> list[Tile]:
         """List of tiles."""
@@ -307,12 +304,11 @@ class WellAcquisition(ABC):
         Compute the theoretical shape of the stitched well image.
         """
         if self._shape is None:
-            tile_extents = []
-            for tile in self._tiles:
-                tile_extents.append(
-                    tile.get_position()
-                    + np.array((1,) * (5 - len(tile.shape)) + tile.shape)
-                )
+            tile_extents = [
+                tile.get_position()
+                + np.array((1,) * (5 - len(tile.shape)) + tile.shape)
+                for tile in self._tiles
+            ]
             self._shape = tuple(np.max(tile_extents, axis=0))
 
         return self._shape

@@ -7,7 +7,7 @@ from dask import array as da
 from dask.array.core import normalize_chunks
 
 from faim_ipa.stitching import BoundingBox5D, stitching_utils
-from faim_ipa.stitching.Tile import Tile
+from faim_ipa.stitching.tile import Tile
 
 
 class DaskTileStitcher:
@@ -54,7 +54,7 @@ class DaskTileStitcher:
                 tile.position.channel,
                 tile.position.z,
             )
-            if tcz_pos in lut.keys():
+            if tcz_pos in lut:
                 lut[tcz_pos].append(tile)
             else:
                 lut[tcz_pos] = [tile]
@@ -82,7 +82,7 @@ class DaskTileStitcher:
                 shape=self.chunk_shape,
             )
             pos = (block_bbox.time_start, block_bbox.channel_start, block_bbox.z_start)
-            if pos in tiles_lut.keys():
+            if pos in tiles_lut:
                 for tile in tiles_lut[pos]:
                     tile_bbox = BoundingBox5D.from_pos_and_shape(
                         position=tile.get_position(),
@@ -97,18 +97,17 @@ class DaskTileStitcher:
         """
         Compute the shape of the stitched image.
         """
-        tile_extents = []
-        for tile in self.tiles:
-            tile_extents.append(
-                tile.get_position()
-                + np.array((1,) * (5 - len(tile.shape)) + tile.shape)
-            )
+        tile_extents = [
+            (tile.get_position() + np.array((1,) * (5 - len(tile.shape)) + tile.shape))
+            for tile in self.tiles
+        ]
         return tuple(np.max(tile_extents, axis=0))
 
     def get_stitched_dask_array(
         self,
         warp_func: Callable = stitching_utils.translate_tiles_2d,
         fuse_func: Callable = stitching_utils.fuse_mean,
+        *,
         build_acquisition_mask: bool = False,
     ) -> da.array:
         """
@@ -145,6 +144,7 @@ class DaskTileStitcher:
         self,
         transform_func: Callable = stitching_utils.translate_tiles_2d,
         fuse_func: Callable = stitching_utils.fuse_mean,
+        *,
         build_acquisition_mask: bool = False,
     ) -> np.ndarray:
         """

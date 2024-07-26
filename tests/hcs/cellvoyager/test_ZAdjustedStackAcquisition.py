@@ -10,14 +10,13 @@ from faim_ipa.hcs.cellvoyager import ZAdjustedStackAcquisition
 
 @pytest.fixture
 def cv_acquisition() -> Path:
-    dir = (
+    return (
         Path(__file__).parent.parent.parent.parent
         / "resources"
         / "CV8000"
         / "CV8000-Minimal-DataSet-2C-3W-4S-FP2-stack_20230918_135839"
         / "CV8000-Minimal-DataSet-2C-3W-4S-FP2-stack"
     )
-    return dir
 
 
 @pytest.fixture
@@ -105,7 +104,7 @@ def test_get_well_acquisitions(cv_acquisition, trace_log_file):
                 f"{str(tile.position.channel + 1).zfill(2)}\\.tif"
             )
             re_file_name = re.compile(file_name)
-            from faim_ipa.hcs.cellvoyager.StackedTile import StackedTile
+            from faim_ipa.hcs.cellvoyager.tile import StackedTile
 
             assert isinstance(tile, StackedTile)
             assert re_file_name.match(tile._paths[0])

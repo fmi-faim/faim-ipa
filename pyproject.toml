@@ -26,6 +26,7 @@ classifiers = [
 ]
 dependencies = [
   "pydantic",
+  "defusedxml",
   "distributed",
   "numpy<2",
   "matplotlib",
@@ -96,6 +97,13 @@ exclude = [
   "/.github",
   ".pre-commit-config.yaml",
 ]
+
+[tool.ruff.lint]
+ignore = ["FA100", "S101"]
+
+[tool.ruff.lint.extend-per-file-ignores]
+"**/tests/*" = ["INP001", "N802", "SLF001"]
+"**/examples/*" = ["INP001"]
 
 [tool.coverage.run]
 source_pkgs = ["faim_ipa", "tests"]

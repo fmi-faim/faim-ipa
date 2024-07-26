@@ -15,6 +15,7 @@ def write_labels_to_group(
     labels,
     labels_name,
     parent_group: Group,
+    *,
     storage_options: dict[str, Any],
     max_layer: int = 0,
     overwrite: bool = False,
@@ -28,9 +29,9 @@ def write_labels_to_group(
     )
 
     axes = parent_group.attrs.asdict()["multiscales"][0]["axes"]
-    assert len(axes) == len(
-        labels.shape
-    ), f"Group axes don't match label image dimensions: {len(axes)} <> {len(labels.shape)}."
+    if len(axes) == len(labels.shape):
+        message = f"Group axes don't match label image dimensions: {len(axes)} <> {len(labels.shape)}."
+        raise ValueError(message)
 
     write_image(
         image=labels,

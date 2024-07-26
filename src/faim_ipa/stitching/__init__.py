@@ -1,3 +1,7 @@
-from .BoundingBox5D import BoundingBox5D  # noqa: F401
-from .DaskTileStitcher import DaskTileStitcher  # noqa: F401
-from .Tile import Tile  # noqa: F401
+from faim_ipa.stitching.bounding_box import BoundingBox5D
+from faim_ipa.stitching.dask import DaskTileStitcher
+
+__all__ = [
+    "BoundingBox5D",
+    "DaskTileStitcher",
+]

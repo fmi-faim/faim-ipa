@@ -13,8 +13,7 @@ from faim_ipa.hcs.acquisition import TileAlignmentOptions
 from faim_ipa.hcs.cellvoyager import StackAcquisition
 from faim_ipa.hcs.converter import ConvertToNGFFPlate, NGFFPlate
 from faim_ipa.hcs.plate import PlateLayout
-from faim_ipa.stitching import Tile
-from faim_ipa.stitching.Tile import TilePosition
+from faim_ipa.stitching.tile import Tile, TilePosition
 
 
 def test_NGFFPlate():
@@ -78,9 +77,8 @@ def plate_acquisition_2d():
 
     for well in acq.get_well_acquisitions():
         tiles = well.get_tiles()
-        new_tiles = []
-        for tile in tiles:
-            new_tiles.append(
+        new_tiles = [
+            (
                 Tile(
                     path=tile._paths[0],
                     shape=(2000, 2000),
@@ -93,6 +91,8 @@ def plate_acquisition_2d():
                     ),
                 )
             )
+            for tile in tiles
+        ]
 
         well._tiles = new_tiles
 
@@ -206,7 +206,7 @@ def test__create_well_group(tmp_dir, plate_acquisition, hcs_plate):
     ]
 
 
-def test__stitch_well_image_2d(tmp_dir, plate_acquisition_2d, hcs_plate):
+def test__stitch_well_image_2d(plate_acquisition_2d, hcs_plate):
     converter = ConvertToNGFFPlate(hcs_plate)
     well_acquisition = plate_acquisition_2d.get_well_acquisitions()[0]
     well_img_da = converter._stitch_well_image(
@@ -220,7 +220,7 @@ def test__stitch_well_image_2d(tmp_dir, plate_acquisition_2d, hcs_plate):
     assert well_img_da.dtype == np.uint16
 
 
-def test__stitch_well_image_mask_2d(tmp_dir, plate_acquisition_2d, hcs_plate):
+def test__stitch_well_image_mask_2d(plate_acquisition_2d, hcs_plate):
     converter = ConvertToNGFFPlate(hcs_plate)
     well_acquisition = plate_acquisition_2d.get_well_acquisitions()[0]
     well_img_da = converter._stitch_well_image(
@@ -234,7 +234,7 @@ def test__stitch_well_image_mask_2d(tmp_dir, plate_acquisition_2d, hcs_plate):
     assert well_img_da.dtype == bool
 
 
-def test__stitch_well_image_3d(tmp_dir, plate_acquisition, hcs_plate):
+def test__stitch_well_image_3d(plate_acquisition, hcs_plate):
     import distributed
 
     converter = ConvertToNGFFPlate(
@@ -253,7 +253,7 @@ def test__stitch_well_image_3d(tmp_dir, plate_acquisition, hcs_plate):
     assert well_img_da.dtype == np.uint16
 
 
-def test__stitch_well_image_mask_3d(tmp_dir, plate_acquisition, hcs_plate):
+def test__stitch_well_image_mask_3d(plate_acquisition, hcs_plate):
     import distributed
 
     converter = ConvertToNGFFPlate(
@@ -272,7 +272,7 @@ def test__stitch_well_image_mask_3d(tmp_dir, plate_acquisition, hcs_plate):
     assert well_img_da.dtype == bool
 
 
-def test__bin_yx(tmp_dir, plate_acquisition, hcs_plate):
+def test__bin_yx(plate_acquisition, hcs_plate):
     converter = ConvertToNGFFPlate(
         hcs_plate,
         yx_binning=2,
@@ -326,14 +326,14 @@ def test_run(tmp_dir, plate_acquisition, hcs_plate):
         assert exists(join(path, ".zattrs"))
         assert exists(join(path, ".zgroup"))
 
-        assert "acquisition_metadata" in plate[row][col]["0"].attrs.keys()
-        assert "multiscales" in plate[row][col]["0"].attrs.keys()
-        assert "omero" in plate[row][col]["0"].attrs.keys()
+        assert "acquisition_metadata" in plate[row][col]["0"].attrs
+        assert "multiscales" in plate[row][col]["0"].attrs
+        assert "omero" in plate[row][col]["0"].attrs
 
         axes = plate[row][col]["0"].attrs["multiscales"][0]["axes"]
         for axis in axes:
             if axis["type"] == "space":
-                assert "unit" in axis.keys()
+                assert "unit" in axis
                 assert axis["unit"] == "micrometer"
 
         assert exists(join(path, "0", ".zarray"))
@@ -374,9 +374,9 @@ def test_run_selection(tmp_dir, plate_acquisition, hcs_plate):
         assert exists(join(path, ".zattrs"))
         assert exists(join(path, ".zgroup"))
 
-        assert "acquisition_metadata" in plate[row][col]["0"].attrs.keys()
-        assert "multiscales" in plate[row][col]["0"].attrs.keys()
-        assert "omero" in plate[row][col]["0"].attrs.keys()
+        assert "acquisition_metadata" in plate[row][col]["0"].attrs
+        assert "multiscales" in plate[row][col]["0"].attrs
+        assert "omero" in plate[row][col]["0"].attrs
 
         assert exists(join(path, "0", ".zarray"))
         assert exists(join(path, "1", ".zarray"))
@@ -385,7 +385,7 @@ def test_run_selection(tmp_dir, plate_acquisition, hcs_plate):
         assert plate[row][col]["0"]["1"].shape == (2, 4, 1000, 1000)
 
 
-def test_provide_client(tmp_dir, plate_acquisition, hcs_plate):
+def test_provide_client(hcs_plate):
     converter = ConvertToNGFFPlate(
         hcs_plate,
         yx_binning=2,
@@ -394,7 +394,7 @@ def test_provide_client(tmp_dir, plate_acquisition, hcs_plate):
     assert converter._client is not None
 
 
-def test__drop_missing_axes(tmp_dir, plate_acquisition_2d, hcs_plate):
+def test__drop_missing_axes(plate_acquisition_2d, hcs_plate):
     converter = ConvertToNGFFPlate(hcs_plate)
     well_acquisition = plate_acquisition_2d.get_well_acquisitions()[0]
     well_img_da = converter._stitch_well_image(

@@ -11,18 +11,17 @@ from faim_ipa.detection.utils import (
 
 def test_compute_axial_sigma():
     wl = 514
-    NA = 1.45
+    na = 1.45
     axial_spacing = 100
 
-    assert_almost_equal(compute_axial_sigma(wl, NA, axial_spacing), 2.08, 2)
+    assert_almost_equal(compute_axial_sigma(wl, na, axial_spacing), 2.08, 2)
 
 
 def test_compute_lateral_sigma():
     wl = 514
-    NA = 1.45
+    na = 1.45
     lateral_spacing = 100
-    print(compute_lateral_sigma(wl, NA, lateral_spacing))
-    assert_almost_equal(compute_lateral_sigma(wl, NA, lateral_spacing), 0.75, 2)
+    assert_almost_equal(compute_lateral_sigma(wl, na, lateral_spacing), 0.75, 2)
 
 
 def test_estimate_log_rescale_factor():

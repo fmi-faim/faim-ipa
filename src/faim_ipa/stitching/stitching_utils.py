@@ -4,7 +4,7 @@ import numpy as np
 from numpy._typing import NDArray
 from scipy.ndimage import distance_transform_cdt
 
-from faim_ipa.stitching.Tile import Tile, TilePosition
+from faim_ipa.stitching.tile import Tile, TilePosition
 
 
 def fuse_linear(warped_tiles: NDArray, warped_distance_masks: NDArray) -> NDArray:
@@ -101,7 +101,9 @@ def fuse_mean(warped_tiles: NDArray, warped_distance_masks: NDArray) -> NDArray:
     return fused_image.astype(warped_tiles.dtype)
 
 
-def fuse_sum(warped_tiles: NDArray, warped_distance_masks: NDArray) -> NDArray:
+def fuse_sum(
+    warped_tiles: NDArray, warped_distance_masks: NDArray  # noqa: ARG001
+) -> NDArray:
     """
     Fuse transformed tiles and compute the sum of the overlapping pixels.
 
@@ -179,7 +181,7 @@ def fuse_overlay_bwd(warped_tiles: NDArray, warped_distance_masks: NDArray) -> N
 
 
 def translate_tiles_2d(
-    block_info, chunk_shape, tiles, build_acquisition_mask: bool = False
+    block_info, chunk_shape, tiles, *, build_acquisition_mask: bool = False
 ):
     """
     Translate tiles to their relative position inside the given block.
@@ -203,7 +205,8 @@ def translate_tiles_2d(
     )
 
     if not all(tile.shape == tiles[0].shape for tile in tiles):
-        raise ValueError("All tiles must have the same shape.")
+        msg = "All tiles must have the same shape."
+        raise ValueError(msg)
     distance_mask = get_distance_mask(tiles[0].shape)
     if distance_mask.ndim == 2:
         distance_mask = distance_mask[np.newaxis, ...]
@@ -212,10 +215,9 @@ def translate_tiles_2d(
     warped_distance_masks = []
     for tile in tiles:
         tile_origin = np.array(tile.get_zyx_position())
-        if build_acquisition_mask:
-            tile_data = tile.load_data_mask()
-        else:
-            tile_data = tile.load_data()
+        tile_data = (
+            tile.load_data_mask() if build_acquisition_mask else tile.load_data()
+        )
         if tile_data.ndim == 2:
             tile_data = tile_data[np.newaxis, ...]
         warped_tile = shift_yx(chunk_zyx_origin, tile_data, tile_origin, chunk_shape)
@@ -271,6 +273,7 @@ def assemble_chunk(
     warp_func=None,
     fuse_func=None,
     dtype=None,
+    *,
     build_acquisition_mask: bool = False,
 ):
     """
@@ -299,7 +302,10 @@ def assemble_chunk(
 
     if len(tiles) > 0:
         warped_tiles, warped_distance_masks = warp_func(
-            block_info, chunk_shape[-3:], tiles, build_acquisition_mask
+            block_info,
+            chunk_shape[-3:],
+            tiles,
+            build_acquisition_mask=build_acquisition_mask,
         )
 
         if len(tiles) > 1:

@@ -49,6 +49,7 @@ def get_rows_and_columns(
         cols = [str(i).zfill(2) for i in range(1, 25)]
         assert len(rows) * len(cols) == 384
     else:
-        raise NotImplementedError(f"{layout} layout not supported.")
+        msg = f"{layout} layout not supported."
+        raise NotImplementedError(msg)
 
     return rows, cols

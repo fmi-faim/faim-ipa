@@ -1,2 +1,13 @@
-from .StackAcquisition import StackAcquisition  # noqa: F401
-from .ZAdjustedStackAcquisition import ZAdjustedStackAcquisition  # noqa: F401
+from faim_ipa.hcs.cellvoyager.acquisition import (
+    CellVoyagerWellAcquisition,
+    StackAcquisition,
+    ZAdjustedStackAcquisition,
+)
+from faim_ipa.hcs.cellvoyager.tile import StackedTile
+
+__all__ = [
+    "CellVoyagerWellAcquisition",
+    "StackAcquisition",
+    "ZAdjustedStackAcquisition",
+    "StackedTile",
+]

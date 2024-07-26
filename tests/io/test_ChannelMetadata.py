@@ -1,8 +1,9 @@
-from faim_ipa.io.MetaSeriesTiff import load_metaseries_tiff_metadata
-from faim_ipa.io.ChannelMetadata import ChannelMetadata
-
 from pathlib import Path
+
 import pytest
+
+from faim_ipa.io.metadata import ChannelMetadata
+from faim_ipa.io.metaseries import load_metaseries_tiff_metadata
 
 
 @pytest.fixture

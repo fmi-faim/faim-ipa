@@ -81,9 +81,7 @@ class Tile:
         """
         data = imread(self.path)
         data = self._apply_background_correction(data)
-        data = self._apply_illumination_correction(data)
-
-        return data
+        return self._apply_illumination_correction(data)
 
     def load_data_mask(self) -> NDArray:
         """

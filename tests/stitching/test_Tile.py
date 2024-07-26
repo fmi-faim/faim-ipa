@@ -3,8 +3,7 @@ import pytest
 from numpy.testing import assert_array_equal
 from tifffile import imwrite
 
-from faim_ipa.stitching import Tile
-from faim_ipa.stitching.Tile import TilePosition
+from faim_ipa.stitching.tile import Tile, TilePosition
 
 
 def test_fields():
@@ -108,7 +107,7 @@ def test_Tile_data_mask():
 
 
 def test_CVStackedTile_data_mask():
-    from faim_ipa.hcs.cellvoyager.StackedTile import StackedTile
+    from faim_ipa.hcs.cellvoyager.tile import StackedTile
 
     tile = StackedTile(
         paths=["path1", None, "path3"],
@@ -125,7 +124,7 @@ def test_CVStackedTile_data_mask():
 
 
 def test_VisiViewStackedTile_data_mask():
-    from faim_ipa.visiview.StackedTile import StackedTile
+    from faim_ipa.visiview.acquisition import StackedTile
 
     tile = StackedTile(
         path="path1",

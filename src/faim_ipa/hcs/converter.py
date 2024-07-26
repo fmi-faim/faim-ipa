@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 import os
 from os.path import join
 from pathlib import Path
-from typing import Callable, Optional, Union
+from typing import TYPE_CHECKING, Callable
 
 import dask.array as da
 import zarr
@@ -19,13 +21,15 @@ from pint import Unit
 from pydantic import BaseModel
 
 from faim_ipa import dask_utils
-from faim_ipa.hcs.acquisition import PlateAcquisition
 from faim_ipa.hcs.plate import PlateLayout, get_rows_and_columns
 from faim_ipa.stitching import stitching_utils
 
+if TYPE_CHECKING:
+    from faim_ipa.hcs.acquisition import PlateAcquisition
+
 
 class NGFFPlate(BaseModel):
-    root_dir: Union[Path, str]
+    root_dir: Path | str
     name: str
     layout: PlateLayout
     order_name: str
@@ -71,7 +75,7 @@ class ConvertToNGFFPlate:
         self._client = client
 
     def create_zarr_plate(
-        self, plate_acquisition: PlateAcquisition, wells: Optional[list[str]] = None
+        self, plate_acquisition: PlateAcquisition, wells: list[str] | None = None
     ) -> zarr.Group:
         """
         Create empty NGFF zarr plate.
@@ -109,19 +113,19 @@ class ConvertToNGFFPlate:
             attrs["barcode"] = self._ngff_plate.barcode
             plate.attrs.put(attrs)
             return plate
-        else:
-            store = parse_url(plate_path, mode="w").store
-            return zarr.group(store=store)
+        store = parse_url(plate_path, mode="w").store
+        return zarr.group(store=store)
 
     def run(
         self,
         plate: zarr.Group,
         plate_acquisition: PlateAcquisition,
-        wells: list[str] = None,
+        wells: list[str] | None = None,
         well_sub_group: str = "0",
-        chunks: Union[tuple[int, int], tuple[int, int, int]] = (2048, 2048),
+        chunks: tuple[int, int] | tuple[int, int, int] = (2048, 2048),
         max_layer: int = 3,
-        storage_options: dict = None,
+        storage_options: dict | None = None,
+        *,
         build_acquisition_mask: bool = False,
     ):
         """
@@ -322,14 +326,14 @@ class ConvertToNGFFPlate:
                 },
                 trim_excess=True,
             )
-        else:
-            return image_da
+        return image_da
 
     def _stitch_well_image(
         self,
         chunks,
         well_acquisition,
         output_shape: tuple[int, int, int, int, int],
+        *,
         build_acquisition_mask: bool,
     ):
         from faim_ipa.stitching import DaskTileStitcher
@@ -347,7 +351,8 @@ class ConvertToNGFFPlate:
                 chunks[-1],
             )
         else:
-            raise NotImplementedError("Tile data must be 2D or 3D.")  # pragma: no cover
+            msg = "Tile data must be 2D or 3D."
+            raise NotImplementedError(msg)  # pragma: no cover
 
         stitcher = DaskTileStitcher(
             tiles=well_acquisition.get_tiles(),
@@ -355,29 +360,28 @@ class ConvertToNGFFPlate:
             output_shape=output_shape,
             dtype=bool if build_acquisition_mask else well_acquisition.get_dtype(),
         )
-        image_da = stitcher.get_stitched_dask_array(
+        return stitcher.get_stitched_dask_array(
             warp_func=self._warp_func,
             fuse_func=(
                 stitching_utils.fuse_sum if build_acquisition_mask else self._fuse_func
             ),
             build_acquisition_mask=build_acquisition_mask,
         )
-        return image_da
 
     def _create_well_group(
-        self, plate, well_acquisition, well_sub_group, add_to_well_images=True
+        self, plate, well_acquisition, well_sub_group, *, add_to_well_images=True
     ):
         row, col = well_acquisition.get_row_col()
         well_group = plate.require_group(row).require_group(col)
         well_group.require_group(well_sub_group)
         if add_to_well_images:
             zattrs = well_group.attrs.asdict()
-            if "well" in zattrs.keys() and "images" in zattrs["well"].keys():
+            if "well" in zattrs and "images" in zattrs["well"]:
                 existing_images = well_group.attrs.asdict()["well"]["images"]
             else:
                 existing_images = []
             write_well_metadata(
-                well_group, existing_images + [{"path": well_sub_group}]
+                well_group, [*existing_images, {"path": well_sub_group}]
             )
         return well_group
 
@@ -388,18 +392,16 @@ class ConvertToNGFFPlate:
         chunks: tuple[int, ...],
     ):
         if storage_options is None:
-            return dict(
-                dimension_separator="/",
-                compressor=Blosc(cname="zstd", clevel=3, shuffle=Blosc.SHUFFLE),
-                chunks=ConvertToNGFFPlate._out_chunks(output_shape, chunks),
-                write_empty_chunks=False,
-            )
-        else:
-            return storage_options
+            return {
+                "dimension_separator": "/",
+                "compressor": Blosc(cname="zstd", clevel=3, shuffle=Blosc.SHUFFLE),
+                "chunks": ConvertToNGFFPlate._out_chunks(output_shape, chunks),
+                "write_empty_chunks": False,
+            }
+        return storage_options
 
     @staticmethod
     def _out_chunks(shape, chunks):
         if len(shape) == len(chunks):
             return chunks
-        else:
-            return (1,) * (len(shape) - len(chunks)) + chunks
+        return (1,) * (len(shape) - len(chunks)) + chunks

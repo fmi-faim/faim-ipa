@@ -5,8 +5,7 @@ import numpy as np
 from numpy._typing import NDArray
 from tifffile import imread
 
-from faim_ipa.stitching import Tile
-from faim_ipa.stitching.Tile import TilePosition
+from faim_ipa.stitching.tile import Tile, TilePosition
 
 
 class StackedTile(Tile):
