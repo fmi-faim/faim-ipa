@@ -101,7 +101,7 @@ exclude = [
 ignore = ["FA100", "S101"]
 
 [tool.ruff.lint.extend-per-file-ignores]
-"**/tests/*" = ["INP001", "N802", "SLF001"]
+"**/tests/*" = ["F811", "INP001", "N802", "SLF001"]
 "**/examples/*" = ["INP001"]
 
 [tool.coverage.run]
