@@ -221,7 +221,7 @@ class ConvertToNGFFPlate:
         }
         group.attrs["acquisition_metadata"] = {
             "channels": [
-                ch_metadata.dict()
+                ch_metadata.model_dump()
                 for ch_metadata in plate_acquisition.get_channel_metadata().values()
             ]
         }
