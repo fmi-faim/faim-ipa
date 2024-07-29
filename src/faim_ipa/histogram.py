@@ -25,7 +25,7 @@ class UIntHistogram:
         :param list_b: list(numeric)
         :return: list(numeric)
         """
-        return [e[0] + e[1] for e in zip(list_a, list_b)]
+        return [e[0] + e[1] for e in zip(list_a, list_b, strict=False)]
 
     @staticmethod
     def _get_hist(data):

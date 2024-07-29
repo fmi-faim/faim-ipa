@@ -52,7 +52,7 @@ def fuse_fw(tiles: ArrayLike, positions: ArrayLike) -> ArrayLike:
     im_fused = np.zeros((ny_tot, nx_tot), dtype=tiles.dtype)
     ny_tile, nx_tile = tiles.shape[-2:]
 
-    for tile, pos in zip(tiles, positions):
+    for tile, pos in zip(tiles, positions, strict=True):
         im_fused[pos[0] : pos[0] + ny_tile, pos[1] : pos[1] + nx_tile] = tile
 
     return im_fused
@@ -70,7 +70,7 @@ def fuse_rev(tiles: ArrayLike, positions: ArrayLike) -> ArrayLike:
     im_fused = np.zeros((ny_tot, nx_tot), dtype=tiles.dtype)
     ny_tile, nx_tile = tiles.shape[-2:]
 
-    for tile, pos in reversed(list(zip(tiles, positions))):
+    for tile, pos in reversed(list(zip(tiles, positions, strict=True))):
         im_fused[pos[0] : pos[0] + ny_tile, pos[1] : pos[1] + nx_tile] = tile
 
     return im_fused

@@ -1,5 +1,3 @@
-from typing import Optional
-
 from pydantic import BaseModel, NonNegativeInt, PositiveFloat
 
 
@@ -10,8 +8,8 @@ class ChannelMetadata(BaseModel):
     spatial_calibration_x: PositiveFloat
     spatial_calibration_y: PositiveFloat
     spatial_calibration_units: str
-    z_spacing: Optional[PositiveFloat] = None
-    wavelength: Optional[NonNegativeInt] = None
-    exposure_time: Optional[PositiveFloat] = None
-    exposure_time_unit: Optional[str] = None
+    z_spacing: PositiveFloat | None = None
+    wavelength: NonNegativeInt | None = None
+    exposure_time: PositiveFloat | None = None
+    exposure_time_unit: str | None = None
     objective: str

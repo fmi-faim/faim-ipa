@@ -146,7 +146,7 @@ def fuse_overlay_fwd(warped_tiles: NDArray, warped_distance_masks: NDArray) -> N
     warped_masks = warped_distance_masks.astype(bool)
 
     fused_image = np.zeros_like(warped_tiles[0])
-    for tile, mask in zip(warped_tiles, warped_masks):
+    for tile, mask in zip(warped_tiles, warped_masks, strict=True):
         fused_image[mask] = tile[mask]
 
     return fused_image
@@ -174,7 +174,7 @@ def fuse_overlay_bwd(warped_tiles: NDArray, warped_distance_masks: NDArray) -> N
     warped_masks = warped_distance_masks.astype(bool)
 
     fused_image = np.zeros_like(warped_tiles[0])
-    for tile, mask in zip(reversed(warped_tiles), reversed(warped_masks)):
+    for tile, mask in zip(reversed(warped_tiles), reversed(warped_masks), strict=True):
         fused_image[mask] = tile[mask]
 
     return fused_image

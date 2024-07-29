@@ -3,7 +3,6 @@ import re
 from abc import abstractmethod
 from decimal import Decimal
 from pathlib import Path
-from typing import Optional, Union
 
 import numpy as np
 import pandas as pd
@@ -26,9 +25,9 @@ class ImageXpressWellAcquisition(WellAcquisition):
         self,
         files: pd.DataFrame,
         alignment: TileAlignmentOptions,
-        z_spacing: Optional[float],
-        background_correction_matrices: Optional[dict[str, Union[Path, str]]] = None,
-        illumination_correction_matrices: Optional[dict[str, Union[Path, str]]] = None,
+        z_spacing: float | None,
+        background_correction_matrices: dict[str, Path | str] | None = None,
+        illumination_correction_matrices: dict[str, Path | str] | None = None,
     ) -> None:
         self._z_spacing = z_spacing
         super().__init__(
@@ -86,7 +85,7 @@ class ImageXpressWellAcquisition(WellAcquisition):
         metadata = load_metaseries_tiff_metadata(self._files.iloc[0]["path"])
         return (metadata["spatial-calibration-y"], metadata["spatial-calibration-x"])
 
-    def get_z_spacing(self) -> Optional[float]:
+    def get_z_spacing(self) -> float | None:
         return self._z_spacing
 
     def get_axes(self) -> list[str]:
@@ -107,10 +106,10 @@ class ImageXpressWellAcquisition(WellAcquisition):
 class ImageXpressPlateAcquisition(PlateAcquisition):
     def __init__(
         self,
-        acquisition_dir: Union[Path, str],
+        acquisition_dir: Path | str,
         alignment: TileAlignmentOptions,
-        background_correction_matrices: Optional[dict[str, Union[Path, str]]] = None,
-        illumination_correction_matrices: Optional[dict[str, Union[Path, str]]] = None,
+        background_correction_matrices: dict[str, Path | str] | None = None,
+        illumination_correction_matrices: dict[str, Path | str] | None = None,
     ):
         super().__init__(
             acquisition_dir=acquisition_dir,
@@ -137,7 +136,7 @@ class ImageXpressPlateAcquisition(PlateAcquisition):
 
     @staticmethod
     def _list_and_match_files(
-        root_dir: Union[Path, str],
+        root_dir: Path | str,
         root_re: re.Pattern,
         filename_re: re.Pattern,
     ) -> list[list[dict[dict, str]]]:
@@ -179,7 +178,7 @@ class ImageXpressPlateAcquisition(PlateAcquisition):
         ]
 
     @abstractmethod
-    def _get_z_spacing(self) -> Optional[float]:
+    def _get_z_spacing(self) -> float | None:
         raise NotImplementedError
 
     def get_channel_metadata(self) -> dict[int, ChannelMetadata]:
@@ -246,10 +245,10 @@ class SinglePlaneAcquisition(ImageXpressPlateAcquisition):
 
     def __init__(
         self,
-        acquisition_dir: Union[Path, str],
+        acquisition_dir: Path | str,
         alignment: TileAlignmentOptions,
-        background_correction_matrices: Optional[dict[str, Union[Path, str]]] = None,
-        illumination_correction_matrices: Optional[dict[str, Union[Path, str]]] = None,
+        background_correction_matrices: dict[str, Path | str] | None = None,
+        illumination_correction_matrices: dict[str, Path | str] | None = None,
     ):
         super().__init__(
             acquisition_dir=acquisition_dir,
@@ -268,7 +267,7 @@ class SinglePlaneAcquisition(ImageXpressPlateAcquisition):
             r"(?P<name>.*)_(?P<well>[A-Z]+\d{2})_?(?P<field>s\d+)?_?(?P<channel>w[1-9]{1})?(?!_thumb)(?P<md_id>[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12})(?P<ext>.tif)"
         )
 
-    def _get_z_spacing(self) -> Optional[float]:
+    def _get_z_spacing(self) -> float | None:
         return None
 
 
@@ -302,10 +301,10 @@ class StackAcquisition(ImageXpressPlateAcquisition):
 
     def __init__(
         self,
-        acquisition_dir: Union[Path, str],
+        acquisition_dir: Path | str,
         alignment: TileAlignmentOptions,
-        background_correction_matrices: Optional[dict[str, Union[Path, str]]] = None,
-        illumination_correction_matrices: Optional[dict[str, Union[Path, str]]] = None,
+        background_correction_matrices: dict[str, Path | str] | None = None,
+        illumination_correction_matrices: dict[str, Path | str] | None = None,
     ):
         super().__init__(
             acquisition_dir=acquisition_dir,
@@ -329,10 +328,10 @@ class StackAcquisition(ImageXpressPlateAcquisition):
             r"(?P<name>.*)_(?P<well>[A-Z]+\d{2})_?(?P<field>s\d+)?_?(?P<channel>w[1-9]{1})?(?!_thumb)(?P<md_id>[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12})(?P<ext>.tif)"
         )
 
-    def _get_z_spacing(self) -> Optional[float]:
+    def _get_z_spacing(self) -> float | None:
         return self._z_spacing
 
-    def _compute_z_spacing(self, files: pd.DataFrame) -> Optional[float]:
+    def _compute_z_spacing(self, files: pd.DataFrame) -> float | None:
         assert "z" in files.columns, "No z column in files DataFrame."
         channel_with_stack = np.sort(files[files["z"] == "2"]["channel"].unique())[0]
         subset = files[files["channel"] == channel_with_stack]
@@ -389,10 +388,10 @@ class MixedAcquisition(StackAcquisition):
 
     def __init__(
         self,
-        acquisition_dir: Union[Path, str],
+        acquisition_dir: Path | str,
         alignment: TileAlignmentOptions,
-        background_correction_matrix: Optional[dict[str, NDArray]] = None,
-        illumination_correction_matrix: Optional[NDArray] = None,
+        background_correction_matrix: dict[str, NDArray] | None = None,
+        illumination_correction_matrix: NDArray | None = None,
     ):
         super().__init__(
             acquisition_dir=acquisition_dir,

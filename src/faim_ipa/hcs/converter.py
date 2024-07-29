@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 from os.path import join
 from pathlib import Path
-from typing import TYPE_CHECKING, Callable
+from typing import TYPE_CHECKING
 
 import dask.array as da
 import zarr
@@ -25,6 +25,8 @@ from faim_ipa.hcs.plate import PlateLayout, get_rows_and_columns
 from faim_ipa.stitching import stitching_utils
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from faim_ipa.hcs.acquisition import PlateAcquisition
 
 
@@ -197,7 +199,9 @@ class ConvertToNGFFPlate:
         fmt.validate_coordinate_transformations(
             dims, len(datasets), coordinate_transformations
         )
-        for dataset, transform in zip(datasets, coordinate_transformations):
+        for dataset, transform in zip(
+            datasets, coordinate_transformations, strict=True
+        ):
             dataset["coordinateTransformations"] = transform
         axes = Axes(well_acquisition.get_axes(), fmt).to_list()
         spatial_calibration_unit = Unit(
@@ -350,9 +354,9 @@ class ConvertToNGFFPlate:
                 chunks[-2],
                 chunks[-1],
             )
-        else:
+        else:  # pragma: no cover
             msg = "Tile data must be 2D or 3D."
-            raise NotImplementedError(msg)  # pragma: no cover
+            raise NotImplementedError(msg)
 
         stitcher = DaskTileStitcher(
             tiles=well_acquisition.get_tiles(),

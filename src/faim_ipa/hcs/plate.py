@@ -1,5 +1,4 @@
 from enum import IntEnum
-from typing import Union
 
 
 class PlateLayout(IntEnum):
@@ -11,9 +10,7 @@ class PlateLayout(IntEnum):
     I384 = 384
 
 
-def get_rows_and_columns(
-    layout: Union[PlateLayout, int]
-) -> tuple[list[str], list[str]]:
+def get_rows_and_columns(layout: PlateLayout | int) -> tuple[list[str], list[str]]:
     """Return rows and columns for requested layout."""
     if layout == PlateLayout.I18:
         rows = ["A", "B", "C"]

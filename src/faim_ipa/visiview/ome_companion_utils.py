@@ -1,6 +1,6 @@
 from decimal import Decimal
 from pathlib import Path
-from typing import Any, Optional, Union
+from typing import Any
 
 import numpy as np
 from defusedxml import ElementTree
@@ -12,7 +12,7 @@ from faim_ipa.utils import rgb_to_hex, wavelength_to_rgb
 SCHEMA = "{http://www.openmicroscopy.org/Schemas/OME/2016-06}"
 
 
-def get_z_spacing(metadata: ElementTree) -> Optional[float]:
+def get_z_spacing(metadata: ElementTree) -> float | None:
     """
     Get the Z spacing from the first image in the XML metadata.
 
@@ -158,7 +158,7 @@ def get_stage_positions(
     return positions
 
 
-def parse_basic_metadata(companion_file: Union[Path, str]) -> dict[str, Any]:
+def parse_basic_metadata(companion_file: Path | str) -> dict[str, Any]:
     """
     Parse the basic metadata from the XML companion file.
 

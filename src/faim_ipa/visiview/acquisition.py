@@ -1,5 +1,4 @@
 from pathlib import Path
-from typing import Optional, Union
 
 import numpy as np
 import pandas as pd
@@ -16,11 +15,11 @@ from faim_ipa.visiview.ome_companion_utils import parse_basic_metadata
 class StackedTile(Tile):
     def __init__(
         self,
-        path: Union[Path, str],
+        path: Path | str,
         shape: tuple[int, int],
         position: TilePosition,
-        background_correction_matrix_path: Optional[Union[Path, str]] = None,
-        illumination_correction_matrix_path: Optional[Union[Path, str]] = None,
+        background_correction_matrix_path: Path | str | None = None,
+        illumination_correction_matrix_path: Path | str | None = None,
         *,
         memmap: bool = True,
     ):
@@ -52,9 +51,9 @@ class RegionAcquisitionSTK(WellAcquisition):
         self,
         files: pd.DataFrame,
         alignment: TileAlignmentOptions,
-        background_correction_matrices: Optional[dict[str, NDArray]],
-        illumination_correction_matrices: Optional[dict[str, NDArray]],
-        axes: Optional[list[str]] = None,
+        background_correction_matrices: dict[str, NDArray] | None,
+        illumination_correction_matrices: dict[str, NDArray] | None,
+        axes: list[str] | None = None,
         *,
         memmap: bool = True,
     ):
@@ -105,7 +104,7 @@ class RegionAcquisitionSTK(WellAcquisition):
 
         return tiles
 
-    def get_z_spacing(self) -> Optional[float]:
+    def get_z_spacing(self) -> float | None:
         return self._z_spacing
 
     def get_yx_spacing(self) -> tuple[float, float]:
@@ -119,11 +118,11 @@ class RegionAcquisitionOME(WellAcquisition):
     def __init__(
         self,
         files: pd.DataFrame,
-        ome_xml: Union[Path, str],
+        ome_xml: Path | str,
         alignment: TileAlignmentOptions,
-        background_correction_matrices: Optional[dict[str, NDArray]],
-        illumination_correction_matrices: Optional[dict[str, NDArray]],
-        axes: Optional[list[str]] = None,
+        background_correction_matrices: dict[str, NDArray] | None,
+        illumination_correction_matrices: dict[str, NDArray] | None,
+        axes: list[str] | None = None,
         *,
         memmap: bool = True,
     ):
@@ -174,7 +173,7 @@ class RegionAcquisitionOME(WellAcquisition):
 
         return tiles
 
-    def get_z_spacing(self) -> Optional[float]:
+    def get_z_spacing(self) -> float | None:
         return self.metadata["z_spacing"]
 
     def get_yx_spacing(self) -> tuple[float, float]:

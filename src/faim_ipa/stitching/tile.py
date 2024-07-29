@@ -1,5 +1,4 @@
 from pathlib import Path
-from typing import Optional, Union
 
 import numpy as np
 from numpy._typing import NDArray
@@ -8,8 +7,8 @@ from tifffile import imread
 
 
 class TilePosition(BaseModel):
-    time: Optional[NonNegativeInt]
-    channel: Optional[NonNegativeInt]
+    time: NonNegativeInt | None
+    channel: NonNegativeInt | None
     z: int
     y: int
     x: int
@@ -29,16 +28,16 @@ class Tile:
     path: str
     shape: tuple[int, ...]
     position: TilePosition
-    background_correction_matrix_path: Optional[Union[Path, str]] = None
-    illumination_correction_matrix_path: Optional[Union[Path, str]] = None
+    background_correction_matrix_path: Path | str | None = None
+    illumination_correction_matrix_path: Path | str | None = None
 
     def __init__(
         self,
-        path: Union[Path, str],
+        path: Path | str,
         shape: tuple[int, int],
         position: TilePosition,
-        background_correction_matrix_path: Optional[Union[Path, str]] = None,
-        illumination_correction_matrix_path: Optional[Union[Path, str]] = None,
+        background_correction_matrix_path: Path | str | None = None,
+        illumination_correction_matrix_path: Path | str | None = None,
     ):
         super().__init__()
         self.path = path

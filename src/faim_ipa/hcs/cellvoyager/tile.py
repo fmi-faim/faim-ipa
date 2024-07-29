@@ -1,5 +1,4 @@
 from pathlib import Path
-from typing import Optional, Union
 
 import numpy as np
 from numpy._typing import NDArray
@@ -11,12 +10,12 @@ from faim_ipa.stitching.tile import Tile, TilePosition
 class StackedTile(Tile):
     def __init__(
         self,
-        paths: list[Union[Path, str]],
+        paths: list[Path | str],
         shape: tuple[int, int, int],
         dtype: np.dtype,
         position: TilePosition,
-        background_correction_matrix_path: Optional[Union[Path, str]] = None,
-        illumination_correction_matrix_path: Optional[Union[Path, str]] = None,
+        background_correction_matrix_path: Path | str | None = None,
+        illumination_correction_matrix_path: Path | str | None = None,
     ):
         super().__init__(
             path=None,

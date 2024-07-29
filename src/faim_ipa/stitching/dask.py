@@ -1,6 +1,6 @@
+from collections.abc import Callable
 from copy import copy
 from functools import partial
-from typing import Callable, Optional, Union
 
 import numpy as np
 from dask import array as da
@@ -18,8 +18,8 @@ class DaskTileStitcher:
     def __init__(
         self,
         tiles: list[Tile],
-        chunk_shape: Union[tuple[int, int], tuple[int, int, int]],
-        output_shape: Optional[tuple[int, int, int, int, int]] = None,
+        chunk_shape: tuple[int, int] | tuple[int, int, int],
+        output_shape: tuple[int, int, int, int, int] | None = None,
         dtype: np.dtype = np.uint16,
     ):
         """

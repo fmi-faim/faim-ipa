@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from collections.abc import Iterable
 from enum import Enum
 from pathlib import Path
-from typing import Any, Optional, Union
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -22,16 +22,16 @@ class PlateAcquisition(ABC):
     _acquisition_dir = None
     _wells = None
     _alignment: TileAlignmentOptions = None
-    _background_correction_matrices: Optional[dict[str, Union[Path, str]]]
-    _illumination_correction_matrices: Optional[dict[str, Union[Path, str]]]
+    _background_correction_matrices: dict[str, Path | str] | None
+    _illumination_correction_matrices: dict[str, Path | str] | None
     _common_well_shape: tuple[int, int, int, int, int] = None
 
     def __init__(
         self,
-        acquisition_dir: Union[Path, str],
+        acquisition_dir: Path | str,
         alignment: TileAlignmentOptions,
-        background_correction_matrices: Optional[dict[str, Union[Path, str]]],
-        illumination_correction_matrices: Optional[dict[str, Union[Path, str]]],
+        background_correction_matrices: dict[str, Path | str] | None,
+        illumination_correction_matrices: dict[str, Path | str] | None,
     ) -> None:
         self._acquisition_dir = acquisition_dir
         self._alignment = alignment
@@ -57,7 +57,7 @@ class PlateAcquisition(ABC):
         raise NotImplementedError
 
     def get_well_acquisitions(
-        self, selection: Optional[list[str]] = None
+        self, selection: list[str] | None = None
     ) -> list["WellAcquisition"]:
         if selection is None:
             return self._wells
@@ -68,7 +68,7 @@ class PlateAcquisition(ABC):
         """Channel metadata."""
         raise NotImplementedError
 
-    def get_well_names(self, wells: Optional[list[str]] = None) -> Iterable[str]:
+    def get_well_names(self, wells: list[str] | None = None) -> Iterable[str]:
         """
         Get the names of all wells in the acquisition.
         """
@@ -150,8 +150,8 @@ class WellAcquisition(ABC):
     name: str = None
     _files = None
     _alignment: TileAlignmentOptions = None
-    _background_correction_matrices: Optional[dict[str, Union[Path, str]]]
-    _illumination_correction_matrices: Optional[dict[str, Union[Path, str]]]
+    _background_correction_matrices: dict[str, Path | str] | None
+    _illumination_correction_matrices: dict[str, Path | str] | None
     _tiles = None
     _shape: tuple[int, int] = None
     _dtype: np.dtype = None
@@ -160,8 +160,8 @@ class WellAcquisition(ABC):
         self,
         files: pd.DataFrame,
         alignment: TileAlignmentOptions,
-        background_correction_matrices: Optional[dict[str, Union[Path, str]]],
-        illumination_correction_matrices: Optional[dict[str, Union[Path, str]]],
+        background_correction_matrices: dict[str, Path | str] | None,
+        illumination_correction_matrices: dict[str, Path | str] | None,
     ) -> None:
         if files["well"].nunique() != 1:
             msg = "WellAcquisition must contain files from a single well."
@@ -235,7 +235,7 @@ class WellAcquisition(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def get_z_spacing(self) -> Optional[float]:
+    def get_z_spacing(self) -> float | None:
         """
         Get the z spacing of the well acquisition.
         """
