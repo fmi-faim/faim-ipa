@@ -11,8 +11,8 @@ requires-python = ">=3.10"
 license = "BSD-3-Clause"
 keywords = []
 authors = [
-  { name = "Tim-Oliver Buchholz", email = "tim-oliver.buchholz@fmi.ch" },
-  { name = "Jan Eglinger", email = "jan.eglinger@fmi.ch" },
+  {name = "Tim-Oliver Buchholz", email = "tim-oliver.buchholz@fmi.ch"},
+  {name = "Jan Eglinger", email = "jan.eglinger@fmi.ch"},
 ]
 classifiers = [
   "Development Status :: 4 - Beta",
@@ -24,16 +24,16 @@ classifiers = [
   "Programming Language :: Python :: Implementation :: PyPy",
 ]
 dependencies = [
-  "pydantic>=2",
   "defusedxml",
   "distributed",
-  "numpy<2",
   "matplotlib",
-  "scikit-image",
-  "pandas",
+  "numpy<2",
   "ome-zarr",
+  "pandas",
+  "pint",
+  "pydantic>=2",
+  "scikit-image",
   "tqdm",
-  "pint"
 ]
 
 [project.urls]
@@ -43,14 +43,46 @@ Homepage = "https://github.com/fmi-faim/faim-ipa.git"
 "Source Code" = "https://github.com/fmi-faim/faim-ipa"
 "User Support" = "https://github.com/fmi-faim/faim-ipa/issues"
 
-[tool.hatch.version]
-source = "vcs"
+[tool.coverage.paths]
+faim_ipa = ["src/faim_ipa", "*/faim-ipa/src/faim_ipa"]
+tests = ["tests", "*/faim-ipa/tests"]
+
+[tool.coverage.report]
+show_missing = true
+exclude_lines = [
+  "no cov",
+  "if __name__ == .__main__.:",
+  "if TYPE_CHECKING:",
+]
+
+[tool.coverage.run]
+source_pkgs = ["faim_ipa", "tests"]
+branch = true
+parallel = true
+omit = [
+  "src/faim_ipa/__about__.py",
+]
+
+[tool.hatch.build.targets.sdist]
+exclude = [
+  "/examples",
+  "/resources",
+  "*/__pycache__",
+  "/tests",
+  "/scratchpad",
+  "/.github",
+  ".pre-commit-config.yaml",
+]
+
+[[tool.hatch.envs.all.matrix]]
+python = ["3.10", "3.11", "3.12"]
 
 [tool.hatch.envs.default]
 dependencies = [
   "coverage[toml]>=6.5",
   "pytest",
 ]
+
 [tool.hatch.envs.default.scripts]
 test = "pytest {args:tests}"
 test-cov = "coverage run -m pytest {args:tests}"
@@ -73,29 +105,19 @@ cov = [
   "cov-report",
 ]
 
-[[tool.hatch.envs.all.matrix]]
-python = ["3.10", "3.11", "3.12"]
-
 [tool.hatch.envs.types]
 dependencies = [
   "mypy>=1.0.0",
 ]
+
 [tool.hatch.envs.types.scripts]
 check = "mypy --install-types --non-interactive {args:src/faim_ipa tests}"
 
 [tool.hatch.metadata]
 allow-direct-references = true
 
-[tool.hatch.build.targets.sdist]
-exclude = [
-   "/examples",
-  "/resources",
-  "*/__pycache__",
-  "/tests",
-  "/scratchpad",
-  "/.github",
-  ".pre-commit-config.yaml",
-]
+[tool.hatch.version]
+source = "vcs"
 
 [tool.ruff.lint]
 ignore = ["FA100", "S101"]
@@ -103,26 +125,6 @@ ignore = ["FA100", "S101"]
 [tool.ruff.lint.extend-per-file-ignores]
 "**/tests/*" = ["F811", "INP001", "N802", "SLF001"]
 "**/examples/*" = ["INP001"]
-
-[tool.coverage.run]
-source_pkgs = ["faim_ipa", "tests"]
-branch = true
-parallel = true
-omit = [
-  "src/faim_ipa/__about__.py",
-]
-
-[tool.coverage.paths]
-faim_ipa = ["src/faim_ipa", "*/faim-ipa/src/faim_ipa"]
-tests = ["tests", "*/faim-ipa/tests"]
-
-[tool.coverage.report]
-show_missing = true
-exclude_lines = [
-  "no cov",
-  "if __name__ == .__main__.:",
-  "if TYPE_CHECKING:",
-]
 
 [tool.setuptools_scm]
 write_to = "src/faim_ipa/_version.py"
