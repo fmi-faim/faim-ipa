@@ -22,7 +22,7 @@ from faim_ipa.hcs.plate import PlateLayout
 from faim_ipa.stitching.tile import Tile, TilePosition
 
 
-def test_NGFFPlate():
+def test_ngff_plate():
     root_dir = "/path/to/root_dir"
     name = "plate_name"
     layout = PlateLayout.I18
