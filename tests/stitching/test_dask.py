@@ -2,8 +2,8 @@ import numpy as np
 import pytest
 from numpy.testing import assert_array_equal
 
-from faim_ipa.stitching import DaskTileStitcher, Tile, stitching_utils
-from faim_ipa.stitching.Tile import TilePosition
+from faim_ipa.stitching import DaskTileStitcher, stitching_utils
+from faim_ipa.stitching.tile import Tile, TilePosition
 
 
 @pytest.fixture

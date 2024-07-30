@@ -10,14 +10,13 @@ from faim_ipa.hcs.cellvoyager import ZAdjustedStackAcquisition
 
 @pytest.fixture
 def cv_acquisition() -> Path:
-    dir = (
+    return (
         Path(__file__).parent.parent.parent.parent
         / "resources"
         / "CV8000"
         / "CV8000-Minimal-DataSet-2C-3W-4S-FP2-stack_20230918_135839"
         / "CV8000-Minimal-DataSet-2C-3W-4S-FP2-stack"
     )
-    return dir
 
 
 @pytest.fixture
@@ -43,14 +42,26 @@ def incomplete_trace_log_file() -> Path:
 
 
 def test__parse_files(cv_acquisition, trace_log_file):
-    with pytest.warns(UserWarning, match="First file without z position"):
+    with pytest.warns() as record:
         plate = ZAdjustedStackAcquisition(
             acquisition_dir=cv_acquisition,
             trace_log_files=[trace_log_file],
             alignment=TileAlignmentOptions.GRID,
         )
+    assert len(record) == 2
+    assert str(record[0].message) == "Z position information missing for some files."
+    assert str(record[1].message).startswith(
+        "First file without z position information"
+    )
 
-    files = plate._parse_files()
+    with pytest.warns() as record2:
+        files = plate._parse_files()
+    assert len(record2) == 2
+    assert str(record2[0].message) == "Z position information missing for some files."
+    assert str(record2[1].message).startswith(
+        "First file without z position information"
+    )
+
     assert len(files) == 96
     assert files["well"].unique().tolist() == ["D08", "E03", "F08"]
     assert files["Ch"].unique().tolist() == ["1", "2"]
@@ -87,12 +98,17 @@ def test__parse_files(cv_acquisition, trace_log_file):
 
 
 def test_get_well_acquisitions(cv_acquisition, trace_log_file):
-    with pytest.warns(UserWarning, match="First file without z position"):
+    with pytest.warns() as record:
         plate = ZAdjustedStackAcquisition(
             acquisition_dir=cv_acquisition,
             trace_log_files=[trace_log_file],
             alignment=TileAlignmentOptions.GRID,
         )
+    assert len(record) == 2
+    assert str(record[0].message) == "Z position information missing for some files."
+    assert str(record[1].message).startswith(
+        "First file without z position information"
+    )
 
     wells = plate.get_well_acquisitions()
     assert len(wells) == 3
@@ -105,7 +121,7 @@ def test_get_well_acquisitions(cv_acquisition, trace_log_file):
                 f"{str(tile.position.channel + 1).zfill(2)}\\.tif"
             )
             re_file_name = re.compile(file_name)
-            from faim_ipa.hcs.cellvoyager.StackedTile import StackedTile
+            from faim_ipa.hcs.cellvoyager.tile import StackedTile
 
             assert isinstance(tile, StackedTile)
             assert re_file_name.match(tile._paths[0])

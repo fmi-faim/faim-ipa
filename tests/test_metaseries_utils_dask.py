@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from faim_ipa.MetaSeriesUtils_dask import fuse_fw, fuse_random_gradient, fuse_rev
+from faim_ipa.metaseries_utils_dask import fuse_fw, fuse_random_gradient, fuse_rev
 
 
 def tiles():
@@ -18,7 +18,7 @@ def positions():
 
 
 @pytest.mark.parametrize(
-    "tiles,positions",
+    ("tiles", "positions"),
     [
         (tiles(), positions()),
     ],
@@ -39,7 +39,7 @@ def test_fuse_rev(tiles, positions):
 
 
 @pytest.mark.parametrize(
-    "tiles,positions",
+    ("tiles", "positions"),
     [
         (tiles(), positions()),
     ],
@@ -60,7 +60,7 @@ def test_fuse_fw(tiles, positions):
 
 
 @pytest.mark.parametrize(
-    "tiles,positions",
+    ("tiles", "positions"),
     [
         (tiles(), positions()),
     ],

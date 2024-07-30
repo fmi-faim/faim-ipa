@@ -2,7 +2,9 @@ from dataclasses import dataclass
 
 import numpy as np
 import pytest
-from faim_ipa.stitching import Tile
+from numpy.testing import assert_array_equal
+from scipy.ndimage import distance_transform_cdt
+
 from faim_ipa.stitching.stitching_utils import (
     assemble_chunk,
     fuse_linear,
@@ -16,9 +18,7 @@ from faim_ipa.stitching.stitching_utils import (
     shift_yx,
     translate_tiles_2d,
 )
-from faim_ipa.stitching.Tile import TilePosition
-from numpy.testing import assert_array_equal
-from scipy.ndimage import distance_transform_cdt
+from faim_ipa.stitching.tile import Tile, TilePosition
 
 
 @pytest.fixture
@@ -146,7 +146,7 @@ class DummyTile:
         self.shape = data.shape
 
     def get_zyx_position(self):
-        return (0,) + self._yx_position
+        return (0, *self._yx_position)
 
     def load_data(self):
         return self._data
@@ -249,7 +249,7 @@ def test_shift_to_origin():
 
 
 def test_get_distance_mask():
-    expected_distance_mask_2D = np.array(
+    expected_distance_mask_2d = np.array(
         [
             [1, 1, 1, 1, 1, 1],
             [1, 2, 2, 2, 2, 1],
@@ -262,15 +262,15 @@ def test_get_distance_mask():
 
     result = get_distance_mask((5, 6))
     assert result.dtype == np.uint16
-    assert_array_equal(result, expected_distance_mask_2D)
+    assert_array_equal(result, expected_distance_mask_2d)
 
     result = get_distance_mask((1, 5, 6))
     assert result.dtype == np.uint16
-    assert_array_equal(result, expected_distance_mask_2D.reshape((1, 5, 6)))
+    assert_array_equal(result, expected_distance_mask_2d.reshape((1, 5, 6)))
 
     result = get_distance_mask((4, 5, 6))
     assert result.dtype == np.uint16
-    assert_array_equal(result, np.stack([expected_distance_mask_2D for n in range(4)]))
+    assert_array_equal(result, np.stack([expected_distance_mask_2d for n in range(4)]))
 
 
 def test_translate_3d_tiles_2d(tiles):
@@ -401,7 +401,7 @@ def test_translate_2d_shape_mismatch(tiles):
             "shape": (1, 1, 1, 10, 20),
         }
     }
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="All tiles must have the same shape"):
         translate_tiles_2d(
             block_info=block_info,
             chunk_shape=(1, 10, 20),

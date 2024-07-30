@@ -1,5 +1,15 @@
-from .ImageXpressPlateAcquisition import ImageXpressPlateAcquisition  # noqa: F401
-from .ImageXpressWellAcquisition import ImageXpressWellAcquisition  # noqa: F401
-from .SinglePlaneAcquisition import SinglePlaneAcquisition  # noqa: F401
-from .StackAcquisition import StackAcquisition  # noqa: F401
-from .MixedAcquisition import MixedAcquisition  # noqa: F401
+from faim_ipa.hcs.imagexpress.acquisition import (
+    ImageXpressPlateAcquisition,
+    ImageXpressWellAcquisition,
+    MixedAcquisition,
+    SinglePlaneAcquisition,
+    StackAcquisition,
+)
+
+__all__ = [
+    "ImageXpressPlateAcquisition",
+    "ImageXpressWellAcquisition",
+    "MixedAcquisition",
+    "SinglePlaneAcquisition",
+    "StackAcquisition",
+]

@@ -1,18 +1,18 @@
 from decimal import Decimal
 from pathlib import Path
-from typing import Any, Optional, Union
+from typing import Any
 
-import lxml
 import numpy as np
-from lxml import etree
+from defusedxml import ElementTree
+from defusedxml.ElementTree import parse
 
-from faim_ipa.io.ChannelMetadata import ChannelMetadata
+from faim_ipa.io.metadata import ChannelMetadata
 from faim_ipa.utils import rgb_to_hex, wavelength_to_rgb
 
 SCHEMA = "{http://www.openmicroscopy.org/Schemas/OME/2016-06}"
 
 
-def get_z_spacing(metadata: lxml.etree.ElementTree) -> Optional[float]:
+def get_z_spacing(metadata: ElementTree) -> float | None:
     """
     Get the Z spacing from the first image in the XML metadata.
 
@@ -33,13 +33,12 @@ def get_z_spacing(metadata: lxml.etree.ElementTree) -> Optional[float]:
 
     if len(z_positions) == 1:
         return None
-    else:
-        z_positions = np.array(sorted(z_positions))
-        precision = -Decimal(str(z_positions[0])).as_tuple().exponent
-        return np.round(np.diff(z_positions).mean(), precision)
+    z_positions = np.array(sorted(z_positions))
+    precision = -Decimal(str(z_positions[0])).as_tuple().exponent
+    return np.round(np.diff(z_positions).mean(), precision)
 
 
-def get_yx_spacing(metadata: lxml.etree.ElementTree) -> tuple[float, float]:
+def get_yx_spacing(metadata: ElementTree) -> tuple[float, float]:
     """
     Get the YX spacing from the first image in the XML metadata.
 
@@ -60,7 +59,7 @@ def get_yx_spacing(metadata: lxml.etree.ElementTree) -> tuple[float, float]:
     )
 
 
-def get_exposure_time(metadata: lxml.etree.ElementTree) -> tuple[float, str]:
+def get_exposure_time(metadata: ElementTree) -> tuple[float, str]:
     """
     Get the exposure time and unit from the first image in the XML metadata.
 
@@ -79,7 +78,7 @@ def get_exposure_time(metadata: lxml.etree.ElementTree) -> tuple[float, str]:
     return plane_0.get("ExposureTime"), plane_0.get("ExposureTimeUnit")
 
 
-def get_channels(metadata: lxml.etree.ElementTree) -> dict[str, ChannelMetadata]:
+def get_channels(metadata: ElementTree) -> dict[str, ChannelMetadata]:
     """
     Get the channel metadata from the XML metadata.
 
@@ -126,7 +125,7 @@ def get_channels(metadata: lxml.etree.ElementTree) -> dict[str, ChannelMetadata]
 
 
 def get_stage_positions(
-    metadata: lxml.etree.ElementTree,
+    metadata: ElementTree,
 ) -> dict[str, tuple[float, float]]:
     """
     Get the stage positions for each image from the XML metadata.
@@ -142,8 +141,8 @@ def get_stage_positions(
     """
     positions = {}
     for i, image in enumerate(metadata.iterchildren(f"{SCHEMA}Image")):
-        id = image.get("ID")
-        index = int(id.split(":")[-1])
+        image_id = image.get("ID")
+        index = int(image_id.split(":")[-1])
         assert index == i, f"Expected index {i} but got {index}"
 
         try:
@@ -159,7 +158,7 @@ def get_stage_positions(
     return positions
 
 
-def parse_basic_metadata(companion_file: Union[Path, str]) -> dict[str, Any]:
+def parse_basic_metadata(companion_file: Path | str) -> dict[str, Any]:
     """
     Parse the basic metadata from the XML companion file.
 
@@ -183,11 +182,10 @@ def parse_basic_metadata(companion_file: Union[Path, str]) -> dict[str, Any]:
         - stage_positions
     """
     with open(companion_file, "rb") as f:
-        root = etree.parse(f).getroot()
-        metadata = dict(
-            z_spacing=get_z_spacing(root),
-            yx_spacing=get_yx_spacing(root),
-            channels=get_channels(root),
-            stage_positions=get_stage_positions(root),
-        )
-    return metadata
+        root = parse(f).getroot()
+        return {
+            "z_spacing": get_z_spacing(root),
+            "yx_spacing": get_yx_spacing(root),
+            "channels": get_channels(root),
+            "stage_positions": get_stage_positions(root),
+        }

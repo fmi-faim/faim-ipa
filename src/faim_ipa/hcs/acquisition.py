@@ -2,13 +2,13 @@ from abc import ABC, abstractmethod
 from collections.abc import Iterable
 from enum import Enum
 from pathlib import Path
-from typing import Any, Optional, Union
+from typing import Any
 
 import numpy as np
 import pandas as pd
 
-from faim_ipa.io.ChannelMetadata import ChannelMetadata
-from faim_ipa.stitching import Tile
+from faim_ipa.io.metadata import ChannelMetadata
+from faim_ipa.stitching.tile import Tile
 
 
 class TileAlignmentOptions(Enum):
@@ -22,16 +22,16 @@ class PlateAcquisition(ABC):
     _acquisition_dir = None
     _wells = None
     _alignment: TileAlignmentOptions = None
-    _background_correction_matrices: Optional[dict[str, Union[Path, str]]]
-    _illumination_correction_matrices: Optional[dict[str, Union[Path, str]]]
+    _background_correction_matrices: dict[str, Path | str] | None
+    _illumination_correction_matrices: dict[str, Path | str] | None
     _common_well_shape: tuple[int, int, int, int, int] = None
 
     def __init__(
         self,
-        acquisition_dir: Union[Path, str],
+        acquisition_dir: Path | str,
         alignment: TileAlignmentOptions,
-        background_correction_matrices: Optional[dict[str, Union[Path, str]]],
-        illumination_correction_matrices: Optional[dict[str, Union[Path, str]]],
+        background_correction_matrices: dict[str, Path | str] | None,
+        illumination_correction_matrices: dict[str, Path | str] | None,
     ) -> None:
         self._acquisition_dir = acquisition_dir
         self._alignment = alignment
@@ -57,19 +57,18 @@ class PlateAcquisition(ABC):
         raise NotImplementedError
 
     def get_well_acquisitions(
-        self, selection: Optional[list[str]] = None
+        self, selection: list[str] | None = None
     ) -> list["WellAcquisition"]:
         if selection is None:
             return self._wells
-        else:
-            return [well for well in self._wells if well.name in selection]
+        return [well for well in self._wells if well.name in selection]
 
     @abstractmethod
     def get_channel_metadata(self) -> dict[int, ChannelMetadata]:
         """Channel metadata."""
         raise NotImplementedError
 
-    def get_well_names(self, wells: Optional[list[str]] = None) -> Iterable[str]:
+    def get_well_names(self, wells: list[str] | None = None) -> Iterable[str]:
         """
         Get the names of all wells in the acquisition.
         """
@@ -88,7 +87,7 @@ class PlateAcquisition(ABC):
         ch_metadata = self.get_channel_metadata()
         max_channel = max(list(ch_metadata.keys()))
         for index in range(max_channel + 1):
-            if index in ch_metadata.keys():
+            if index in ch_metadata:
                 metadata = ch_metadata[index]
                 ome_channels.append(
                     {
@@ -137,10 +136,7 @@ class PlateAcquisition(ABC):
             (time, channel, z, y, x)
         """
         if self._common_well_shape is None:
-            well_shapes = []
-            for well in self.get_well_acquisitions():
-                well_shapes.append(well.get_shape())
-
+            well_shapes = [well.get_shape() for well in self.get_well_acquisitions()]
             self._common_well_shape = tuple(np.max(well_shapes, axis=0))
 
         return self._common_well_shape
@@ -154,8 +150,8 @@ class WellAcquisition(ABC):
     name: str = None
     _files = None
     _alignment: TileAlignmentOptions = None
-    _background_correction_matrices: Optional[dict[str, Union[Path, str]]]
-    _illumination_correction_matrices: Optional[dict[str, Union[Path, str]]]
+    _background_correction_matrices: dict[str, Path | str] | None
+    _illumination_correction_matrices: dict[str, Path | str] | None
     _tiles = None
     _shape: tuple[int, int] = None
     _dtype: np.dtype = None
@@ -164,12 +160,12 @@ class WellAcquisition(ABC):
         self,
         files: pd.DataFrame,
         alignment: TileAlignmentOptions,
-        background_correction_matrices: Optional[dict[str, Union[Path, str]]],
-        illumination_correction_matrices: Optional[dict[str, Union[Path, str]]],
+        background_correction_matrices: dict[str, Path | str] | None,
+        illumination_correction_matrices: dict[str, Path | str] | None,
     ) -> None:
-        assert (
-            files["well"].nunique() == 1
-        ), "WellAcquisition must contain files from a single well."
+        if files["well"].nunique() != 1:
+            msg = "WellAcquisition must contain files from a single well."
+            raise ValueError(msg)
         self.name = files["well"].iloc[0]
         self._files = files
         self._alignment = alignment
@@ -207,7 +203,8 @@ class WellAcquisition(ABC):
 
             return GridAlignment(tiles=tiles).get_tiles()
 
-        raise ValueError(f"Unknown alignment option: {self._alignment}")
+        msg = f"Unknown alignment option: {self._alignment}"
+        raise ValueError(msg)
 
     def get_tiles(self) -> list[Tile]:
         """List of tiles."""
@@ -238,7 +235,7 @@ class WellAcquisition(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def get_z_spacing(self) -> Optional[float]:
+    def get_z_spacing(self) -> float | None:
         """
         Get the z spacing of the well acquisition.
         """
@@ -307,12 +304,11 @@ class WellAcquisition(ABC):
         Compute the theoretical shape of the stitched well image.
         """
         if self._shape is None:
-            tile_extents = []
-            for tile in self._tiles:
-                tile_extents.append(
-                    tile.get_position()
-                    + np.array((1,) * (5 - len(tile.shape)) + tile.shape)
-                )
+            tile_extents = [
+                tile.get_position()
+                + np.array((1,) * (5 - len(tile.shape)) + tile.shape)
+                for tile in self._tiles
+            ]
             self._shape = tuple(np.max(tile_extents, axis=0))
 
         return self._shape

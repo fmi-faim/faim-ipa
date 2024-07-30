@@ -1,9 +1,10 @@
-from abc import ABC
+from abc import ABC, abstractmethod
 from copy import copy
 
 import numpy as np
 
-from faim_ipa.stitching import Tile, stitching_utils
+from faim_ipa.stitching import stitching_utils
+from faim_ipa.stitching.tile import Tile
 
 
 class AbstractAlignment(ABC):
@@ -15,6 +16,7 @@ class AbstractAlignment(ABC):
         self._unaligned_tiles = stitching_utils.shift_to_origin(tiles)
         self._aligned_tiles = self._align(self._unaligned_tiles)
 
+    @abstractmethod
     def _align(self, tiles: list[Tile]) -> list[Tile]:
         raise NotImplementedError
 
@@ -45,12 +47,12 @@ class GridAlignment(AbstractAlignment):
         grid_positions_x = set()
         tile_map = {}
         for tile in tiles:
-            assert (
-                tile.shape[-2:] == tile_shape[-2:]
-            ), "All tiles must have the same YX shape."
+            if tile.shape[-2:] != tile_shape[-2:]:
+                message = f"All tiles must have the same YX shape. {tile.shape[-2:]} <=> {tile_shape[-2:]}"
+                raise ValueError(message)
             y_pos = int(np.round(tile.position.y / tile_shape[-2]))
             x_pos = int(np.round(tile.position.x / tile_shape[-1]))
-            if (y_pos, x_pos) in tile_map.keys():
+            if (y_pos, x_pos) in tile_map:
                 tile_map[(y_pos, x_pos)].append(tile)
             else:
                 tile_map[(y_pos, x_pos)] = [tile]
@@ -61,7 +63,7 @@ class GridAlignment(AbstractAlignment):
         grid_positions_x = sorted(grid_positions_x)
         for y_pos in grid_positions_y:
             for x_pos in grid_positions_x:
-                if (y_pos, x_pos) in tile_map.keys():
+                if (y_pos, x_pos) in tile_map:
                     for unaligned_tile in tile_map[(y_pos, x_pos)]:
                         new_tile = copy(unaligned_tile)
                         new_tile.position.y = y_pos * tile_shape[-2]

@@ -1,16 +1,49 @@
 from pathlib import Path
-from typing import Optional, Union
 
+import numpy as np
 import pandas as pd
+import tifffile
 from numpy._typing import NDArray
 from tifffile import TiffFile
 
 from faim_ipa.hcs.acquisition import TileAlignmentOptions, WellAcquisition
-from faim_ipa.io.ChannelMetadata import ChannelMetadata
-from faim_ipa.stitching import Tile
-from faim_ipa.stitching.Tile import TilePosition
+from faim_ipa.io.metadata import ChannelMetadata
+from faim_ipa.stitching.tile import Tile, TilePosition
 from faim_ipa.visiview.ome_companion_utils import parse_basic_metadata
-from faim_ipa.visiview.StackedTile import StackedTile
+
+
+class StackedTile(Tile):
+    def __init__(
+        self,
+        path: Path | str,
+        shape: tuple[int, int],
+        position: TilePosition,
+        background_correction_matrix_path: Path | str | None = None,
+        illumination_correction_matrix_path: Path | str | None = None,
+        *,
+        memmap: bool = True,
+    ):
+        self._memmap = memmap
+        super().__init__(
+            path=path,
+            shape=shape,
+            position=position,
+            background_correction_matrix_path=background_correction_matrix_path,
+            illumination_correction_matrix_path=illumination_correction_matrix_path,
+        )
+
+    def load_data(self) -> NDArray:
+        data = (
+            tifffile.memmap(self.path, mode="r")
+            if self._memmap
+            else tifffile.imread(self.path)
+        )
+
+        data = self._apply_background_correction(data)
+        return self._apply_illumination_correction(data)
+
+    def load_data_mask(self) -> NDArray:
+        return np.ones(self.shape, dtype=bool)
 
 
 class RegionAcquisitionSTK(WellAcquisition):
@@ -18,17 +51,20 @@ class RegionAcquisitionSTK(WellAcquisition):
         self,
         files: pd.DataFrame,
         alignment: TileAlignmentOptions,
-        background_correction_matrices: Optional[dict[str, NDArray]],
-        illumination_correction_matrices: Optional[dict[str, NDArray]],
-        axes: list[str] = ["c", "z", "y", "x"],
+        background_correction_matrices: dict[str, NDArray] | None,
+        illumination_correction_matrices: dict[str, NDArray] | None,
+        axes: list[str] | None = None,
         *,
         memmap: bool = True,
     ):
+        if axes is None:
+            axes = ["c", "z", "y", "x"]
         path = files.iloc[0]["path"]
         with TiffFile(path) as tif:
             metadata = tif.stk_metadata
             if metadata is None:
-                raise ValueError(f"STK metadata is missing. Please check " f"{path}")
+                msg = f"STK metadata is missing. Please check " f"{path}"
+                raise ValueError(msg)
             x_spacing = metadata["XCalibration"]
             y_spacing = metadata["YCalibration"]
             self._yx_spacing = (y_spacing, x_spacing)
@@ -46,7 +82,7 @@ class RegionAcquisitionSTK(WellAcquisition):
 
     def _assemble_tiles(self) -> list[Tile]:
         tiles = []
-        for i, row in self._files.iterrows():
+        for _i, row in self._files.iterrows():
             file = row["path"]
             time_point = row["time"]
             channel = row["channel"]
@@ -68,7 +104,7 @@ class RegionAcquisitionSTK(WellAcquisition):
 
         return tiles
 
-    def get_z_spacing(self) -> Optional[float]:
+    def get_z_spacing(self) -> float | None:
         return self._z_spacing
 
     def get_yx_spacing(self) -> tuple[float, float]:
@@ -82,13 +118,16 @@ class RegionAcquisitionOME(WellAcquisition):
     def __init__(
         self,
         files: pd.DataFrame,
-        ome_xml: Union[Path, str],
+        ome_xml: Path | str,
         alignment: TileAlignmentOptions,
-        background_correction_matrices: Optional[dict[str, NDArray]],
-        illumination_correction_matrices: Optional[dict[str, NDArray]],
-        axes: list[str] = ["c", "z", "y", "x"],
+        background_correction_matrices: dict[str, NDArray] | None,
+        illumination_correction_matrices: dict[str, NDArray] | None,
+        axes: list[str] | None = None,
+        *,
         memmap: bool = True,
     ):
+        if axes is None:
+            axes = ["c", "z", "y", "x"]
         self.metadata = parse_basic_metadata(companion_file=ome_xml)
         self.stage_positions = self.metadata["stage_positions"]
         path = files.iloc[0]["path"]
@@ -106,7 +145,7 @@ class RegionAcquisitionOME(WellAcquisition):
 
     def _assemble_tiles(self) -> list[Tile]:
         tiles = []
-        for i, row in self._files.iterrows():
+        for _i, row in self._files.iterrows():
             file = row["path"]
             time_point = row["time"]
             channel = row["channel"]
@@ -134,7 +173,7 @@ class RegionAcquisitionOME(WellAcquisition):
 
         return tiles
 
-    def get_z_spacing(self) -> Optional[float]:
+    def get_z_spacing(self) -> float | None:
         return self.metadata["z_spacing"]
 
     def get_yx_spacing(self) -> tuple[float, float]:

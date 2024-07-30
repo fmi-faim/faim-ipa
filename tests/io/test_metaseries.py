@@ -8,7 +8,7 @@ from pathlib import Path
 
 import numpy as np
 
-from faim_ipa.io.MetaSeriesTiff import load_metaseries_tiff
+from faim_ipa.io.metaseries import load_metaseries_tiff
 
 ROOT_DIR = Path(__file__).parent.parent
 

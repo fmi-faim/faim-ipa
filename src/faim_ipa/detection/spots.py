@@ -1,8 +1,8 @@
-from typing import Optional
+from __future__ import annotations
 
 import numpy as np
 from scipy.ndimage import gaussian_laplace
-from skimage.morphology import h_maxima, ball
+from skimage.morphology import ball, h_maxima
 from skimage.util import img_as_float32
 
 from faim_ipa.detection.utils import estimate_log_rescale_factor
@@ -13,7 +13,7 @@ def detect_spots(
     axial_sigma: float,
     lateral_sigma: float,
     h: int,
-    background_img: Optional[np.ndarray] = None,
+    background_img: np.ndarray | None = None,
 ) -> np.ndarray:
     """Detect diffraction limited spots.
 
@@ -39,10 +39,11 @@ def detect_spots(
     -------
     Detected spots.
     """
-    if background_img is not None:
-        image = img_as_float32(img) - img_as_float32(background_img)
-    else:
-        image = img_as_float32(img)
+    image = (
+        img_as_float32(img) - img_as_float32(background_img)
+        if background_img is not None
+        else img_as_float32(img)
+    )
 
     rescale_factor = estimate_log_rescale_factor(
         axial_sigma=axial_sigma, lateral_sigma=lateral_sigma

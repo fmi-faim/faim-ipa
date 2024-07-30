@@ -10,9 +10,8 @@ from faim_ipa.hcs.acquisition import (
     TileAlignmentOptions,
     WellAcquisition,
 )
-from faim_ipa.io.ChannelMetadata import ChannelMetadata
-from faim_ipa.stitching import Tile
-from faim_ipa.stitching.Tile import TilePosition
+from faim_ipa.io.metadata import ChannelMetadata
+from faim_ipa.stitching.tile import Tile, TilePosition
 
 
 @pytest.fixture
@@ -395,8 +394,8 @@ def test_align_tiles(dummy_well):
 
 def test_alignment_not_implemented(dummy_well):
     dummy_well._alignment = "Unknown"
-    with pytest.raises(ValueError):
-        dummy_well._align_tiles(dummy_well._align_tiles(dummy_well._tiles))
+    with pytest.raises(ValueError, match="Unknown alignment option"):
+        dummy_well._align_tiles(dummy_well._tiles)
 
 
 def test_get_shape(dummy_well):

@@ -25,7 +25,7 @@ class UIntHistogram:
         :param list_b: list(numeric)
         :return: list(numeric)
         """
-        return list(map(lambda e: e[0] + e[1], zip(list_a, list_b)))
+        return [e[0] + e[1] for e in zip(list_a, list_b, strict=False)]
 
     @staticmethod
     def _get_hist(data):
@@ -151,13 +151,12 @@ class UIntHistogram:
         if self.frequencies is None:
             self.frequencies = histogram.frequencies
             self.offset = histogram.offset
-        else:
-            if histogram.frequencies is not None:
-                self._aggregate_histograms(
-                    offset_data=histogram.offset,
-                    bins=histogram.n_bins(),
-                    freq=histogram.frequencies,
-                )
+        elif histogram.frequencies is not None:
+            self._aggregate_histograms(
+                offset_data=histogram.offset,
+                bins=histogram.n_bins(),
+                freq=histogram.frequencies,
+            )
 
         return self
 
@@ -183,9 +182,10 @@ class UIntHistogram:
         Plot histogram.
         """
         if width > 1:
-            heights = []
-            for i in range(self.offset, self.offset + self.n_bins(), width):
-                heights.append(np.sum(self.frequencies[i : i + width]))
+            heights = [
+                np.sum(self.frequencies[i : i + width])
+                for i in range(self.offset, self.offset + self.n_bins(), width)
+            ]
         else:
             heights = self.frequencies
 
@@ -228,7 +228,8 @@ class UIntHistogram:
         :param q: uint
         :return: quantile
         """
-        assert q >= 0 and q <= 1
+        assert q >= 0
+        assert q <= 1
         if self.frequencies is None:
             return 0
         return self.offset + np.argmax(

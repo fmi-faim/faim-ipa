@@ -1,11 +1,11 @@
-from typing import Optional
+from __future__ import annotations
 
 import numpy as np
 from scipy.ndimage import gaussian_laplace
 from skimage.feature import peak_local_max
-from skimage.morphology import h_maxima, ball
-from skimage.util import img_as_float32
 from skimage.feature.blob import _prune_blobs
+from skimage.morphology import ball, h_maxima
+from skimage.util import img_as_float32
 
 from faim_ipa.detection.utils import estimate_log_rescale_factor
 
@@ -17,7 +17,7 @@ def detect_blobs(
     h: int,
     scale_factors: list[int],
     overlap: float,
-    background_img: Optional[np.ndarray] = None,
+    background_img: np.ndarray | None = None,
 ) -> np.ndarray:
     """Detect blobs of different sizes.
 
@@ -49,10 +49,11 @@ def detect_blobs(
     -------
     Detected spots.
     """
-    if background_img is not None:
-        image = img_as_float32(img) - img_as_float32(background_img)
-    else:
-        image = img_as_float32(img)
+    image = (
+        img_as_float32(img) - img_as_float32(background_img)
+        if background_img is not None
+        else img_as_float32(img)
+    )
 
     rescale_factor = estimate_log_rescale_factor(
         axial_sigma=axial_sigma, lateral_sigma=lateral_sigma
@@ -62,7 +63,7 @@ def detect_blobs(
         (axial_sigma * f, lateral_sigma * f, lateral_sigma * f) for f in scale_factors
     ]
 
-    scale_cube = np.empty(image.shape + (len(sigmas),), dtype=np.uint8)
+    scale_cube = np.empty((*image.shape, len(sigmas)), dtype=np.uint8)
 
     h_ = img_as_float32(np.array(h, dtype=img.dtype))
     scale_norm = np.mean([axial_sigma, lateral_sigma, lateral_sigma])

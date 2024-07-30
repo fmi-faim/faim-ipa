@@ -1,5 +1,4 @@
 from enum import IntEnum
-from typing import Union
 
 
 class PlateLayout(IntEnum):
@@ -11,44 +10,23 @@ class PlateLayout(IntEnum):
     I384 = 384
 
 
-def get_rows_and_columns(
-    layout: Union[PlateLayout, int]
-) -> tuple[list[str], list[str]]:
+def get_rows_and_columns(layout: PlateLayout | int) -> tuple[list[str], list[str]]:
     """Return rows and columns for requested layout."""
     if layout == PlateLayout.I18:
-        rows = ["A", "B", "C"]
+        rows = list("ABC")
         cols = [str(i).zfill(2) for i in range(1, 7)]
-        assert len(rows) * len(cols) == 18
     elif layout == PlateLayout.I24:
-        rows = ["A", "B", "C", "D"]
+        rows = list("ABCD")
         cols = [str(i).zfill(2) for i in range(1, 7)]
-        assert len(rows) * len(cols) == 24
     elif layout == PlateLayout.I96:
-        rows = ["A", "B", "C", "D", "E", "F", "G", "H"]
+        rows = list("ABCDEFGH")
         cols = [str(i).zfill(2) for i in range(1, 13)]
-        assert len(rows) * len(cols) == 96
     elif layout == PlateLayout.I384:
-        rows = [
-            "A",
-            "B",
-            "C",
-            "D",
-            "E",
-            "F",
-            "G",
-            "H",
-            "I",
-            "J",
-            "K",
-            "L",
-            "M",
-            "N",
-            "O",
-            "P",
-        ]
+        rows = list("ABCDEFGHIJKLMNOP")
         cols = [str(i).zfill(2) for i in range(1, 25)]
-        assert len(rows) * len(cols) == 384
     else:
-        raise NotImplementedError(f"{layout} layout not supported.")
+        msg = f"{layout} layout not supported."
+        raise NotImplementedError(msg)
 
+    assert len(rows) * len(cols) == layout
     return rows, cols

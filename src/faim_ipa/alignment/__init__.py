@@ -1,1 +1,1 @@
-from .alignment import GridAlignment, StageAlignment  # noqa: F401
+from faim_ipa.alignment.alignment import GridAlignment, StageAlignment  # noqa: F401

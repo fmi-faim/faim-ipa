@@ -19,7 +19,7 @@ from mobie.tables import read_table
 from skimage.measure import regionprops_table
 from tqdm.auto import tqdm
 
-from faim_ipa.UIntHistogram import UIntHistogram
+from faim_ipa.histogram import UIntHistogram
 
 
 def hex_to_rgba(h) -> str:
@@ -96,17 +96,17 @@ def add_wells_to_project(
                 view={},  # do not create default view for source
             )
 
-            if key not in sources.keys():
+            if key not in sources:
                 sources[key] = [name]
             else:
                 sources[key].append(name)
 
-            if key not in plate_hists.keys():
+            if key not in plate_hists:
                 plate_hists[key] = copy(hists[k])
             else:
                 plate_hists[key].combine(hists[k])
 
-            if key not in plate_colors.keys():
+            if key not in plate_colors:
                 plate_colors[key] = hex_to_rgba(ch["color"])
 
     _add_well_regions(
@@ -126,6 +126,7 @@ def add_wells_to_project(
 def add_labels_view(
     plate: zarr.Group,
     dataset_folder: str,
+    *,
     well_group: str = "0",
     channel: int = 0,
     label_name: str = "default",
@@ -161,14 +162,14 @@ def add_labels_view(
         spacing = datasets[0]["coordinateTransformations"][0]["scale"]
         props = regionprops_table(
             label_img[np.newaxis, :],
-            properties=("label", "centroid") + extra_properties,
+            properties=("label", "centroid", *extra_properties),
             spacing=spacing,
         )
         if not add_empty_tables and len(props["label"]) == 0:
             continue
 
         # write default.tsv to dataset_folder/tables/name
-        # TODO reconcile once saving table data inside zarr is possible
+        # TODO: reconcile once saving table data inside zarr is possible
         table_folder = join(dataset_folder, "tables", name)
         os.makedirs(table_folder, exist_ok=True)
 
@@ -262,7 +263,6 @@ def compute_aggregate_table_values(
     summary.columns = ["_".join(headers) for headers in summary.columns.to_flat_index()]
     # add suffix to column names
     summary.columns = [f"{header}_{table_suffix}" for header in summary.columns]
-    print(summary)
 
     # join with original wells table
     wells_table.join(summary, on="region_id").to_csv(
@@ -295,7 +295,7 @@ def _add_channel_plate_overviews(
         )
         default["sourceTransforms"].append(
             get_merged_grid_source_transform(
-                sources=[src for src in sources[ch]],
+                sources=list(sources[ch]),
                 merged_source_name=f"merged_view_plate_{name}",
                 positions=[to_position(src[:3]) for src in sources[ch]],
             )
@@ -324,9 +324,9 @@ def _add_channel_plate_overviews(
 
 def _get_well_sources_per_channel(sources):
     wells_per_channel = {}
-    for ch in sources.keys():
+    for ch in sources:
         for well in sources[ch]:
-            if well[:3] not in wells_per_channel.keys():
+            if well[:3] not in wells_per_channel:
                 wells_per_channel[well[:3]] = [well]
             else:
                 wells_per_channel[well[:3]].append(well)

@@ -5,20 +5,18 @@ import pytest
 from tifffile import imread
 
 from faim_ipa.hcs.acquisition import TileAlignmentOptions
-from faim_ipa.hcs.cellvoyager import StackAcquisition
-from faim_ipa.hcs.cellvoyager.StackedTile import StackedTile
+from faim_ipa.hcs.cellvoyager import StackAcquisition, StackedTile
 
 
 @pytest.fixture
 def cv_acquisition() -> Path:
-    dir = (
+    return (
         Path(__file__).parent.parent.parent.parent
         / "resources"
         / "CV8000"
         / "CV8000-Minimal-DataSet-2C-3W-4S-FP2-stack_20230918_135839"
         / "CV8000-Minimal-DataSet-2C-3W-4S-FP2-stack"
     )
-    return dir
 
 
 def test_get_channel_metadata(cv_acquisition):
@@ -131,17 +129,17 @@ def test_get_well_acquisitions(cv_acquisition):
 
 
 def test_raise_value_errors(cv_acquisition):
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match=r"MeasurementData\.mlf not found"):
         plate = StackAcquisition(
             acquisition_dir=".",
             alignment=TileAlignmentOptions.GRID,
         )
 
-    with pytest.raises(ValueError):
-        plate = StackAcquisition(
-            acquisition_dir=cv_acquisition,
-            alignment=TileAlignmentOptions.GRID,
-        )
-        # Change acquisition_dir to mock missing mrf and mes files.
-        plate._acquisition_dir = "."
+    plate = StackAcquisition(
+        acquisition_dir=cv_acquisition,
+        alignment=TileAlignmentOptions.GRID,
+    )
+    # Change acquisition_dir to mock missing mrf and mes files.
+    plate._acquisition_dir = "."
+    with pytest.raises(ValueError, match=r"MeasurementDetail\.mrf not found"):
         plate._parse_metadata()

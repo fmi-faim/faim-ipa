@@ -1,7 +1,6 @@
 import pytest
 
-from faim_ipa.stitching import Tile
-from faim_ipa.stitching.Tile import TilePosition
+from faim_ipa.stitching.tile import Tile, TilePosition
 
 
 @pytest.fixture
@@ -39,7 +38,7 @@ def tiles() -> list[Tile]:
     ]
 
 
-def test_StageAlignment(tiles):
+def test_stage_alignment(tiles):
     from faim_ipa.alignment import StageAlignment
 
     alignment = StageAlignment(tiles)
@@ -54,7 +53,7 @@ def test_StageAlignment(tiles):
         assert tile.position.x in [0, 511, 512, 522]
 
 
-def test_GridAlignment(tiles):
+def test_grid_alignment(tiles):
     from faim_ipa.alignment import GridAlignment
 
     alignment = GridAlignment(tiles)
@@ -69,8 +68,8 @@ def test_GridAlignment(tiles):
         assert tile.position.x in [0, 512]
 
 
-def test_AbstractAlignment(tiles):
+def test_abstract_alignment(tiles):
     from faim_ipa.alignment.alignment import AbstractAlignment
 
-    with pytest.raises(NotImplementedError):
+    with pytest.raises(TypeError):
         AbstractAlignment(tiles)
