@@ -73,13 +73,12 @@ def create_logger(name: str) -> logging.Logger:
     logger = logging.getLogger(name.capitalize())
     now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     handler = logging.FileHandler(f"{now}-{name}.log")
-    handler.setLevel(logging.INFO)
     formatter = logging.Formatter(
         "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     )
     handler.setFormatter(formatter)
     logger.addHandler(handler)
-    logger.setLevel("INFO")
+    logger.setLevel(logging.INFO)
     return logger
 
 
