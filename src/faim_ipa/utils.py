@@ -1,7 +1,7 @@
 import logging
-import os.path
-import pathlib
+import os
 from datetime import datetime
+from pathlib import Path
 
 import pydantic
 from pydantic import BaseModel
@@ -60,7 +60,7 @@ def rgb_to_hex(r, g, b):
     return f"{r:02x}{g:02x}{b:02x}"
 
 
-def create_logger(name: str) -> logging.Logger:
+def create_logger(name: str, *, include_timestamp: bool = True) -> logging.Logger:
     """
     Create logger which logs to <timestamp>-<name>.log inside the current
     working directory.
@@ -70,11 +70,14 @@ def create_logger(name: str) -> logging.Logger:
     name
         Name of the logger instance.
     """
-    logger = logging.getLogger(name.capitalize())
+    logger = logging.getLogger(name=name)
     now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    handler = logging.FileHandler(f"{now}-{name}.log")
+    handler = logging.FileHandler(
+        f"{now}-{name}.log" if include_timestamp else f"{name}.log"
+    )
     formatter = logging.Formatter(
-        "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+        fmt="{asctime} - {name} - {levelname} - {message}",
+        style="{",
     )
     handler.setFormatter(formatter)
     logger.addHandler(handler)
@@ -82,7 +85,7 @@ def create_logger(name: str) -> logging.Logger:
     return logger
 
 
-def get_git_root() -> pathlib.Path:
+def get_git_root() -> Path:
     """
     Recursively search for the directory containing the .git folder.
 
@@ -91,14 +94,14 @@ def get_git_root() -> pathlib.Path:
     Path
         Path to the root of the git repository.
     """
-    parent_dir = pathlib.Path(__file__).parent
+    parent_dir = Path(__file__).parent
     while not (parent_dir / ".git").exists():
         parent_dir = parent_dir.parent
 
     return parent_dir
 
 
-def resolve_with_git_root(relative_path: pathlib.Path) -> pathlib.Path:
+def resolve_with_git_root(relative_path: Path) -> Path:
     """
     Takes a relative path and resolves it relative to the git_root directory.
 
@@ -116,7 +119,7 @@ def resolve_with_git_root(relative_path: pathlib.Path) -> pathlib.Path:
     return (git_root / relative_path).resolve()
 
 
-def make_relative_to_git_root(path: pathlib.Path) -> pathlib.Path:
+def make_relative_to_git_root(path: Path) -> Path:
     """
     Convert an absolute path to a path relative to the git_root directory.
 
@@ -136,7 +139,7 @@ def make_relative_to_git_root(path: pathlib.Path) -> pathlib.Path:
         return path.relative_to(git_root, walk_up=True)
     except (ValueError, TypeError):
         # fallback for Python < 3.12
-        return pathlib.Path(os.path.relpath(path, git_root))
+        return Path(os.path.relpath(path, git_root))
 
 
 class IPAConfig(BaseModel):
@@ -145,7 +148,7 @@ class IPAConfig(BaseModel):
         """
         Convert all `pathlib.Path` fields to absolute paths.
 
-        The paths are assumed to be relative to a git-root directory somewhere
+        The paths are assumed to be relative to a git root directory somewhere
         in the parent directories of the class implementing `IPAConfig`.
         """
         fields = (
@@ -156,7 +159,7 @@ class IPAConfig(BaseModel):
 
         for f in fields:
             attr = getattr(self, f)
-            if isinstance(attr, pathlib.Path) and not attr.is_absolute():
+            if isinstance(attr, Path) and not attr.is_absolute():
                 setattr(self, f, resolve_with_git_root(attr))
 
     def make_paths_relative(self):
@@ -175,5 +178,5 @@ class IPAConfig(BaseModel):
 
         for f in fields:
             attr = getattr(self, f)
-            if isinstance(attr, pathlib.Path) and attr.is_absolute():
+            if isinstance(attr, Path) and attr.is_absolute():
                 setattr(self, f, make_relative_to_git_root(attr))

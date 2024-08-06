@@ -1,3 +1,5 @@
+import os
+import re
 from inspect import cleandoc
 from typing import NamedTuple
 
@@ -5,6 +7,7 @@ import pytest
 
 from faim_ipa import pixi
 from faim_ipa.pixi.cache_status import min_cache_size_gb
+from faim_ipa.pixi.log_commit import log_commit
 from faim_ipa.pixi.src_status import git_status_clean
 
 
@@ -60,3 +63,14 @@ def test_cache_status(mocker):
         ["pixi", "info", "--json"], text=True, capture_output=True, check=False
     )
     pixi.cache_status.shutil.disk_usage.assert_called_once_with("/some/folder")
+
+
+def test_log_commit(tmp_path):
+    os.environ["WD"] = str(tmp_path)
+    log_commit(task="TESTING")
+    log_path = tmp_path / "githash.log"
+    assert log_path.exists()
+    pattern = r"^\d{4}-\d{2}-\d{2}.*githash.*INFO.*Executing.*TESTING.*git-commit\] [0-9a-f]*$"
+    with open(log_path) as log:
+        assert re.match(pattern=pattern, string=log.readline())
+        assert not log.readline()
