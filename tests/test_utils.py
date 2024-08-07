@@ -20,7 +20,7 @@ def test_create_logger(tmp_path_factory):
     os.chdir(tmp_path_factory.mktemp("logs"))
     logger = create_logger("test")
     logger.info("Test")
-    assert logger.name == "Test"
+    assert logger.name == "test"
     assert basename(logger.handlers[0].baseFilename).endswith("-test.log")
 
     with open(logger.handlers[0].baseFilename) as f:
