@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+from copy import copy
 from decimal import Decimal
 from os.path import exists, join
 from typing import TYPE_CHECKING
@@ -40,10 +41,11 @@ class CellVoyagerWellAcquisition(WellAcquisition):
         background_correction_matrices: dict[str, Path | str] | None = None,
         illumination_correction_matrices: dict[str, Path | str] | None = None,
         n_planes_in_stacked_tile: int = 1,
+        dtype: np.dtype | None = None,
     ):
         self._metadata = metadata
         self._z_spacing = self._compute_z_spacing(files)
-        self._dtype = self._get_dtype(files)
+        self._dtype = dtype if dtype else self._get_dtype(files)
         self._n_planes_in_stacked_tile = n_planes_in_stacked_tile
         super().__init__(
             files=files,
@@ -212,6 +214,7 @@ class StackAcquisition(PlateAcquisition):
         return self._wells[0].get_z_spacing()
 
     def _build_well_acquisitions(self, files: pd.DataFrame) -> list[WellAcquisition]:
+        dtype = copy(imread(files.iloc[0]["path"]).dtype)
         return [
             CellVoyagerWellAcquisition(
                 files=files[files["well"] == well],
@@ -220,6 +223,7 @@ class StackAcquisition(PlateAcquisition):
                 background_correction_matrices=self._background_correction_matrices,
                 illumination_correction_matrices=self._illumination_correction_matrices,
                 n_planes_in_stacked_tile=self._n_planes_in_stacked_tile,
+                dtype=dtype,
             )
             for well in tqdm(files["well"].unique())
         ]
@@ -293,6 +297,8 @@ class StackAcquisition(PlateAcquisition):
                 }
                 files.append(row)
 
+            record.clear()
+
         files = pd.DataFrame(files)
         files["TimePoint"] = files["TimePoint"].astype(int)
         files["ZIndex"] = files["ZIndex"].astype(int)
@@ -333,30 +339,18 @@ class ZAdjustedStackAcquisition(StackAcquisition):
             merged[merged["ZIndex"].astype(int) == 2]["Z"].astype(float)
         ) - np.mean(merged[merged["ZIndex"].astype(int) == 1]["Z"].astype(float))
         # Shift ZIndex for each field in each well according to the auto-focus value
-        for well in merged["well"].unique():
-            for field in merged[merged["well"] == well]["FieldIndex"].unique():
-                for ch in merged.query(f"well == '{well}' & FieldIndex == '{field}'")[
-                    "Ch"
-                ].unique():
-                    z_index_offset = int(
-                        np.round(
-                            (
-                                np.min(
-                                    merged.query(
-                                        f"well == '{well}' & FieldIndex == '{field}' & Ch == '{ch}'"
-                                    )["z_pos"]
-                                )
-                                - min_z
-                            )
-                            / z_spacing
-                        )
-                    )
-                    merged.loc[
-                        (merged["well"] == well)
-                        & (merged["FieldIndex"] == field)
-                        & (merged["Ch"] == ch),
-                        "ZIndex",
-                    ] += z_index_offset
+        for key, selection in tqdm(
+            merged.groupby(["well", "FieldIndex", "Ch"]), desc="Adjust Z", leave=False
+        ):
+            z_index_offset = int(
+                np.round((np.min(selection["z_pos"].astype(float)) - min_z) / z_spacing)
+            )
+            merged.loc[
+                (merged["well"] == key[0])
+                & (merged["FieldIndex"] == key[1])
+                & (merged["Ch"] == key[2]),
+                "ZIndex",
+            ] += z_index_offset
 
         # Start at 0
         merged["ZIndex"] = merged["ZIndex"] - merged["ZIndex"].min()
