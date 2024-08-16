@@ -129,6 +129,7 @@ class ConvertToNGFFPlate:
         storage_options: dict | None = None,
         *,
         build_acquisition_mask: bool = False,
+        overwrite: bool = False,
     ):
         """
         Convert a plate acquisition to an NGFF plate.
@@ -147,6 +148,8 @@ class ConvertToNGFFPlate:
             Zarr storage options.
         build_acquisition_mask :
             Writes a boolean mask instead of the image data, indicating where the image data is present.
+        overwrite :
+            Overwrite existing data.
 
         Returns
         -------
@@ -173,12 +176,14 @@ class ConvertToNGFFPlate:
                 storage_options,
                 well_acquisition,
                 build_acquisition_mask=build_acquisition_mask,
+                overwrite=overwrite,
             )
             shapes, datasets = self._build_pyramid(
                 group,
                 chunks,
                 max_layer,
                 storage_options,
+                overwrite=overwrite,
             )
             self._write_metadata(
                 group, max_layer, shapes, datasets, plate_acquisition, well_acquisition
@@ -234,9 +239,9 @@ class ConvertToNGFFPlate:
         storage_options,
         well_acquisition,
         build_acquisition_mask,
+        overwrite,
     ):
         stitched_well_da = self._stitch_well_image(
-            chunks,
             well_acquisition,
             output_shape=plate_acquisition.get_common_well_shape(),
             build_acquisition_mask=build_acquisition_mask,
@@ -256,6 +261,7 @@ class ConvertToNGFFPlate:
                         "compressor", zarr.storage.default_compressor
                     ),
                     dimension_separator=group._store._dimension_separator,
+                    overwrite=overwrite,
                 ),
             )
         )
@@ -277,6 +283,7 @@ class ConvertToNGFFPlate:
         chunks,
         max_layer,
         storage_options,
+        overwrite,
     ):
         image = da.from_zarr(url=group.store, component=str(Path(group.path, "0")))
         datasets = [{"path": "0"}]
@@ -305,6 +312,7 @@ class ConvertToNGFFPlate:
                             "compressor", zarr.storage.default_compressor
                         ),
                         dimension_separator=group._store._dimension_separator,
+                        overwrite=overwrite,
                     )
                 )
             )
@@ -334,7 +342,6 @@ class ConvertToNGFFPlate:
 
     def _stitch_well_image(
         self,
-        chunks,
         well_acquisition,
         output_shape: tuple[int, int, int, int, int],
         *,
@@ -342,21 +349,7 @@ class ConvertToNGFFPlate:
     ):
         from faim_ipa.stitching import DaskTileStitcher
 
-        tile_data_ndims = well_acquisition.get_tiles()[0].load_data().ndim
-        if tile_data_ndims == 2:
-            chunk_shape = (
-                chunks[-2],
-                chunks[-1],
-            )
-        elif tile_data_ndims == 3:
-            chunk_shape = (
-                chunks[-3],
-                chunks[-2],
-                chunks[-1],
-            )
-        else:  # pragma: no cover
-            msg = "Tile data must be 2D or 3D."
-            raise NotImplementedError(msg)
+        chunk_shape = well_acquisition.get_tiles()[0].shape
 
         stitcher = DaskTileStitcher(
             tiles=well_acquisition.get_tiles(),
