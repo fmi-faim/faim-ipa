@@ -242,7 +242,6 @@ class ConvertToNGFFPlate:
         overwrite,
     ):
         stitched_well_da = self._stitch_well_image(
-            chunks,
             well_acquisition,
             output_shape=plate_acquisition.get_common_well_shape(),
             build_acquisition_mask=build_acquisition_mask,
@@ -343,7 +342,6 @@ class ConvertToNGFFPlate:
 
     def _stitch_well_image(
         self,
-        chunks,
         well_acquisition,
         output_shape: tuple[int, int, int, int, int],
         *,
@@ -351,21 +349,7 @@ class ConvertToNGFFPlate:
     ):
         from faim_ipa.stitching import DaskTileStitcher
 
-        tile_data_ndims = well_acquisition.get_tiles()[0].load_data().ndim
-        if tile_data_ndims == 2:
-            chunk_shape = (
-                chunks[-2],
-                chunks[-1],
-            )
-        elif tile_data_ndims == 3:
-            chunk_shape = (
-                chunks[-3],
-                chunks[-2],
-                chunks[-1],
-            )
-        else:  # pragma: no cover
-            msg = "Tile data must be 2D or 3D."
-            raise NotImplementedError(msg)
+        chunk_shape = well_acquisition.get_tiles()[0].shape
 
         stitcher = DaskTileStitcher(
             tiles=well_acquisition.get_tiles(),
