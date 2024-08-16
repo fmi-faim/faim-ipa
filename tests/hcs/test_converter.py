@@ -216,7 +216,6 @@ def test__stitch_well_image_2d(plate_acquisition_2d, hcs_plate, client):
     converter = ConvertToNGFFPlate(hcs_plate, client=client)
     well_acquisition = plate_acquisition_2d.get_well_acquisitions()[0]
     well_img_da = converter._stitch_well_image(
-        chunks=(1, 1, 10, 1000, 1000),
         well_acquisition=well_acquisition,
         output_shape=plate_acquisition_2d.get_common_well_shape(),
         build_acquisition_mask=False,
@@ -230,7 +229,6 @@ def test__stitch_well_image_mask_2d(plate_acquisition_2d, hcs_plate, client):
     converter = ConvertToNGFFPlate(hcs_plate, client=client)
     well_acquisition = plate_acquisition_2d.get_well_acquisitions()[0]
     well_img_da = converter._stitch_well_image(
-        chunks=(1, 1, 10, 1000, 1000),
         well_acquisition=well_acquisition,
         output_shape=plate_acquisition_2d.get_common_well_shape(),
         build_acquisition_mask=True,
@@ -247,7 +245,6 @@ def test__stitch_well_image_3d(plate_acquisition, hcs_plate, client):
     )
     well_acquisition = plate_acquisition.get_well_acquisitions()[0]
     well_img_da = converter._stitch_well_image(
-        chunks=(1, 1, 10, 1000, 1000),
         well_acquisition=well_acquisition,
         output_shape=plate_acquisition.get_common_well_shape(),
         build_acquisition_mask=False,
@@ -264,7 +261,6 @@ def test__stitch_well_image_mask_3d(plate_acquisition, hcs_plate, client):
     )
     well_acquisition = plate_acquisition.get_well_acquisitions()[0]
     well_img_da = converter._stitch_well_image(
-        chunks=(1, 1, 10, 1000, 1000),
         well_acquisition=well_acquisition,
         output_shape=plate_acquisition.get_common_well_shape(),
         build_acquisition_mask=True,
@@ -282,7 +278,6 @@ def test__bin_yx(plate_acquisition, hcs_plate, client):
     )
     well_acquisition = plate_acquisition.get_well_acquisitions()[0]
     well_img_da = converter._stitch_well_image(
-        chunks=(1, 1, 10, 1000, 1000),
         well_acquisition=well_acquisition,
         output_shape=plate_acquisition.get_common_well_shape(),
         build_acquisition_mask=False,
@@ -397,7 +392,6 @@ def test__drop_missing_axes(plate_acquisition_2d, hcs_plate, client):
     converter = ConvertToNGFFPlate(hcs_plate, client=client)
     well_acquisition = plate_acquisition_2d.get_well_acquisitions()[0]
     well_img_da = converter._stitch_well_image(
-        chunks=(1, 1, 10, 1000, 1000),
         well_acquisition=well_acquisition,
         output_shape=plate_acquisition_2d.get_common_well_shape(),
         build_acquisition_mask=False,
