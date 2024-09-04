@@ -251,13 +251,11 @@ def test_shift_to_origin():
 def test_get_distance_mask():
     expected_distance_mask_2d = np.array(
         [
-            [
-                [1, 1, 1, 1, 1, 1],
-                [1, 2, 2, 2, 2, 1],
-                [1, 2, 3, 3, 2, 1],
-                [1, 2, 2, 2, 2, 1],
-                [1, 1, 1, 1, 1, 1],
-            ]
+            [1, 1, 1, 1, 1, 1],
+            [1, 2, 2, 2, 2, 1],
+            [1, 2, 3, 3, 2, 1],
+            [1, 2, 2, 2, 2, 1],
+            [1, 1, 1, 1, 1, 1],
         ],
         dtype=np.uint16,
     )
@@ -268,13 +266,11 @@ def test_get_distance_mask():
 
     result = get_distance_mask((1, 5, 6))
     assert result.dtype == np.uint16
-    assert_array_equal(result, expected_distance_mask_2d.reshape((1, 5, 6)))
+    assert_array_equal(result, expected_distance_mask_2d)
 
     result = get_distance_mask((4, 5, 6))
     assert result.dtype == np.uint16
-    assert_array_equal(
-        result, np.concatenate([expected_distance_mask_2d for n in range(4)])
-    )
+    assert_array_equal(result, expected_distance_mask_2d)
 
 
 def test_translate_3d_tiles_2d(tiles):

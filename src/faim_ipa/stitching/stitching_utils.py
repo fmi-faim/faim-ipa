@@ -232,12 +232,7 @@ def translate_tiles_2d(
 def get_distance_mask(tile_shape):
     mask = np.zeros(tile_shape[-2:], dtype=bool)
     mask[1:-1, 1:-1] = True
-    distance_mask = distance_transform_cdt(mask, metric="taxicab").astype(np.uint16) + 1
-    if len(tile_shape) == 3:
-        distance_mask = np.repeat(distance_mask[np.newaxis, ...], tile_shape[0], axis=0)
-    else:
-        distance_mask = distance_mask[np.newaxis]
-    return distance_mask
+    return distance_transform_cdt(mask, metric="taxicab").astype(np.uint16) + 1
 
 
 def shift_yx(chunk_zyx_origin, tile_data, tile_origin, chunk_shape):
@@ -245,26 +240,26 @@ def shift_yx(chunk_zyx_origin, tile_data, tile_origin, chunk_shape):
     yx_shift = (tile_origin - chunk_zyx_origin)[1:]
     if yx_shift[0] < 0:
         tile_start_y = abs(yx_shift[0])
-        tile_end_y = min(tile_start_y + chunk_shape[1], tile_data.shape[1])
+        tile_end_y = min(tile_start_y + chunk_shape[1], tile_data.shape[-2])
     else:
         tile_start_y = 0
         tile_end_y = max(
-            0, min(tile_start_y + chunk_shape[1] - yx_shift[0], tile_data.shape[1])
+            0, min(tile_start_y + chunk_shape[1] - yx_shift[0], tile_data.shape[-2])
         )
     if yx_shift[1] < 0:
         tile_start_x = abs(yx_shift[1])
-        tile_end_x = min(tile_start_x + chunk_shape[2], tile_data.shape[2])
+        tile_end_x = min(tile_start_x + chunk_shape[2], tile_data.shape[-1])
     else:
         tile_start_x = 0
         tile_end_x = min(
-            tile_start_x + chunk_shape[2] - yx_shift[1], tile_data.shape[2]
+            tile_start_x + chunk_shape[2] - yx_shift[1], tile_data.shape[-1]
         )
-    tile_data = tile_data[:, tile_start_y:tile_end_y, tile_start_x:tile_end_x]
+    tile_data = tile_data[..., tile_start_y:tile_end_y, tile_start_x:tile_end_x]
     if tile_data.size > 0:
         start_y = max(0, yx_shift[0])
-        end_y = start_y + tile_data.shape[1]
+        end_y = start_y + tile_data.shape[-2]
         start_x = max(0, yx_shift[1])
-        end_x = start_x + tile_data.shape[2]
+        end_x = start_x + tile_data.shape[-1]
         warped_tile[: tile_data.shape[0], start_y:end_y, start_x:end_x] = tile_data
     return warped_tile
 
