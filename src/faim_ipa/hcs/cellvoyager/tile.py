@@ -2,14 +2,15 @@ from pathlib import Path
 
 import numpy as np
 from numpy._typing import NDArray
-from tifffile import imread
 
+from faim_ipa.hcs.acquisition import Source
 from faim_ipa.stitching.tile import Tile, TilePosition
 
 
 class StackedTile(Tile):
     def __init__(
         self,
+        source: Source,
         paths: list[Path | str],
         shape: tuple[int, int, int],
         dtype: np.dtype,
@@ -18,6 +19,7 @@ class StackedTile(Tile):
         illumination_correction_matrix_path: Path | str | None = None,
     ):
         super().__init__(
+            source=source,
             path=None,
             shape=(len(paths),) + shape[1:],
             position=position,
@@ -31,7 +33,7 @@ class StackedTile(Tile):
         data = np.zeros(self.shape, dtype=self._dtype)
         for i, path in enumerate(self._paths):
             if path:
-                plane = imread(path)
+                plane = self.source.get_image(path)
                 plane = self._apply_background_correction(plane)
                 plane = self._apply_illumination_correction(plane)
                 data[i] = plane

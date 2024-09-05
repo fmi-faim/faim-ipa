@@ -17,6 +17,7 @@ from numcodecs import Blosc
 from faim_ipa import dask_utils
 from faim_ipa.hcs.acquisition import TileAlignmentOptions
 from faim_ipa.hcs.cellvoyager import StackAcquisition
+from faim_ipa.hcs.cellvoyager.source import CVSourceFS
 from faim_ipa.hcs.converter import ConvertToNGFFPlate, NGFFPlate
 from faim_ipa.hcs.plate import PlateLayout
 from faim_ipa.stitching.tile import Tile, TilePosition
@@ -61,11 +62,13 @@ def hcs_plate(tmp_dir):
 @pytest.fixture
 def plate_acquisition():
     return StackAcquisition(
-        acquisition_dir=Path(__file__).parent.parent.parent
-        / "resources"
-        / "CV8000"
-        / "CV8000-Minimal-DataSet-2C-3W-4S-FP2-stack_20230918_135839"
-        / "CV8000-Minimal-DataSet-2C-3W-4S-FP2-stack",
+        source=CVSourceFS(
+            acquisition_dir=Path(__file__).parent.parent.parent
+            / "resources"
+            / "CV8000"
+            / "CV8000-Minimal-DataSet-2C-3W-4S-FP2-stack_20230918_135839"
+            / "CV8000-Minimal-DataSet-2C-3W-4S-FP2-stack",
+        ),
         alignment=TileAlignmentOptions.GRID,
     )
 
@@ -73,11 +76,13 @@ def plate_acquisition():
 @pytest.fixture
 def plate_acquisition_2d():
     acq = StackAcquisition(
-        acquisition_dir=Path(__file__).parent.parent.parent
-        / "resources"
-        / "CV8000"
-        / "CV8000-Minimal-DataSet-2C-3W-4S-FP2-stack_20230918_135839"
-        / "CV8000-Minimal-DataSet-2C-3W-4S-FP2-stack",
+        source=CVSourceFS(
+            acquisition_dir=Path(__file__).parent.parent.parent
+            / "resources"
+            / "CV8000"
+            / "CV8000-Minimal-DataSet-2C-3W-4S-FP2-stack_20230918_135839"
+            / "CV8000-Minimal-DataSet-2C-3W-4S-FP2-stack",
+        ),
         alignment=TileAlignmentOptions.GRID,
     )
 

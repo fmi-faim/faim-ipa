@@ -33,6 +33,7 @@ class Tile:
 
     def __init__(
         self,
+        source,
         path: Path | str,
         shape: tuple[int, int],
         position: TilePosition,
@@ -40,6 +41,7 @@ class Tile:
         illumination_correction_matrix_path: Path | str | None = None,
     ):
         super().__init__()
+        self.source = source
         self.path = path
         self.shape = shape
         self.position = position
@@ -78,7 +80,7 @@ class Tile:
         -------
         Image data
         """
-        data = imread(self.path)
+        data = self.source.get_image(self.path)
         data = self._apply_background_correction(data)
         return self._apply_illumination_correction(data)
 
