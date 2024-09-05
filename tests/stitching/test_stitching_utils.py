@@ -5,6 +5,7 @@ import pytest
 from numpy.testing import assert_array_equal
 from scipy.ndimage import distance_transform_cdt
 
+from faim_ipa.hcs.source import FileSource
 from faim_ipa.stitching.stitching_utils import (
     assemble_chunk,
     fuse_linear,
@@ -141,12 +142,11 @@ def test_fuse_overlay_bwd(tiles, distance_masks):
 @dataclass
 class DummyTile:
     def __init__(self, yx_position, data):
-        self._yx_position = yx_position
+        self.position = TilePosition(
+            time=0, channel=0, z=0, y=yx_position[0], x=yx_position[1]
+        )
         self._data = data
         self.shape = data.shape
-
-    def get_zyx_position(self):
-        return (0, *self._yx_position)
 
     def load_data(self):
         return self._data
@@ -238,6 +238,7 @@ def test_shift_to_origin():
     result = shift_to_origin(
         [
             Tile(
+                source=FileSource("path"),
                 path="path",
                 shape=(10, 10),
                 position=TilePosition(time=20, channel=1, z=10, y=-1, x=2),
@@ -245,7 +246,7 @@ def test_shift_to_origin():
         ]
     )
 
-    assert result[0].get_position() == (0, 0, 0, 0, 0)
+    assert result[0].position.get_tczyx() == (0, 0, 0, 0, 0)
 
 
 def test_get_distance_mask():

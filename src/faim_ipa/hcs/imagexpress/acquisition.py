@@ -7,6 +7,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 from numpy._typing import NDArray
+from tifffile import imread
 from tqdm import tqdm
 
 from faim_ipa.hcs.acquisition import (
@@ -14,6 +15,7 @@ from faim_ipa.hcs.acquisition import (
     TileAlignmentOptions,
     WellAcquisition,
 )
+from faim_ipa.hcs.source import Source, FileSource
 from faim_ipa.io.metadata import ChannelMetadata
 from faim_ipa.io.metaseries import load_metaseries_tiff_metadata
 from faim_ipa.stitching.tile import Tile, TilePosition
@@ -40,7 +42,7 @@ class ImageXpressWellAcquisition(WellAcquisition):
     def _assemble_tiles(self) -> list[Tile]:
         tiles = []
         for _i, row in self._files.iterrows():
-            file = row["path"]
+            file = Path(row["path"])
             time_point = row["t"] if "t" in row.index and row["t"] is not None else 0
             channel = row["channel"]
             metadata = load_metaseries_tiff_metadata(file)
@@ -60,7 +62,8 @@ class ImageXpressWellAcquisition(WellAcquisition):
 
             tiles.append(
                 Tile(
-                    path=file,
+                    source=FileSource(file.parent),
+                    path=file.name,
                     shape=(metadata["pixel-size-y"], metadata["pixel-size-x"]),
                     position=TilePosition(
                         time=time_point,
@@ -103,7 +106,15 @@ class ImageXpressWellAcquisition(WellAcquisition):
         return axes
 
 
-class ImageXpressPlateAcquisition(PlateAcquisition):
+class ImageXpressSourceFS(Source):
+    def __init__(self, acquisition_dir: Path | str):
+        self._acquisition_dir = Path(acquisition_dir)
+
+    def get_image(self, path: Path | str) -> NDArray:
+        return imread(self._acquisition_dir / path)
+
+
+class ImageXpressPlateAcquisition(PlateAcquisition[ImageXpressSourceFS]):
     def __init__(
         self,
         acquisition_dir: Path | str,
@@ -112,7 +123,7 @@ class ImageXpressPlateAcquisition(PlateAcquisition):
         illumination_correction_matrices: dict[str, Path | str] | None = None,
     ):
         super().__init__(
-            acquisition_dir=acquisition_dir,
+            source=ImageXpressSourceFS(acquisition_dir),
             alignment=alignment,
             background_correction_matrices=background_correction_matrices,
             illumination_correction_matrices=illumination_correction_matrices,
@@ -128,7 +139,7 @@ class ImageXpressPlateAcquisition(PlateAcquisition):
         """
         files = pd.DataFrame(
             ImageXpressPlateAcquisition._list_and_match_files(
-                root_dir=self._acquisition_dir,
+                root_dir=self._source._acquisition_dir,
                 root_re=self._get_root_re(),
                 filename_re=self._get_filename_re(),
             )

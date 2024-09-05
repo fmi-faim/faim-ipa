@@ -2,6 +2,7 @@ import numpy as np
 import pytest
 from numpy.testing import assert_array_equal
 
+from faim_ipa.hcs.source import FileSource
 from faim_ipa.stitching import DaskTileStitcher, stitching_utils
 from faim_ipa.stitching.tile import Tile, TilePosition
 
@@ -10,21 +11,25 @@ from faim_ipa.stitching.tile import Tile, TilePosition
 def tiles():
     tiles = [
         Tile(
+            source=FileSource("path1"),
             path="path1",
             shape=(10, 10),
             position=TilePosition(time=0, channel=0, z=0, y=0, x=0),
         ),
         Tile(
+            source=FileSource("path2"),
             path="path2",
             shape=(10, 10),
             position=TilePosition(time=0, channel=0, z=0, y=0, x=10),
         ),
         Tile(
+            source=FileSource("path3"),
             path="path3",
             shape=(10, 10),
             position=TilePosition(time=0, channel=0, z=0, y=10, x=0),
         ),
         Tile(
+            source=FileSource("path4"),
             path="path4",
             shape=(10, 10),
             position=TilePosition(time=0, channel=0, z=0, y=10, x=10),
@@ -156,21 +161,25 @@ def test_stitch_exact(tiles):
 def overlapping_tiles():
     tiles = [
         Tile(
+            source=FileSource("path1"),
             path="path1",
             shape=(10, 10),
             position=TilePosition(time=0, channel=0, z=0, y=0, x=0),
         ),
         Tile(
+            source=FileSource("path2"),
             path="path2",
             shape=(10, 10),
             position=TilePosition(time=0, channel=0, z=0, y=0, x=5),
         ),
         Tile(
+            source=FileSource("path3"),
             path="path3",
             shape=(10, 10),
             position=TilePosition(time=0, channel=0, z=0, y=5, x=0),
         ),
         Tile(
+            source=FileSource("path4"),
             path="path4",
             shape=(10, 10),
             position=TilePosition(time=0, channel=0, z=0, y=5, x=5),

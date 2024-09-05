@@ -2,10 +2,10 @@ import re
 from pathlib import Path
 
 import pytest
-from tifffile import imread
 
 from faim_ipa.hcs.acquisition import TileAlignmentOptions
 from faim_ipa.hcs.cellvoyager import StackAcquisition, StackedTile
+from faim_ipa.hcs.cellvoyager.source import CVSourceFS
 
 
 @pytest.fixture
@@ -21,7 +21,7 @@ def cv_acquisition() -> Path:
 
 def test_get_channel_metadata(cv_acquisition):
     plate = StackAcquisition(
-        acquisition_dir=cv_acquisition,
+        source=CVSourceFS(cv_acquisition),
         alignment=TileAlignmentOptions.GRID,
     )
 
@@ -74,7 +74,7 @@ def test_get_channel_metadata(cv_acquisition):
 
 def test__parse_files(cv_acquisition):
     plate = StackAcquisition(
-        acquisition_dir=cv_acquisition,
+        source=CVSourceFS(cv_acquisition),
         alignment=TileAlignmentOptions.GRID,
     )
 
@@ -103,16 +103,17 @@ def test__parse_files(cv_acquisition):
 
 def test_get_well_acquisitions(cv_acquisition):
     plate = StackAcquisition(
-        acquisition_dir=cv_acquisition,
+        source=CVSourceFS(cv_acquisition),
         alignment=TileAlignmentOptions.GRID,
     )
 
     wells = plate.get_well_acquisitions()
     assert len(wells) == 3
     for well in wells:
+        tile: StackedTile
         for tile in well.get_tiles():
             file_name = (
-                f".*[/\\\\]CV8000-Minimal-DataSet-2C-3W-4S-FP2-stack_"
+                f"CV8000-Minimal-DataSet-2C-3W-4S-FP2-stack_"
                 f"{well.name}_T"
                 f"{str(tile.position.time + 1).zfill(4)}F.*L.*A.*Z"
                 f"{str(tile.position.z + 1).zfill(2)}C"
@@ -120,26 +121,26 @@ def test_get_well_acquisitions(cv_acquisition):
             )
             re_file_name = re.compile(file_name)
             assert isinstance(tile, StackedTile)
-            assert re_file_name.match(tile._paths[0])
-            assert tile.shape[1:] == imread(tile._paths[0]).shape
-            assert tile.illumination_correction_matrix_path is None
-            assert tile.background_correction_matrix_path is None
+            assert re_file_name.match(tile.tiles[0].path)
+            assert tile.shape[1:] == plate._source.get_image(tile.tiles[0].path).shape
+            assert tile.tiles[0].illumination_correction_matrix_path is None
+            assert tile.tiles[0].background_correction_matrix_path is None
             assert tile.position.x in [0, 2000]
             assert tile.position.y in [0, 2000]
 
 
 def test_raise_value_errors(cv_acquisition):
-    with pytest.raises(ValueError, match=r"MeasurementData\.mlf not found"):
+    with pytest.raises(FileNotFoundError, match=r"MeasurementData\.mlf not found"):
         plate = StackAcquisition(
-            acquisition_dir=".",
+            source=CVSourceFS(Path(".")),
             alignment=TileAlignmentOptions.GRID,
         )
 
     plate = StackAcquisition(
-        acquisition_dir=cv_acquisition,
+        source=CVSourceFS(cv_acquisition),
         alignment=TileAlignmentOptions.GRID,
     )
     # Change acquisition_dir to mock missing mrf and mes files.
-    plate._acquisition_dir = "."
-    with pytest.raises(ValueError, match=r"MeasurementDetail\.mrf not found"):
-        plate._parse_metadata()
+    plate._source._acquisition_dir = Path(".")
+    with pytest.raises(FileNotFoundError, match=r"MeasurementDetail\.mrf not found"):
+        plate._source.get_measurement_detail()

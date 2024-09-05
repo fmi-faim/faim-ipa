@@ -85,7 +85,7 @@ class DaskTileStitcher:
             if pos in tiles_lut:
                 for tile in tiles_lut[pos]:
                     tile_bbox = BoundingBox5D.from_pos_and_shape(
-                        position=tile.get_position(),
+                        position=tile.position.get_tczyx(),
                         shape=(1,) * (5 - len(tile.shape)) + tile.shape,
                     )
                     if block_bbox.overlaps(tile_bbox):
@@ -98,7 +98,10 @@ class DaskTileStitcher:
         Compute the shape of the stitched image.
         """
         tile_extents = [
-            (tile.get_position() + np.array((1,) * (5 - len(tile.shape)) + tile.shape))
+            (
+                tile.position.get_tczyx()
+                + np.array((1,) * (5 - len(tile.shape)) + tile.shape)
+            )
             for tile in self.tiles
         ]
         return tuple(np.max(tile_extents, axis=0))

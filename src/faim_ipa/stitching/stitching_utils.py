@@ -233,7 +233,7 @@ def translate_tiles_2d(
     warped_tiles = []
     warped_distance_masks = []
     for tile in tiles:
-        tile_origin = np.array(tile.get_zyx_position())
+        tile_origin = np.array(tile.position.get_zyx())
         tile_data = (
             tile.load_data_mask() if build_acquisition_mask else tile.load_data()
         )
@@ -353,10 +353,12 @@ def shift_to_origin(tiles: list[Tile]) -> list[Tile]:
     -------
     List of shifted tiles.
     """
-    min_tile_origin = np.min([np.array(tile.get_position()) for tile in tiles], axis=0)
+    min_tile_origin = np.min(
+        [np.array(tile.position.get_tczyx()) for tile in tiles], axis=0
+    )
     shifted_tiles = copy(tiles)
     for tile in shifted_tiles:
-        shifted_pos = np.array(tile.get_position()) - min_tile_origin
+        shifted_pos = np.array(tile.position.get_tczyx()) - min_tile_origin
         tile.position = TilePosition(
             time=shifted_pos[0],
             channel=shifted_pos[1],

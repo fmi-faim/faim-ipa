@@ -1,5 +1,6 @@
 import pytest
 
+from faim_ipa.hcs.source import FileSource
 from faim_ipa.stitching.tile import Tile, TilePosition
 
 
@@ -7,16 +8,19 @@ from faim_ipa.stitching.tile import Tile, TilePosition
 def tiles() -> list[Tile]:
     return [
         Tile(
+            source=FileSource("dir"),
             path="path",
             shape=(512, 512),
             position=TilePosition(time=0, channel=0, z=231, y=4829, x=20128),
         ),
         Tile(
+            source=FileSource("dir"),
             path="path",
             shape=(512, 512),
             position=TilePosition(time=0, channel=0, z=231, y=4829 + 512, x=20128),
         ),
         Tile(
+            source=FileSource("dir"),
             path="path",
             shape=(512, 512),
             position=TilePosition(
@@ -24,11 +28,13 @@ def tiles() -> list[Tile]:
             ),
         ),
         Tile(
+            source=FileSource("dir"),
             path="path",
             shape=(512, 512),
             position=TilePosition(time=0, channel=0, z=231, y=4829, x=20128 + 512),
         ),
         Tile(
+            source=FileSource("dir"),
             path="path",
             shape=(512, 512),
             position=TilePosition(

@@ -10,6 +10,7 @@ from faim_ipa.hcs.acquisition import (
     TileAlignmentOptions,
     WellAcquisition,
 )
+from faim_ipa.hcs.source import FileSource
 from faim_ipa.io.metadata import ChannelMetadata
 from faim_ipa.stitching.tile import Tile, TilePosition
 
@@ -319,13 +320,15 @@ def test_get_coordinate_transformations_2d(dummy_well):
 def test_get_dtype(dummy_well):
     dummy_well._tiles = [
         Tile(
-            path=Path(__file__).parent.parent.parent
-            / "resources"
-            / "CV8000"
-            / "CV8000-Minimal-DataSet-2C-3W-4S-FP2-stack_20230918_135839"
-            / "CV8000-Minimal-DataSet-2C-3W-4S-FP2-stack"
-            / "CV8000-Minimal-DataSet-2C-3W-4S-FP2"
-            "-stack_D08_T0001F001L01A01Z01C01.tif",
+            source=FileSource(
+                directory=Path(__file__).parent.parent.parent
+                / "resources"
+                / "CV8000"
+                / "CV8000-Minimal-DataSet-2C-3W-4S-FP2-stack_20230918_135839"
+                / "CV8000-Minimal-DataSet-2C-3W-4S-FP2-stack"
+            ),
+            path="CV8000-Minimal-DataSet-2C-3W-4S-FP2-"
+            "stack_D08_T0001F001L01A01Z01C01.tif",
             shape=(2000, 2000),
             position=TilePosition(time=0, channel=0, z=0, y=0, x=0),
         )
@@ -342,12 +345,14 @@ def test_align_tiles(dummy_well):
     dummy_well._alignment = TileAlignmentOptions.STAGE_POSITION
     dummy_well._tiles = [
         Tile(
-            path=Path(__file__).parent.parent.parent
-            / "resources"
-            / "CV8000"
-            / "CV8000-Minimal-DataSet-2C-3W-4S-FP2-stack_20230918_135839"
-            / "CV8000-Minimal-DataSet-2C-3W-4S-FP2-stack"
-            / "CV8000-Minimal-DataSet-2C-3W-4S-FP2"
+            source=FileSource(
+                directory=Path(__file__).parent.parent.parent
+                / "resources"
+                / "CV8000"
+                / "CV8000-Minimal-DataSet-2C-3W-4S-FP2-stack_20230918_135839"
+                / "CV8000-Minimal-DataSet-2C-3W-4S-FP2-stack"
+            ),
+            path="CV8000-Minimal-DataSet-2C-3W-4S-FP2"
             "-stack_D08_T0001F001L01A01Z01C01.tif",
             shape=(2000, 2000),
             position=TilePosition(time=1, channel=2, z=0, y=3, x=-70),
@@ -368,12 +373,14 @@ def test_align_tiles(dummy_well):
     dummy_well._alignment = TileAlignmentOptions.GRID
     dummy_well._tiles = [
         Tile(
-            path=Path(__file__).parent.parent.parent
-            / "resources"
-            / "CV8000"
-            / "CV8000-Minimal-DataSet-2C-3W-4S-FP2-stack_20230918_135839"
-            / "CV8000-Minimal-DataSet-2C-3W-4S-FP2-stack"
-            / "CV8000-Minimal-DataSet-2C-3W-4S-FP2"
+            source=FileSource(
+                directory=Path(__file__).parent.parent.parent
+                / "resources"
+                / "CV8000"
+                / "CV8000-Minimal-DataSet-2C-3W-4S-FP2-stack_20230918_135839"
+                / "CV8000-Minimal-DataSet-2C-3W-4S-FP2-stack"
+            ),
+            path="CV8000-Minimal-DataSet-2C-3W-4S-FP2"
             "-stack_D08_T0001F001L01A01Z01C01.tif",
             shape=(2000, 2000),
             position=TilePosition(time=1, channel=2, z=0, y=3, x=-70),
@@ -399,18 +406,20 @@ def test_alignment_not_implemented(dummy_well):
 
 
 def test_get_shape(dummy_well):
+
     dummy_well._tiles = [
         Tile(
-            path=Path(__file__).parent.parent.parent
-            / "resources"
-            / "CV8000"
-            / "CV8000-Minimal-DataSet-2C-3W-4S-FP2-stack_20230918_135839"
-            / "CV8000-Minimal-DataSet-2C-3W-4S-FP2-stack"
-            / "CV8000-Minimal-DataSet-2C-3W-4S-FP2"
+            source=FileSource(
+                directory=Path(__file__).parent.parent.parent
+                / "resources"
+                / "CV8000"
+                / "CV8000-Minimal-DataSet-2C-3W-4S-FP2-stack_20230918_135839"
+                / "CV8000-Minimal-DataSet-2C-3W-4S-FP2-stack"
+            ),
+            path="CV8000-Minimal-DataSet-2C-3W-4S-FP2"
             "-stack_D08_T0001F001L01A01Z01C01.tif",
             shape=(2000, 2000),
             position=TilePosition(time=0, channel=0, z=0, y=0, x=0),
         )
     ]
-
     assert dummy_well.get_shape() == (1, 1, 1, 2000, 2000)

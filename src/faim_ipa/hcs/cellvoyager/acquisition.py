@@ -3,7 +3,6 @@ from __future__ import annotations
 import re
 from copy import copy
 from decimal import Decimal
-from os.path import exists, join
 from typing import TYPE_CHECKING
 from warnings import warn
 
@@ -18,6 +17,7 @@ from faim_ipa.hcs.acquisition import (
     TileAlignmentOptions,
     WellAcquisition,
 )
+from faim_ipa.hcs.cellvoyager.source import CVSource
 from faim_ipa.hcs.cellvoyager.tile import StackedTile
 from faim_ipa.io.metadata import ChannelMetadata
 from faim_ipa.stitching.tile import Tile, TilePosition
@@ -35,6 +35,7 @@ class CellVoyagerWellAcquisition(WellAcquisition):
 
     def __init__(
         self,
+        source: CVSource,
         files: pd.DataFrame,
         alignment: TileAlignmentOptions,
         metadata: pd.DataFrame,
@@ -43,6 +44,7 @@ class CellVoyagerWellAcquisition(WellAcquisition):
         n_planes_in_stacked_tile: int = 1,
         dtype: np.dtype | None = None,
     ):
+        self._source = source
         self._metadata = metadata
         self._z_spacing = self._compute_z_spacing(files)
         self._dtype = dtype if dtype else self._get_dtype(files)
@@ -67,7 +69,7 @@ class CellVoyagerWellAcquisition(WellAcquisition):
             return np.round(np.mean(np.diff(z_steps)), decimals=precision)
         return None
 
-    def _assemble_tiles(self) -> list[Tile]:
+    def _assemble_tiles(self) -> list[Tile | StackedTile]:
         min_z_index = 0
         max_z_index = min_z_index + 1
         if "ZIndex" in self._files.columns:
@@ -103,29 +105,9 @@ class CellVoyagerWellAcquisition(WellAcquisition):
                 else:
                     row_dict[min_z_index] = r["path"]
 
-            files = []
-            z_start = tczyx_index[2] * self._n_planes_in_stacked_tile + min_z_index
-            for z in range(
-                z_start, min(z_start + self._n_planes_in_stacked_tile, max_z_index)
-            ):
-                if z in row_dict:
-                    files.append(row_dict[z])
-                else:
-                    files.append(None)
-
-            time_point = tczyx_index[0]
+            tiles = []
             channel = tczyx_index[1]
-            y, x = tczyx_index[3], tczyx_index[4]
-
             ch_metadata = self._metadata[self._metadata["Ch"] == channel].iloc[0]
-            shape = (
-                len(files),
-                int(ch_metadata["VerticalPixels"]),
-                int(ch_metadata["HorizontalPixels"]),
-            )
-
-            yx_spacing = self.get_yx_spacing()
-
             bgcm = None
             if self._background_correction_matrices is not None:
                 bgcm = self._background_correction_matrices[str(channel)]
@@ -133,20 +115,50 @@ class CellVoyagerWellAcquisition(WellAcquisition):
             icm = None
             if self._illumination_correction_matrices is not None:
                 icm = self._illumination_correction_matrices[str(channel)]
+            z_start = tczyx_index[2] * self._n_planes_in_stacked_tile + min_z_index
+
+            time_point = tczyx_index[0]
+            channel = tczyx_index[1]
+            yx_spacing = self.get_yx_spacing()
+            y = int(-float(tczyx_index[3]) / yx_spacing[0])
+            x = int(float(tczyx_index[4]) / yx_spacing[1])
+
+            for z in range(
+                z_start, min(z_start + self._n_planes_in_stacked_tile, max_z_index)
+            ):
+                if z in row_dict:
+                    tiles.append(
+                        Tile(
+                            source=self._source,
+                            path=row_dict[z],
+                            shape=(
+                                int(ch_metadata["VerticalPixels"]),
+                                int(ch_metadata["HorizontalPixels"]),
+                            ),
+                            position=TilePosition(
+                                time=tczyx_index[0],
+                                channel=tczyx_index[1],
+                                z=z,
+                                y=y,
+                                x=x,
+                            ),
+                            background_correction_matrix_path=bgcm,
+                            illumination_correction_matrix_path=icm,
+                        )
+                    )
+                else:
+                    tiles.append(None)
 
             stacked_tiles.append(
                 StackedTile(
-                    paths=files,
-                    shape=shape,
+                    tiles=tiles,
                     position=TilePosition(
                         time=time_point,
                         channel=int(channel),
                         z=z_start,
-                        y=int(-float(y) / yx_spacing[0]),
-                        x=int(float(x) / yx_spacing[1]),
+                        y=y,
+                        x=x,
                     ),
-                    background_correction_matrix_path=bgcm,
-                    illumination_correction_matrix_path=icm,
                     dtype=self._dtype,
                 )
             )
@@ -169,10 +181,10 @@ class CellVoyagerWellAcquisition(WellAcquisition):
         return self._z_spacing
 
 
-class StackAcquisition(PlateAcquisition):
+class StackAcquisition(PlateAcquisition[CVSource]):
     def __init__(
         self,
-        acquisition_dir: Path | str,
+        source: CVSource,
         alignment: TileAlignmentOptions,
         background_correction_matrices: dict[str, Path | str] | None = None,
         illumination_correction_matrices: dict[str, Path | str] | None = None,
@@ -180,7 +192,7 @@ class StackAcquisition(PlateAcquisition):
     ):
         self._n_planes_in_stacked_tile = n_planes_in_stacked_tile
         super().__init__(
-            acquisition_dir=acquisition_dir,
+            source=source,
             alignment=alignment,
             background_correction_matrices=background_correction_matrices,
             illumination_correction_matrices=illumination_correction_matrices,
@@ -214,9 +226,10 @@ class StackAcquisition(PlateAcquisition):
         return self._wells[0].get_z_spacing()
 
     def _build_well_acquisitions(self, files: pd.DataFrame) -> list[WellAcquisition]:
-        dtype = copy(imread(files.iloc[0]["path"]).dtype)
+        dtype = copy(self._source.get_image(files.iloc[0]["path"]).dtype)
         return [
             CellVoyagerWellAcquisition(
+                source=self._source,
                 files=files[files["well"] == well],
                 alignment=self._alignment,
                 metadata=self._parse_metadata(),
@@ -236,11 +249,7 @@ class StackAcquisition(PlateAcquisition):
             return 0
 
     def _parse_metadata(self) -> pd.DataFrame:
-        mrf_file = join(self._acquisition_dir, "MeasurementDetail.mrf")
-        if not exists(mrf_file):
-            msg = f"MeasurementDetail.mrf not found in: {self._acquisition_dir}"
-            raise ValueError(msg)
-        mrf_tree = parse(mrf_file)
+        mrf_tree = parse(self._source.get_measurement_detail())
         mrf_root = mrf_tree.getroot()
 
         channels = []
@@ -250,14 +259,11 @@ class StackAcquisition(PlateAcquisition):
             }
             channels.append(row)
 
-        mes_file = join(
-            self._acquisition_dir,
-            mrf_root.attrib[BTS_NS + "MeasurementSettingFileName"],
+        mes_tree = parse(
+            self._source.get_measurement_settings(
+                mrf_root.attrib[BTS_NS + "MeasurementSettingFileName"]
+            )
         )
-        if not exists(mes_file):
-            msg = f"Settings file not found: {mes_file}"
-            raise ValueError(msg)
-        mes_tree = parse(mes_file)
         mes_root = mes_tree.getroot()
 
         channel_settings = []
@@ -277,11 +283,7 @@ class StackAcquisition(PlateAcquisition):
         )
 
     def _parse_files(self) -> pd.DataFrame:
-        mlf_file = join(self._acquisition_dir, "MeasurementData.mlf")
-        if not exists(mlf_file):
-            msg = f"MeasurementData.mlf not found in: {self._acquisition_dir}"
-            raise ValueError(msg)
-        mlf_tree = parse(mlf_file)
+        mlf_tree = parse(self._source.get_measurement_data())
         mlf_root = mlf_tree.getroot()
 
         files = []
@@ -291,7 +293,7 @@ class StackAcquisition(PlateAcquisition):
             }
             if row.pop("Type") == "IMG":
                 row |= {
-                    "path": join(self._acquisition_dir, record.text),
+                    "path": record.text,
                     "well": chr(ord("@") + int(row.pop("Row")))
                     + row.pop("Column").zfill(2),
                 }
@@ -310,16 +312,14 @@ class ZAdjustedStackAcquisition(StackAcquisition):
 
     def __init__(
         self,
-        acquisition_dir: Path | str,
-        trace_log_files: list[Path | str],
+        source: CVSource,
         alignment: TileAlignmentOptions,
         background_correction_matrices: dict[str, Path | str] | None = None,
         illumination_correction_matrices: dict[str, Path | str] | None = None,
         n_planes_in_stacked_tile: int = 1,
     ):
-        self._trace_log_files = trace_log_files
         super().__init__(
-            acquisition_dir,
+            source,
             alignment,
             background_correction_matrices,
             illumination_correction_matrices,
@@ -328,7 +328,7 @@ class ZAdjustedStackAcquisition(StackAcquisition):
 
     def _parse_files(self) -> pd.DataFrame:
         files = super()._parse_files()
-        z_mapping = self.create_z_mapping(self._trace_log_files, self._acquisition_dir)
+        z_mapping = self.create_z_mapping()
         # merge files left with mapping on path
         merged = files.merge(z_mapping, how="left", left_on=["path"], right_on=["path"])
         if np.any(merged["z_pos"].isna()):
@@ -365,48 +365,39 @@ class ZAdjustedStackAcquisition(StackAcquisition):
         filenames = []
         missing = []
         value = None
-        for trace_file in trace_log_files:
-            with open(trace_file) as log:
-                for line in log:
-                    tokens = line.split(",")
-                    if (
-                        (len(tokens) > 14)
-                        and (tokens[7] == "--->")
-                        and (tokens[8] == "MS_MANU")
-                    ):
-                        value = float(tokens[14])
-                    elif (
-                        (len(tokens) > 12)
-                        and (tokens[7] == "--->")
-                        and (tokens[8] == "AF_MANU")
-                        and (tokens[9] == "34")
-                    ):
-                        value = float(tokens[12])
-                    elif (
-                        (len(tokens) > 8)
-                        and (tokens[4] == "Measurement")
-                        and (tokens[7] == "_init_frame_save")
-                    ):
-                        filename = tokens[8]
-                        if value is None:
-                            missing.append(
-                                join(acquisition_dir, filename)
-                                if acquisition_dir
-                                else filename
-                            )
-                        else:
-                            filenames.append(
-                                join(acquisition_dir, filename)
-                                if acquisition_dir
-                                else filename
-                            )
-                            z_pos.append(value)
-                    elif (
-                        (len(tokens) > 7)
-                        and (tokens[6] == "EndPeriod")
-                        and (tokens[7] == "acquire frames")
-                    ):
-                        value = None
+        for trace_log in self._source.get_trace_logs():
+            for line in trace_log:
+                tokens = line.split(",")
+                if (
+                    (len(tokens) > 14)
+                    and (tokens[7] == "--->")
+                    and (tokens[8] == "MS_MANU")
+                ):
+                    value = float(tokens[14])
+                elif (
+                    (len(tokens) > 12)
+                    and (tokens[7] == "--->")
+                    and (tokens[8] == "AF_MANU")
+                    and (tokens[9] == "34")
+                ):
+                    value = float(tokens[12])
+                elif (
+                    (len(tokens) > 8)
+                    and (tokens[4] == "Measurement")
+                    and (tokens[7] == "_init_frame_save")
+                ):
+                    filename = tokens[8]
+                    if value is None:
+                        missing.append(filename)
+                    else:
+                        filenames.append(filename)
+                        z_pos.append(value)
+                elif (
+                    (len(tokens) > 7)
+                    and (tokens[6] == "EndPeriod")
+                    and (tokens[7] == "acquire frames")
+                ):
+                    value = None
 
         if len(missing) > 0:
             warn("Z position information missing for some files.", stacklevel=2)

@@ -5,6 +5,8 @@ from numpy._typing import NDArray
 from pydantic import BaseModel, NonNegativeInt
 from tifffile import imread
 
+from faim_ipa.hcs.source import Source
+
 
 class TilePosition(BaseModel):
     time: NonNegativeInt | None
@@ -12,6 +14,24 @@ class TilePosition(BaseModel):
     z: int
     y: int
     x: int
+
+    def get_yx(self) -> tuple[int, int]:
+        return self.y, self.x
+
+    def get_zyx(self) -> tuple[int, int, int]:
+        return self.z, self.y, self.x
+
+    def get_czyx(self) -> tuple[int, int, int, int]:
+        return self.channel, self.z, self.y, self.x
+
+    def get_tczyx(self) -> tuple[int, int, int, int, int]:
+        return (
+            self.time,
+            self.channel,
+            self.z,
+            self.y,
+            self.x,
+        )
 
     def __repr__(self):
         return f"TilePosition(time={self.time}, channel={self.channel}, z={self.z}, y={self.y}, x={self.x})"
@@ -25,7 +45,8 @@ class Tile:
     A tile with a path to the image data, shape and position.
     """
 
-    path: str
+    source: Source
+    path: Path | str
     shape: tuple[int, ...]
     position: TilePosition
     background_correction_matrix_path: Path | str | None = None
@@ -33,13 +54,15 @@ class Tile:
 
     def __init__(
         self,
+        source: Source,
         path: Path | str,
-        shape: tuple[int, int],
+        shape: tuple[int, ...],
         position: TilePosition,
         background_correction_matrix_path: Path | str | None = None,
         illumination_correction_matrix_path: Path | str | None = None,
     ):
         super().__init__()
+        self.source = source
         self.path = path
         self.shape = shape
         self.position = position
@@ -55,21 +78,6 @@ class Tile:
     def __str__(self):
         return self.__repr__()
 
-    def get_yx_position(self) -> tuple[int, int]:
-        return self.position.y, self.position.x
-
-    def get_zyx_position(self) -> tuple[int, int, int]:
-        return self.position.z, self.position.y, self.position.x
-
-    def get_position(self) -> tuple[int, int, int, int, int]:
-        return (
-            self.position.time,
-            self.position.channel,
-            self.position.z,
-            self.position.y,
-            self.position.x,
-        )
-
     def load_data(self) -> NDArray:
         """
         Load the image data from the path.
@@ -78,7 +86,7 @@ class Tile:
         -------
         Image data
         """
-        data = imread(self.path)
+        data = self.source.get_image(self.path)
         data = self._apply_background_correction(data)
         return self._apply_illumination_correction(data)
 

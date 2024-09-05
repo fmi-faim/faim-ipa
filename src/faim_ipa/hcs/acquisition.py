@@ -2,11 +2,12 @@ from abc import ABC, abstractmethod
 from collections.abc import Iterable
 from enum import Enum
 from pathlib import Path
-from typing import Any
+from typing import Any, Generic, TypeVar
 
 import numpy as np
 import pandas as pd
 
+from faim_ipa.hcs.source import Source
 from faim_ipa.io.metadata import ChannelMetadata
 from faim_ipa.stitching.tile import Tile
 
@@ -18,8 +19,11 @@ class TileAlignmentOptions(Enum):
     GRID = "GridAlignment"
 
 
-class PlateAcquisition(ABC):
-    _acquisition_dir = None
+SourceT = TypeVar("SourceT", bound=Source)
+
+
+class PlateAcquisition(ABC, Generic[SourceT]):
+    _source: SourceT = None
     _wells = None
     _alignment: TileAlignmentOptions = None
     _background_correction_matrices: dict[str, Path | str] | None
@@ -28,12 +32,12 @@ class PlateAcquisition(ABC):
 
     def __init__(
         self,
-        acquisition_dir: Path | str,
+        source: Source,
         alignment: TileAlignmentOptions,
         background_correction_matrices: dict[str, Path | str] | None,
         illumination_correction_matrices: dict[str, Path | str] | None,
     ) -> None:
-        self._acquisition_dir = acquisition_dir
+        self._source = source
         self._alignment = alignment
         self._background_correction_matrices = background_correction_matrices
         self._illumination_correction_matrices = illumination_correction_matrices
@@ -305,7 +309,7 @@ class WellAcquisition(ABC):
         """
         if self._shape is None:
             tile_extents = [
-                tile.get_position()
+                tile.position.get_tczyx()
                 + np.array((1,) * (5 - len(tile.shape)) + tile.shape)
                 for tile in self._tiles
             ]

@@ -7,6 +7,7 @@ from numpy._typing import NDArray
 from tifffile import TiffFile
 
 from faim_ipa.hcs.acquisition import TileAlignmentOptions, WellAcquisition
+from faim_ipa.hcs.source import FileSource
 from faim_ipa.io.metadata import ChannelMetadata
 from faim_ipa.stitching.tile import Tile, TilePosition
 from faim_ipa.visiview.ome_companion_utils import parse_basic_metadata
@@ -16,7 +17,7 @@ class StackedTile(Tile):
     def __init__(
         self,
         path: Path | str,
-        shape: tuple[int, int],
+        shape: tuple[int, ...],
         position: TilePosition,
         background_correction_matrix_path: Path | str | None = None,
         illumination_correction_matrix_path: Path | str | None = None,
@@ -24,8 +25,10 @@ class StackedTile(Tile):
         memmap: bool = True,
     ):
         self._memmap = memmap
+        p = Path(path)
         super().__init__(
-            path=path,
+            source=FileSource(p.parent),
+            path=p.name,
             shape=shape,
             position=position,
             background_correction_matrix_path=background_correction_matrix_path,

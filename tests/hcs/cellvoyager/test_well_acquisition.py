@@ -10,6 +10,7 @@ from faim_ipa.hcs.cellvoyager import (
     CellVoyagerWellAcquisition,
     StackedTile,
 )
+from faim_ipa.hcs.cellvoyager.source import CVSourceFS
 
 
 @pytest.fixture
@@ -36,8 +37,20 @@ def metadata() -> pd.DataFrame:
     )
 
 
-def test__assemble_tiles(files, metadata):
+@pytest.fixture
+def cv_acquisition() -> CVSourceFS:
+    return CVSourceFS(
+        Path(__file__).parent.parent.parent.parent
+        / "resources"
+        / "CV8000"
+        / "CV8000-Minimal-DataSet-2C-3W-4S-FP2-stack_20230918_135839"
+        / "CV8000-Minimal-DataSet-2C-3W-4S-FP2-stack"
+    )
+
+
+def test__assemble_tiles(files, metadata, cv_acquisition):
     cv_well_acquisition = CellVoyagerWellAcquisition(
+        source=cv_acquisition,
         files=files,
         alignment=TileAlignmentOptions.GRID,
         metadata=metadata,
@@ -47,8 +60,8 @@ def test__assemble_tiles(files, metadata):
     assert len(tiles) == 32
     for tile in tiles:
         assert isinstance(tile, StackedTile)
-        assert os.path.exists(tile._paths[0])
-        assert len(tile._paths) == 1
+        assert os.path.exists(tile.tiles[0].path)
+        assert len(tile.tiles) == 1
         assert tile.shape == (1, 2000, 2000)
         assert tile.position.channel in [1, 2]
         assert tile.position.time == 1
@@ -57,8 +70,9 @@ def test__assemble_tiles(files, metadata):
         assert tile.position.x in list((files["X"].unique() / 0.65).astype(int))
 
 
-def test__assemble_tiles_missing_acquisition(files, metadata):
+def test__assemble_tiles_missing_acquisition(files, metadata, cv_acquisition):
     cv_well_acquisition = CellVoyagerWellAcquisition(
+        source=cv_acquisition,
         files=files.query("ZIndex != 2"),
         alignment=TileAlignmentOptions.GRID,
         metadata=metadata,
@@ -69,10 +83,10 @@ def test__assemble_tiles_missing_acquisition(files, metadata):
     assert len(tiles) == 16
     for tile in tiles:
         assert isinstance(tile, StackedTile)
-        assert len(tile._paths) == 2
-        assert os.path.exists(tile._paths[0])
-        if tile._paths[1]:
-            assert os.path.exists(tile._paths[1])
+        assert len(tile.tiles) == 2
+        assert os.path.exists(tile.tiles[0].path)
+        if tile.tiles[1]:
+            assert os.path.exists(tile.tiles[1].path)
         assert tile.shape == (2, 2000, 2000)
         assert tile.position.channel in [1, 2]
         assert tile.position.time == 1
@@ -82,8 +96,9 @@ def test__assemble_tiles_missing_acquisition(files, metadata):
         assert tile.load_data().shape == tile.shape
 
 
-def test_get_axes(files, metadata):
+def test_get_axes(files, metadata, cv_acquisition):
     cv_well_acquisition = CellVoyagerWellAcquisition(
+        source=cv_acquisition,
         files=files,
         alignment=TileAlignmentOptions.GRID,
         metadata=metadata,
@@ -92,6 +107,7 @@ def test_get_axes(files, metadata):
     assert axes == ["c", "z", "y", "x"]
 
     cv_well_acquisition = CellVoyagerWellAcquisition(
+        source=cv_acquisition,
         files=files.drop(["Z", "ZIndex"], axis=1),
         alignment=TileAlignmentOptions.GRID,
         metadata=metadata,
@@ -100,8 +116,9 @@ def test_get_axes(files, metadata):
     assert axes == ["c", "y", "x"]
 
 
-def test_get_yx_spacing(files, metadata):
+def test_get_yx_spacing(files, metadata, cv_acquisition):
     cv_well_acquisition = CellVoyagerWellAcquisition(
+        source=cv_acquisition,
         files=files,
         alignment=TileAlignmentOptions.GRID,
         metadata=metadata,
@@ -110,9 +127,12 @@ def test_get_yx_spacing(files, metadata):
     assert yx_spacing == (0.65, 0.65)
 
 
-def test__compute_z_spacing(files, metadata):
+def test__compute_z_spacing(files, metadata, cv_acquisition):
     cv_well_acquisition = CellVoyagerWellAcquisition(
-        files=files, alignment=TileAlignmentOptions.GRID, metadata=metadata
+        source=cv_acquisition,
+        files=files,
+        alignment=TileAlignmentOptions.GRID,
+        metadata=metadata,
     )
     z_spacing = cv_well_acquisition._compute_z_spacing(files)
     assert z_spacing == 3.0
@@ -121,8 +141,9 @@ def test__compute_z_spacing(files, metadata):
     assert yx_spacing == (0.65, 0.65)
 
 
-def test_get_z_spacing(files, metadata):
+def test_get_z_spacing(files, metadata, cv_acquisition):
     cv_well_acquisition = CellVoyagerWellAcquisition(
+        source=cv_acquisition,
         files=files,
         alignment=TileAlignmentOptions.GRID,
         metadata=metadata,
@@ -132,35 +153,41 @@ def test_get_z_spacing(files, metadata):
     assert z_spacing == 3.0
 
 
-def test_bgcm(files, metadata):
+def test_bgcm(files, metadata, cv_acquisition):
     cv_well_acquisition = CellVoyagerWellAcquisition(
+        source=cv_acquisition,
         files=files,
         alignment=TileAlignmentOptions.GRID,
         metadata=metadata,
         background_correction_matrices={"1": "bgcm1", "2": "bgcm2"},
     )
 
-    tiles = cv_well_acquisition._assemble_tiles()
-    for tile in tiles:
-        if tile.position.channel == 1:
-            assert tile.background_correction_matrix_path == "bgcm1"
+    stacked_tiles = cv_well_acquisition._assemble_tiles()
+    for stacked_tile in stacked_tiles:
+        if stacked_tile.position.channel == 1:
+            for t in stacked_tile.tiles:
+                assert t.background_correction_matrix_path == "bgcm1"
 
-        if tile.position.channel == 2:
-            assert tile.background_correction_matrix_path == "bgcm2"
+        if stacked_tile.position.channel == 2:
+            for t in stacked_tile.tiles:
+                assert t.background_correction_matrix_path == "bgcm2"
 
 
-def test_icm(files, metadata):
+def test_icm(files, metadata, cv_acquisition):
     cv_well_acquisition = CellVoyagerWellAcquisition(
+        source=cv_acquisition,
         files=files,
         alignment=TileAlignmentOptions.GRID,
         metadata=metadata,
         illumination_correction_matrices={"1": "icm1", "2": "icm2"},
     )
 
-    tiles = cv_well_acquisition._assemble_tiles()
-    for tile in tiles:
-        if tile.position.channel == 1:
-            assert tile.illumination_correction_matrix_path == "icm1"
+    stacked_tiles = cv_well_acquisition._assemble_tiles()
+    for stacked_tile in stacked_tiles:
+        if stacked_tile.position.channel == 1:
+            for t in stacked_tile.tiles:
+                assert t.illumination_correction_matrix_path == "icm1"
 
-        if tile.position.channel == 2:
-            assert tile.illumination_correction_matrix_path == "icm2"
+        if stacked_tile.position.channel == 2:
+            for t in stacked_tile.tiles:
+                assert t.illumination_correction_matrix_path == "icm2"

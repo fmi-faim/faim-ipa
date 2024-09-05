@@ -3,11 +3,13 @@ import pytest
 from numpy.testing import assert_array_equal
 from tifffile import imwrite
 
+from faim_ipa.hcs.source import FileSource
 from faim_ipa.stitching.tile import Tile, TilePosition
 
 
 def test_fields():
     tile = Tile(
+        source=FileSource("path"),
         path="path",
         shape=(10, 10),
         position=TilePosition(time=0, channel=0, z=0, y=0, x=0),
@@ -57,7 +59,8 @@ def icm(tmp_dir):
 
 def test_load_data(test_img, bgcm, icm):
     tile = Tile(
-        path=test_img[0],
+        source=FileSource(test_img[0].parent),
+        path=test_img[0].name,
         shape=(10, 10),
         position=TilePosition(time=0, channel=0, z=0, y=0, x=0),
     )
@@ -65,7 +68,8 @@ def test_load_data(test_img, bgcm, icm):
     assert_array_equal(tile.load_data(), test_img[1])
 
     tile = Tile(
-        path=test_img[0],
+        source=FileSource(test_img[0].parent),
+        path=test_img[0].name,
         shape=(10, 10),
         position=TilePosition(time=0, channel=0, z=0, y=0, x=0),
         background_correction_matrix_path=bgcm[0],
@@ -74,7 +78,8 @@ def test_load_data(test_img, bgcm, icm):
     assert_array_equal(tile.load_data(), test_img[1] - bgcm[1])
 
     tile = Tile(
-        path=test_img[0],
+        source=FileSource(test_img[0].parent),
+        path=test_img[0].name,
         shape=(10, 10),
         position=TilePosition(time=0, channel=0, z=0, y=0, x=0),
         illumination_correction_matrix_path=icm[0],
@@ -85,17 +90,19 @@ def test_load_data(test_img, bgcm, icm):
 
 def test_get_position():
     tile = Tile(
+        source=FileSource("path"),
         path="path",
         shape=(10, 10),
         position=TilePosition(time=10, channel=20, z=-1, y=2, x=7),
     )
-    assert tile.get_position() == (10, 20, -1, 2, 7)
-    assert tile.get_zyx_position() == (-1, 2, 7)
-    assert tile.get_yx_position() == (2, 7)
+    assert tile.position.get_tczyx() == (10, 20, -1, 2, 7)
+    assert tile.position.get_zyx() == (-1, 2, 7)
+    assert tile.position.get_yx() == (2, 7)
 
 
 def test_tile_data_mask():
     tile = Tile(
+        source=FileSource("path"),
         path="path",
         shape=(10, 10),
         position=TilePosition(time=10, channel=20, z=-1, y=2, x=7),
@@ -110,8 +117,21 @@ def test_cellvoyager_data_mask():
     from faim_ipa.hcs.cellvoyager.tile import StackedTile
 
     tile = StackedTile(
-        paths=["path1", None, "path3"],
-        shape=(3, 10, 10),
+        tiles=[
+            Tile(
+                source=None,
+                path="path1",
+                shape=(10, 10),
+                position=TilePosition(time=10, channel=20, z=-1, y=2, x=7),
+            ),
+            None,
+            Tile(
+                source=None,
+                path="path3",
+                shape=(10, 10),
+                position=TilePosition(time=10, channel=20, z=-1, y=2, x=7),
+            ),
+        ],
         dtype=np.uint8,
         position=TilePosition(time=10, channel=20, z=-1, y=2, x=7),
     )

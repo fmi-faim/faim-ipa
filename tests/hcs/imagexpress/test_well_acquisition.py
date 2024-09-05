@@ -1,4 +1,3 @@
-import os
 from os.path import join
 from pathlib import Path
 
@@ -29,7 +28,7 @@ def test__assemble_tiles(files):
     tiles = ix_well_acquisition._assemble_tiles()
     assert len(tiles) == 42
     for tile in tiles:
-        assert os.path.exists(tile.path)
+        assert tile.source.exists(tile.path)
         assert tile.shape == (512, 512)
         assert tile.position.channel in [1, 2, 4]
         assert tile.position.time == 0

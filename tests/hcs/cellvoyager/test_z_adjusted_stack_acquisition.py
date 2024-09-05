@@ -2,10 +2,10 @@ import re
 from pathlib import Path
 
 import pytest
-from tifffile import imread
 
 from faim_ipa.hcs.acquisition import TileAlignmentOptions
 from faim_ipa.hcs.cellvoyager import ZAdjustedStackAcquisition
+from faim_ipa.hcs.cellvoyager.source import CVSourceFS
 
 
 @pytest.fixture
@@ -31,6 +31,14 @@ def trace_log_file() -> Path:
 
 
 @pytest.fixture
+def cv_source_filesystem(cv_acquisition, trace_log_file) -> CVSourceFS:
+    return CVSourceFS(
+        acquisition_dir=cv_acquisition,
+        trace_log_files=[trace_log_file],
+    )
+
+
+@pytest.fixture
 def incomplete_trace_log_file() -> Path:
     return (
         Path(__file__).parent.parent.parent.parent
@@ -41,11 +49,10 @@ def incomplete_trace_log_file() -> Path:
     )
 
 
-def test__parse_files(cv_acquisition, trace_log_file):
+def test__parse_files(cv_source_filesystem):
     with pytest.warns() as record:
         plate = ZAdjustedStackAcquisition(
-            acquisition_dir=cv_acquisition,
-            trace_log_files=[trace_log_file],
+            source=cv_source_filesystem,
             alignment=TileAlignmentOptions.GRID,
         )
     assert len(record) == 2
@@ -97,11 +104,10 @@ def test__parse_files(cv_acquisition, trace_log_file):
     ]
 
 
-def test_get_well_acquisitions(cv_acquisition, trace_log_file):
+def test_get_well_acquisitions(cv_source_filesystem):
     with pytest.warns() as record:
         plate = ZAdjustedStackAcquisition(
-            acquisition_dir=cv_acquisition,
-            trace_log_files=[trace_log_file],
+            source=cv_source_filesystem,
             alignment=TileAlignmentOptions.GRID,
         )
     assert len(record) == 2
@@ -115,7 +121,7 @@ def test_get_well_acquisitions(cv_acquisition, trace_log_file):
     for well in wells:
         for tile in well.get_tiles():
             file_name = (
-                f".*[/\\\\]CV8000-Minimal-DataSet-2C-3W-4S-FP2-stack_"
+                f"CV8000-Minimal-DataSet-2C-3W-4S-FP2-stack_"
                 f"{well.name}_T"
                 f"{str(tile.position.time + 1).zfill(4)}F.*L.*A.*Z.*C"
                 f"{str(tile.position.channel + 1).zfill(2)}\\.tif"
@@ -124,20 +130,22 @@ def test_get_well_acquisitions(cv_acquisition, trace_log_file):
             from faim_ipa.hcs.cellvoyager.tile import StackedTile
 
             assert isinstance(tile, StackedTile)
-            assert re_file_name.match(tile._paths[0])
-            assert tile.shape[1:] == imread(tile._paths[0]).shape
-            assert tile.illumination_correction_matrix_path is None
-            assert tile.background_correction_matrix_path is None
+            assert re_file_name.match(tile.tiles[0].path)
+            assert tile.shape[1:] == plate._source.get_image(tile.tiles[0].path).shape
+            assert tile.tiles[0].illumination_correction_matrix_path is None
+            assert tile.tiles[0].background_correction_matrix_path is None
             assert tile.position.x in [0, 2000]
             assert tile.position.y in [0, 2000]
             assert tile.position.z in [0, 1, 2, 3, 4, 5]
 
 
-def test_create_z_mapping(trace_log_file):
+def test_create_z_mapping(cv_source_filesystem):
     with pytest.warns():
-        mapping = ZAdjustedStackAcquisition.create_z_mapping(
-            trace_log_files=[trace_log_file]
+        zasa = ZAdjustedStackAcquisition(
+            source=cv_source_filesystem,
+            alignment=TileAlignmentOptions.GRID,
         )
+        mapping = zasa.create_z_mapping()
     assert len(mapping) == 96
     assert set(mapping["z_pos"]) == {0, 1, 3, 4, 6, 7, 9, 10, 12, 15}
 
@@ -145,7 +153,8 @@ def test_create_z_mapping(trace_log_file):
 def test_incomplete_tracelog(cv_acquisition, incomplete_trace_log_file):
     with pytest.raises(ValueError, match="At least one invalid z position"):
         ZAdjustedStackAcquisition(
-            acquisition_dir=cv_acquisition,
-            trace_log_files=[incomplete_trace_log_file],
+            source=CVSourceFS(
+                cv_acquisition, trace_log_files=[incomplete_trace_log_file]
+            ),
             alignment=TileAlignmentOptions.GRID,
         )
