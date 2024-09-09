@@ -26,16 +26,29 @@ def fuse_linear(warped_tiles: NDArray, warped_distance_masks: NDArray) -> NDArra
     Fused image.
     """
     dtype = warped_tiles.dtype
-    if warped_tiles.shape[0] > 1:
-        denominator = warped_distance_masks.sum(axis=0)
-        weights = np.true_divide(
-            warped_distance_masks, denominator, where=denominator > 0
-        )
-        weights = np.clip(np.nan_to_num(weights, nan=0, posinf=1, neginf=0), 0, 1)
-    else:
-        weights = warped_distance_masks.astype(bool)
+    fused_image = np.zeros_like(warped_tiles[0], dtype=np.float32)
 
-    return np.sum(warped_tiles * weights, axis=0).astype(dtype)
+    if warped_tiles.shape[0] > 1:
+        denominator = np.sum(warped_distance_masks, axis=0)
+
+        for tile, mask in zip(warped_tiles, warped_distance_masks, strict=True):
+            weight = np.divide(mask, denominator, where=denominator > 0)
+            np.clip(weight, 0, 1, out=weight)
+            np.add(
+                fused_image,
+                tile.astype(np.float32) * weight,
+                out=fused_image,
+                where=weight > 0,
+            )
+    else:
+        np.add(
+            fused_image,
+            warped_tiles[0],
+            out=fused_image,
+            where=warped_distance_masks[0] > 0,
+        )
+
+    return np.clip(fused_image, 0, np.iinfo(dtype).max).astype(dtype)
 
 
 def fuse_linear_random(
@@ -92,13 +105,21 @@ def fuse_mean(warped_tiles: NDArray, warped_distance_masks: NDArray) -> NDArray:
     -------
     Fused image.
     """
-    warped_masks = warped_distance_masks.astype(bool)
-    denominator = warped_masks.sum(axis=0)
-    weights = np.true_divide(warped_masks, denominator, where=denominator > 0)
-    weights = np.clip(np.nan_to_num(weights, nan=0, posinf=1, neginf=0), 0, 1)
+    denominator = np.sum(warped_distance_masks > 0, axis=0)
+    fused_image = np.zeros_like(warped_tiles[0], dtype=np.float32)
 
-    fused_image = np.sum(warped_tiles * weights, axis=0)
-    return fused_image.astype(warped_tiles.dtype)
+    for tile, mask in zip(warped_tiles, warped_distance_masks, strict=True):
+        weight = np.divide(mask > 0, denominator, where=denominator > 0)
+        np.add(
+            fused_image,
+            tile.astype(np.float32) * weight,
+            out=fused_image,
+            where=weight > 0,
+        )
+
+    return np.clip(fused_image, 0, np.iinfo(warped_tiles.dtype).max).astype(
+        warped_tiles.dtype
+    )
 
 
 def fuse_sum(
