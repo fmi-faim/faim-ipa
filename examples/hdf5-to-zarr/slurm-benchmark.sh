@@ -1,6 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=Benchmark
 #SBATCH --cpus-per-task=12
+#SBATCH --exclusive
 #SBATCH --ntasks=1
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
