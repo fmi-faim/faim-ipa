@@ -52,30 +52,28 @@ def compute_lateral_sigma(
     return wavelength / (2 * NA) / (2 * np.sqrt(2 * np.log(2))) / lateral_spacing
 
 
-def estimate_log_rescale_factor(axial_sigma: float, lateral_sigma: float) -> float:
+def estimate_log_rescale_factor(sigmas: tuple[float, ...]) -> float:
     """
     Estimate the rescale factor for a LoG filter response, such that
     the LoG filter response intensities are equal to the input image
-    intensities for spots of size equal to a Gaussian with sigma
+    intensities for spots of size equal to a Gaussian with sigmas
     (axial_sigma, lateral_sigma, lateral_sigma).
+
+    Note: Arbitrary number of sigmas is possible.
 
     Parameters
     ----------
-    axial_sigma :
-        Sigma in axial direction. Usually along Z.
-    lateral_sigma :
-        Sigma in lateral direction. Usually along Y and X.
+    sigmas :
+        Tuple of sigmas used in LoG detection.
 
     Returns
     -------
     rescale_factor
     """
-    extend = int(max(axial_sigma, lateral_sigma) * 7)
-    img = np.zeros((extend,) * 3, dtype=np.float32)
-    img[extend // 2, extend // 2, extend // 2] = 1
-    img = gaussian_filter(img, (axial_sigma, lateral_sigma, lateral_sigma))
+    extend = int(max(sigmas) * 7)
+    img = np.zeros((extend,) * len(sigmas), dtype=np.float32)
+    img[(extend // 2,) * len(sigmas)] = 1
+    img = gaussian_filter(img, sigmas)
     img = img / img.max()
-    img_log = -gaussian_laplace(
-        input=img, sigma=(axial_sigma, lateral_sigma, lateral_sigma)
-    )
+    img_log = -gaussian_laplace(input=img, sigma=sigmas)
     return 1 / img_log.max()
