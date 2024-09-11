@@ -56,7 +56,7 @@ def detect_blobs(
     )
 
     rescale_factor = estimate_log_rescale_factor(
-        axial_sigma=axial_sigma, lateral_sigma=lateral_sigma
+        (axial_sigma, lateral_sigma, lateral_sigma),
     )
 
     sigmas = [
