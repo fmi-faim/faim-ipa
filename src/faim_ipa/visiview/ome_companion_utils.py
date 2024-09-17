@@ -183,8 +183,13 @@ def parse_basic_metadata(companion_file: Path | str) -> dict[str, Any]:
     """
     with open(companion_file, "rb") as f:
         root = parse(f).getroot()
+        try:
+            z_spacing = get_z_spacing(root)
+        except StopIteration:
+            z_spacing = None
+
         return {
-            "z_spacing": get_z_spacing(root),
+            "z_spacing": z_spacing,
             "yx_spacing": get_yx_spacing(root),
             "channels": get_channels(root),
             "stage_positions": get_stage_positions(root),
