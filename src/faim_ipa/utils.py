@@ -4,7 +4,10 @@ from datetime import datetime
 from pathlib import Path
 
 import pydantic
-from pydantic import BaseModel
+import questionary
+from pydantic import BaseModel, TypeAdapter, ValidationError
+from questionary import ValidationError as QuestionaryValidationError
+from questionary import Validator
 
 
 def wavelength_to_rgb(wavelength, gamma=0.8):
@@ -142,8 +145,99 @@ def make_relative_to_git_root(path: Path) -> Path:
         return Path(os.path.relpath(path, git_root))
 
 
-class IPAConfig(BaseModel):
+def prompt_with_questionary(model: BaseModel, defaults: dict | None = None):
+    schema = model.model_json_schema()
+    defaults = defaults or {}
+    responses = {}
 
+    for field_name, field_info in schema["properties"].items():
+        description = field_info.get("description", field_name)
+        field_type = field_info["type"]
+        default_value = defaults.get(field_name, "")
+
+        if field_type == "string":
+            if field_info.get("format") == "path":
+                responses[field_name] = questionary.path(
+                    f"Enter {description} [{default_value}]",
+                    validate=QuestionaryPydanticValidator(
+                        model=model, field_name=field_name
+                    ),
+                    default=default_value,
+                ).ask()
+            elif field_info.get("format") == "directory-path":
+                responses[field_name] = questionary.path(
+                    f"Enter {description} (directory) [{default_value}]",
+                    validate=QuestionaryPydanticValidator(
+                        model=model, field_name=field_name
+                    ),
+                    default=default_value,
+                ).ask()
+            else:
+                responses[field_name] = questionary.text(
+                    f"Enter {description} [{default_value}]",
+                    validate=QuestionaryPydanticValidator(
+                        model=model, field_name=field_name
+                    ),
+                    default=default_value,
+                ).ask()
+        elif field_type == "integer":
+            min_val = field_info.get("minimum", None)
+            max_val = field_info.get("maximum", None)
+            prompt_message = f"{description} ({f"minimum: {min_val}" if min_val else ""}-{f"maximum: {max_val}" if max_val else ""}) [{default_value}]"
+            responses[field_name] = int(
+                questionary.text(
+                    prompt_message,
+                    validate=QuestionaryPydanticValidator(
+                        model=model, field_name=field_name
+                    ),
+                    default=str(default_value),
+                ).ask()
+            )
+        elif field_type == "number":
+            min_val = field_info.get("minimum", None)
+            max_val = field_info.get("maximum", None)
+            prompt_message = f"{description} ({f"minimum: {min_val}" if min_val else ""}-{f"maximum: {max_val}" if max_val else ""}) [{default_value}]"
+            responses[field_name] = float(
+                questionary.text(
+                    prompt_message,
+                    validate=QuestionaryPydanticValidator(
+                        model=model, field_name=field_name
+                    ),
+                    default=str(default_value),
+                ).ask()
+            )
+        elif field_type == "boolean":
+            responses[field_name] = questionary.confirm(
+                prompt_message,
+                default=default_value,
+            ).ask()
+        else:
+            msg = f"Unknown field type: {field_type}"
+            raise ValueError(msg)
+
+    return model(**responses)
+
+
+class QuestionaryPydanticValidator(Validator):
+    def __init__(self, model: BaseModel, field_name: str):
+        self.field_name = field_name
+        self.model = model
+        self.field_info = model.model_fields[field_name]
+        self.type_adapter = TypeAdapter(self.field_info.annotation)
+
+    def validate(self, document):
+        try:
+            value = self.type_adapter.validate_python(document.text)
+            self.model.__pydantic_validator__.validate_assignment(
+                self.model.model_construct(), self.field_name, value
+            )
+        except ValidationError as e:
+            raise QuestionaryValidationError(
+                message=f"Invalid value for field: {e.errors()[0]["msg"]}"
+            )
+
+
+class IPAConfig(BaseModel):
     def make_paths_absolute(self):
         """
         Convert all `pathlib.Path` fields to absolute paths.
