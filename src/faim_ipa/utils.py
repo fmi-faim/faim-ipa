@@ -185,7 +185,7 @@ def prompt_with_questionary(model: BaseModel, defaults: dict | None = None):
         elif field_type == "integer":
             min_val = field_info.get("minimum", None)
             max_val = field_info.get("maximum", None)
-            prompt_message = f"{description} ({f"minimum: {min_val}" if min_val else ""}-{f"maximum: {max_val}" if max_val else ""}) [{default_value}]"
+            prompt_message = f"{description} ({f'minimum: {min_val}' if min_val else ''}-{f'maximum: {max_val}' if max_val else ''}) [{default_value}]"
             responses[field_name] = int(
                 questionary.text(
                     prompt_message,
@@ -198,7 +198,7 @@ def prompt_with_questionary(model: BaseModel, defaults: dict | None = None):
         elif field_type == "number":
             min_val = field_info.get("minimum", None)
             max_val = field_info.get("maximum", None)
-            prompt_message = f"{description} ({f"minimum: {min_val}" if min_val else ""}-{f"maximum: {max_val}" if max_val else ""}) [{default_value}]"
+            prompt_message = f"{description} ({f'minimum: {min_val}' if min_val else ''}-{f'maximum: {max_val}' if max_val else ''}) [{default_value}]"
             responses[field_name] = float(
                 questionary.text(
                     prompt_message,
@@ -235,7 +235,7 @@ class QuestionaryPydanticValidator(Validator):
             )
         except ValidationError as e:
             raise QuestionaryValidationError(
-                message=f"Invalid value for field: {e.errors()[0]["msg"]}"
+                message=f"Invalid value for field: {e.errors()[0]['msg']}"
             )
 
 
