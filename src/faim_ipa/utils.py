@@ -2,9 +2,11 @@ import logging
 import os
 from datetime import datetime
 from pathlib import Path
+from typing import TypeVar
 
 import pydantic
 import questionary
+import yaml
 from pydantic import BaseModel, TypeAdapter, ValidationError
 from questionary import ValidationError as QuestionaryValidationError
 from questionary import Validator
@@ -237,6 +239,9 @@ class QuestionaryPydanticValidator(Validator):
             )
 
 
+T = TypeVar("T", bound="IPAConfig")
+
+
 class IPAConfig(BaseModel):
     def make_paths_absolute(self):
         """
@@ -274,3 +279,12 @@ class IPAConfig(BaseModel):
             attr = getattr(self, f)
             if isinstance(attr, Path) and attr.is_absolute():
                 setattr(self, f, make_relative_to_git_root(attr))
+
+    def save(self, config_file):
+        with open(config_file, "w") as f:
+            yaml.safe_dump(self.model_dump(), f, sort_keys=False)
+
+    @classmethod
+    def load(cls: type[T], config_file) -> T:
+        with open(config_file) as f:
+            return cls(**yaml.safe_load(f))

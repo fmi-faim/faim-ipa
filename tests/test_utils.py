@@ -8,6 +8,7 @@ from pydantic import DirectoryPath, Field, create_model
 from questionary import ValidationError
 
 from faim_ipa.utils import (
+    IPAConfig,
     QuestionaryPydanticValidator,
     create_logger,
     prompt_with_questionary,
@@ -122,3 +123,18 @@ def test_prompt_with_questionary(model, mocker, dummy_file):
         "path": dummy_file.absolute(),
         "string": "text",
     }
+
+
+def test_ipa_config(tmp_path):
+    class SomeConfig(IPAConfig):
+        string: str
+        integer: int
+        number: float
+
+    config = SomeConfig(string="dummy", integer=42, number=-0.01)
+    config_path = tmp_path / "config.yml"
+    config.save(config_file=config_path)
+
+    loaded_config = SomeConfig.load(config_file=config_path)
+
+    assert loaded_config.model_dump() == config.model_dump()
