@@ -115,7 +115,7 @@ def test_prompt_with_questionary(model, mocker, dummy_file):
     assert text_patch.call_count == 3
     assert path_patch.call_count == 2
     assert confirm_patch.call_count == 1
-    assert response.dict() == {
+    assert response.model_dump() == {
         "boolean": True,
         "directory": dummy_file.parent.absolute(),
         "ge0": 10,
