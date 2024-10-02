@@ -35,7 +35,12 @@ def get_z_spacing(metadata: ElementTree) -> float | None:
         return None
     z_positions = np.array(sorted(z_positions))
     precision = -Decimal(str(z_positions[0])).as_tuple().exponent
-    return np.round(np.diff(z_positions).mean(), precision)
+    z_spacing = np.round(np.diff(z_positions).mean(), precision)
+    if z_spacing == 0:
+        # There is only one Z plane i.e. no z-spacing exists.
+        return None
+    else:
+        return z_spacing
 
 
 def get_yx_spacing(metadata: ElementTree) -> tuple[float, float]:
