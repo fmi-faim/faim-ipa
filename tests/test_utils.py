@@ -1,5 +1,5 @@
 import os
-from os.path import basename
+from os.path import basename, relpath
 from pathlib import Path
 
 import pytest
@@ -28,6 +28,7 @@ def dummy_file(tmp_path: Path):
 def model():
     return create_model(
         "TestModel",
+        __base__=IPAConfig,
         path=(Path, Field(..., description="File path")),
         directory=(DirectoryPath, Field(..., description="Folder path")),
         string=(str, Field(..., description="Some text")),
@@ -109,18 +110,22 @@ def test_prompt_with_questionary(model, mocker, dummy_file):
         ),
     )
     confirm_patch = mocker.patch("questionary.confirm", return_value=Question([True]))
+    mocker.patch("faim_ipa.utils.get_git_root", return_value=Path.cwd())
     response = prompt_with_questionary(model=model)
     questionary.text.assert_called()
     questionary.path.assert_called()
     assert text_patch.call_count == 3
     assert path_patch.call_count == 2
     assert confirm_patch.call_count == 1
+    assert Path.cwd().name == "logs0"
+    assert response.directory == dummy_file.parent
+    assert response.path == dummy_file
     assert response.model_dump() == {
         "boolean": True,
-        "directory": dummy_file.parent.absolute(),
+        "directory": str(relpath(dummy_file.parent, Path.cwd())),
         "ge0": 10,
         "number": 0.01,
-        "path": dummy_file.absolute(),
+        "path": str(relpath(dummy_file, Path.cwd())),
         "string": "text",
     }
 
