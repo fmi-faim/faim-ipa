@@ -4,10 +4,15 @@ from datetime import datetime
 from pathlib import Path
 from typing import TypeVar
 
-import pydantic
 import questionary
 import yaml
-from pydantic import BaseModel, TypeAdapter, ValidationError
+from pydantic import (
+    BaseModel,
+    TypeAdapter,
+    ValidationError,
+    field_serializer,
+    field_validator,
+)
 from questionary import ValidationError as QuestionaryValidationError
 from questionary import Validator
 
@@ -120,6 +125,8 @@ def resolve_with_git_root(relative_path: Path) -> Path:
     Path
         Absolute path to the file.
     """
+    if relative_path.is_absolute():
+        return relative_path
     git_root = get_git_root()
     return (git_root / relative_path).resolve()
 
@@ -147,7 +154,10 @@ def make_relative_to_git_root(path: Path) -> Path:
         return Path(os.path.relpath(path, git_root))
 
 
-def prompt_with_questionary(model: BaseModel, defaults: dict | None = None):
+def prompt_with_questionary(
+    model: "IPAConfig",
+    defaults: dict | None = None,
+):
     schema = model.model_json_schema()
     defaults = defaults or {}
     responses = {}
@@ -159,21 +169,27 @@ def prompt_with_questionary(model: BaseModel, defaults: dict | None = None):
 
         if field_type == "string":
             if field_info.get("format") == "path":
-                responses[field_name] = questionary.path(
-                    f"Enter {description} [{default_value}]",
-                    validate=QuestionaryPydanticValidator(
-                        model=model, field_name=field_name
-                    ),
-                    default=default_value,
-                ).ask()
+                responses[field_name] = Path(
+                    questionary.path(
+                        f"Enter {description} [{default_value}]",
+                        validate=PathValidator(
+                            model=model,
+                            field_name=field_name,
+                        ),
+                        default=default_value,
+                    ).ask()
+                ).absolute()
             elif field_info.get("format") == "directory-path":
-                responses[field_name] = questionary.path(
-                    f"Enter {description} (directory) [{default_value}]",
-                    validate=QuestionaryPydanticValidator(
-                        model=model, field_name=field_name
-                    ),
-                    default=default_value,
-                ).ask()
+                responses[field_name] = Path(
+                    questionary.path(
+                        f"Enter {description} (directory) [{default_value}]",
+                        validate=PathValidator(
+                            model=model,
+                            field_name=field_name,
+                        ),
+                        default=default_value,
+                    ).ask()
+                ).absolute()
             else:
                 responses[field_name] = questionary.text(
                     f"Enter {description} [{default_value}]",
@@ -227,9 +243,12 @@ class QuestionaryPydanticValidator(Validator):
         self.field_info = model.model_fields[field_name]
         self.type_adapter = TypeAdapter(self.field_info.annotation)
 
+    def _preprocess(self, value):
+        return value
+
     def validate(self, document):
         try:
-            value = self.type_adapter.validate_python(document.text)
+            value = self._preprocess(self.type_adapter.validate_python(document.text))
             self.model.__pydantic_validator__.validate_assignment(
                 self.model.model_construct(), self.field_name, value
             )
@@ -239,46 +258,44 @@ class QuestionaryPydanticValidator(Validator):
             )
 
 
+class PathValidator(QuestionaryPydanticValidator):
+    def __init__(self, model: BaseModel, field_name: str):
+        super().__init__(model, field_name)
+
+    def _preprocess(self, value):
+        return Path(value).absolute()
+
+
 T = TypeVar("T", bound="IPAConfig")
 
 
 class IPAConfig(BaseModel):
-    def make_paths_absolute(self):
-        """
-        Convert all `pathlib.Path` fields to absolute paths.
 
-        The paths are assumed to be relative to a git root directory somewhere
-        in the parent directories of the class implementing `IPAConfig`.
-        """
-        fields = (
-            self.model_fields_set
-            if pydantic.__version__.startswith("2")
-            else self.__fields_set__
-        )
+    @field_serializer("*")
+    @classmethod
+    def path_relative_to_git(cls, value):
+        if isinstance(value, Path):
+            try:
+                return str(make_relative_to_git_root(value))
+            except ValueError:
+                return str(value)
+        return value
 
-        for f in fields:
-            attr = getattr(self, f)
-            if isinstance(attr, Path) and not attr.is_absolute():
-                setattr(self, f, resolve_with_git_root(attr))
+    @field_validator("*", mode="before")
+    @classmethod
+    def git_relative_path_to_absolute(cls, value, info):
+        field_name = info.field_name
+        field_type = cls.__annotations__[field_name]
+        if isinstance(field_type, type) and issubclass(field_type, Path):
+            return resolve_with_git_root(value)
+        if hasattr(field_type, "__metadata__"):
+            if issubclass(field_type.__origin__, Path):
+                return resolve_with_git_root(Path(value))
+        return value
 
-    def make_paths_relative(self):
-        """
-        Convert all `pathlib.Path` fields to relative paths.
-
-        The resulting paths will be relative to the git-root directory
-        somewhere in the parent directories of the class implementing
-        `IPAConfig`.
-        """
-        fields = (
-            self.model_fields_set
-            if pydantic.__version__.startswith("2")
-            else self.__fields_set__
-        )
-
-        for f in fields:
-            attr = getattr(self, f)
-            if isinstance(attr, Path) and attr.is_absolute():
-                setattr(self, f, make_relative_to_git_root(attr))
+    @staticmethod
+    def reference_dir():
+        return get_git_root()
 
     def save(self, config_file):
         with open(config_file, "w") as f:
