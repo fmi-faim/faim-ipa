@@ -28,19 +28,16 @@ def get_z_spacing(metadata: ElementTree) -> float | None:
     image_0 = next(metadata.iter(f"{SCHEMA}Image"))
     pixels = next(image_0.iter(f"{SCHEMA}Pixels"))
     z_positions = set()
+    z_positions = {}
     for plane in pixels.iter(f"{SCHEMA}Plane"):
-        z_positions.add(float(plane.get("PositionZ")))
+        z_positions[plane.get("TheZ")] = float(plane.get("PositionZ"))
 
     if len(z_positions) == 1:
         return None
-    z_positions = np.array(sorted(z_positions))
+    z_positions = np.array(z_positions.values())
     precision = -Decimal(str(z_positions[0])).as_tuple().exponent
     z_spacing = np.round(np.diff(z_positions).mean(), precision)
-    if z_spacing == 0:
-        # There is only one Z plane i.e. no z-spacing exists.
-        return None
-    else:
-        return z_spacing
+    return z_spacing
 
 
 def get_yx_spacing(metadata: ElementTree) -> tuple[float, float]:
