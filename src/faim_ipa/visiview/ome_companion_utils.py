@@ -25,17 +25,19 @@ def get_z_spacing(metadata: ElementTree) -> float | None:
     -------
         Z spacing or None if there is only one Z plane
     """
-    image_0 = next(metadata.iterchildren(f"{SCHEMA}Image"))
-    pixels = next(image_0.iterchildren(f"{SCHEMA}Pixels"))
+    image_0 = next(metadata.iter(f"{SCHEMA}Image"))
+    pixels = next(image_0.iter(f"{SCHEMA}Pixels"))
     z_positions = set()
-    for plane in pixels.iterchildren(f"{SCHEMA}Plane"):
-        z_positions.add(float(plane.get("PositionZ")))
+    z_positions = {}
+    for plane in pixels.iter(f"{SCHEMA}Plane"):
+        z_positions[plane.get("TheZ")] = float(plane.get("PositionZ"))
 
     if len(z_positions) == 1:
         return None
-    z_positions = np.array(sorted(z_positions))
+    z_positions = np.array(z_positions.values())
     precision = -Decimal(str(z_positions[0])).as_tuple().exponent
-    return np.round(np.diff(z_positions).mean(), precision)
+    z_spacing = np.round(np.diff(z_positions).mean(), precision)
+    return z_spacing
 
 
 def get_yx_spacing(metadata: ElementTree) -> tuple[float, float]:
@@ -51,8 +53,8 @@ def get_yx_spacing(metadata: ElementTree) -> tuple[float, float]:
     -------
         YX spacing
     """
-    image_0 = next(metadata.iterchildren(f"{SCHEMA}Image"))
-    pixels = next(image_0.iterchildren(f"{SCHEMA}Pixels"))
+    image_0 = next(metadata.iter(f"{SCHEMA}Image"))
+    pixels = next(image_0.iter(f"{SCHEMA}Pixels"))
     return (
         float(pixels.get("PhysicalSizeY")),
         float(pixels.get("PhysicalSizeX")),
@@ -72,9 +74,9 @@ def get_exposure_time(metadata: ElementTree) -> tuple[float, str]:
     -------
         Exposure time and unit
     """
-    image_0 = next(metadata.iterchildren(f"{SCHEMA}Image"))
-    pixels = next(image_0.iterchildren(f"{SCHEMA}Pixels"))
-    plane_0 = next(pixels.iterchildren(f"{SCHEMA}Plane"))
+    image_0 = next(metadata.iter(f"{SCHEMA}Image"))
+    pixels = next(image_0.iter(f"{SCHEMA}Pixels"))
+    plane_0 = next(pixels.iter(f"{SCHEMA}Plane"))
     return plane_0.get("ExposureTime"), plane_0.get("ExposureTimeUnit")
 
 
@@ -91,10 +93,10 @@ def get_channels(metadata: ElementTree) -> dict[str, ChannelMetadata]:
     -------
         Channel metadata for each channel.
     """
-    image_0 = next(metadata.iterchildren(f"{SCHEMA}Image"))
-    pixels = next(image_0.iterchildren(f"{SCHEMA}Pixels"))
-    channels = [channel.attrib for channel in pixels.iterchildren(f"{SCHEMA}Channel")]
-    objective = next(image_0.iterchildren(f"{SCHEMA}ObjectiveSettings")).get("ID")
+    image_0 = next(metadata.iter(f"{SCHEMA}Image"))
+    pixels = next(image_0.iter(f"{SCHEMA}Pixels"))
+    channels = [channel.attrib for channel in pixels.iter(f"{SCHEMA}Channel")]
+    objective = next(image_0.iter(f"{SCHEMA}ObjectiveSettings")).get("ID")
     yx_spacing = get_yx_spacing(metadata)
     exposure_time, exposure_time_unit = get_exposure_time(metadata)
 
@@ -140,13 +142,13 @@ def get_stage_positions(
         Stage positions for each image.
     """
     positions = {}
-    for i, image in enumerate(metadata.iterchildren(f"{SCHEMA}Image")):
+    for i, image in enumerate(metadata.iter(f"{SCHEMA}Image")):
         image_id = image.get("ID")
         index = int(image_id.split(":")[-1])
         assert index == i, f"Expected index {i} but got {index}"
 
         try:
-            stage_label = next(image.iterchildren(f"{SCHEMA}StageLabel")).attrib
+            stage_label = next(image.iter(f"{SCHEMA}StageLabel")).attrib
 
             y_pos = float(stage_label["Y"])
             x_pos = float(stage_label["X"])
@@ -183,8 +185,13 @@ def parse_basic_metadata(companion_file: Path | str) -> dict[str, Any]:
     """
     with open(companion_file, "rb") as f:
         root = parse(f).getroot()
+        try:
+            z_spacing = get_z_spacing(root)
+        except StopIteration:
+            z_spacing = None
+
         return {
-            "z_spacing": get_z_spacing(root),
+            "z_spacing": z_spacing,
             "yx_spacing": get_yx_spacing(root),
             "channels": get_channels(root),
             "stage_positions": get_stage_positions(root),

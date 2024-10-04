@@ -1,0 +1,309 @@
+<?xml version="1.0" encoding="utf-8"?>
+<OME xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.openmicroscopy.org/Schemas/OME/2016-06 http://www.openmicroscopy.org/Schemas/OME/2016-06/ome.xsd" UUID="urn:uuid:297954fc-d676-4a86-a9b9-7e0c18ff8ed9" xmlns="http://www.openmicroscopy.org/Schemas/OME/2016-06">
+  <Instrument ID="Instrument:0">
+    <Laser ID="LightSource:0:0" />
+    <Detector ID="Detector:0" />
+    <Objective ID="Objective:100x/1.49" LensNA="0" />
+  </Instrument>
+  <Image ID="Image:0" Name="20241003_experiment_488_7_640_3_1">
+    <AcquisitionDate>2024-10-03T14:26:38.7980142+02:00</AcquisitionDate>
+    <ObjectiveSettings ID="Objective:100x/1.49" />
+    <Pixels ID="Pixels:0:0" DimensionOrder="XYZCT" Type="uint16" SizeX="512" SizeY="512" SizeZ="1" SizeC="2" SizeT="5" PhysicalSizeX="0.16" PhysicalSizeXUnit="µm" PhysicalSizeY="0.16" PhysicalSizeYUnit="µm">
+      <Channel ID="Channel:0" Name="Channel1" SamplesPerPixel="1" ExcitationWavelength="488" EmissionWavelength="525">
+        <LightSourceSettings ID="LightSource:0:0" Attenuation="0.07" Wavelength="488" />
+        <DetectorSettings ID="Detector:0" Binning="1x1" />
+      </Channel>
+      <Channel ID="Channel:1" Name="Channel2" SamplesPerPixel="1" ExcitationWavelength="640" EmissionWavelength="680">
+        <LightSourceSettings ID="LightSource:0:0" Attenuation="0.03" Wavelength="640" />
+        <DetectorSettings ID="Detector:0" Binning="1x1" />
+      </Channel>
+      <TiffData PlaneCount="1">
+        <UUID FileName="20240729_experiment_488_7_640_3_1_w1Channel1.ome.tif">urn:uuid:b64f3929-cbf5-4759-959d-159e9162789a</UUID>
+      </TiffData>
+      <TiffData FirstC="1" PlaneCount="1">
+        <UUID FileName="20240729_experiment_488_7_640_3_1_w2Channel2.ome.tif">urn:uuid:fe59270a-b042-4ffb-afad-c8a9767b520f</UUID>
+      </TiffData>
+      <TiffData IFD="1" FirstT="1" PlaneCount="1">
+        <UUID FileName="20240729_experiment_488_7_640_3_1_w1Channel1.ome.tif">urn:uuid:b64f3929-cbf5-4759-959d-159e9162789a</UUID>
+      </TiffData>
+      <TiffData IFD="2" FirstT="2" PlaneCount="1">
+        <UUID FileName="20240729_experiment_488_7_640_3_1_w1Channel1.ome.tif">urn:uuid:b64f3929-cbf5-4759-959d-159e9162789a</UUID>
+      </TiffData>
+      <TiffData IFD="3" FirstT="3" PlaneCount="1">
+        <UUID FileName="20240729_experiment_488_7_640_3_1_w1Channel1.ome.tif">urn:uuid:b64f3929-cbf5-4759-959d-159e9162789a</UUID>
+      </TiffData>
+      <TiffData IFD="4" FirstT="4" PlaneCount="1">
+        <UUID FileName="20240729_experiment_488_7_640_3_1_w1Channel1.ome.tif">urn:uuid:b64f3929-cbf5-4759-959d-159e9162789a</UUID>
+      </TiffData>
+      <TiffData IFD="5" FirstT="5" PlaneCount="1">
+        <UUID FileName="20240729_experiment_488_7_640_3_1_w1Channel1.ome.tif">urn:uuid:b64f3929-cbf5-4759-959d-159e9162789a</UUID>
+      </TiffData>
+      <TiffData IFD="1" FirstT="1" FirstC="1" PlaneCount="1">
+        <UUID FileName="20240729_experiment_488_7_640_3_1_w2Channel2.ome.tif">urn:uuid:fe59270a-b042-4ffb-afad-c8a9767b520f</UUID>
+      </TiffData>
+      <TiffData IFD="2" FirstT="2" FirstC="1" PlaneCount="1">
+        <UUID FileName="20240729_experiment_488_7_640_3_1_w2Channel2.ome.tif">urn:uuid:fe59270a-b042-4ffb-afad-c8a9767b520f</UUID>
+      </TiffData>
+      <TiffData IFD="3" FirstT="3" FirstC="1" PlaneCount="1">
+        <UUID FileName="20240729_experiment_488_7_640_3_1_w2Channel2.ome.tif">urn:uuid:fe59270a-b042-4ffb-afad-c8a9767b520f</UUID>
+      </TiffData>
+      <TiffData IFD="4" FirstT="4" FirstC="1" PlaneCount="1">
+        <UUID FileName="20240729_experiment_488_7_640_3_1_w2Channel2.ome.tif">urn:uuid:fe59270a-b042-4ffb-afad-c8a9767b520f</UUID>
+      </TiffData>
+      <TiffData IFD="5" FirstT="5" FirstC="1" PlaneCount="1">
+        <UUID FileName="20240729_experiment_488_7_640_3_1_w2Channel2.ome.tif">urn:uuid:fe59270a-b042-4ffb-afad-c8a9767b520f</UUID>
+      </TiffData>
+      <Plane TheZ="0" TheT="0" TheC="0" DeltaT="0" PositionX="-49883.5" PositionXUnit="µm" PositionY="6781.1" PositionYUnit="µm" PositionZ="4523.225" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionT" />
+      </Plane>
+      <Plane TheZ="0" TheT="0" TheC="1" DeltaT="8.5E-06" PositionX="-49883.5" PositionXUnit="µm" PositionY="6781.1" PositionYUnit="µm" PositionZ="4523.225" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionT" />
+      </Plane>
+      <Plane TheZ="0" TheT="1" TheC="0" DeltaT="0.2018092" PositionX="-49883.5" PositionXUnit="µm" PositionY="6781.1" PositionYUnit="µm" PositionZ="4523.225" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionT" />
+      </Plane>
+      <Plane TheZ="0" TheT="2" TheC="0" DeltaT="0.4036039" PositionX="-49883.5" PositionXUnit="µm" PositionY="6781.1" PositionYUnit="µm" PositionZ="4523.225" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionT" />
+      </Plane>
+      <Plane TheZ="0" TheT="3" TheC="0" DeltaT="0.6033992" PositionX="-49883.5" PositionXUnit="µm" PositionY="6781.1" PositionYUnit="µm" PositionZ="4523.225" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionT" />
+      </Plane>
+      <Plane TheZ="0" TheT="4" TheC="0" DeltaT="0.8011899" PositionX="-49883.5" PositionXUnit="µm" PositionY="6781.1" PositionYUnit="µm" PositionZ="4523.225" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionT" />
+      </Plane>
+      <Plane TheZ="0" TheT="5" TheC="0" DeltaT="1.00299513" PositionX="-49883.5" PositionXUnit="µm" PositionY="6781.1" PositionYUnit="µm" PositionZ="4523.25" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionT" />
+      </Plane>
+      <Plane TheZ="0" TheT="1" TheC="1" DeltaT="0.2018041" PositionX="-49883.5" PositionXUnit="µm" PositionY="6781.1" PositionYUnit="µm" PositionZ="4523.225" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionT" />
+      </Plane>
+      <Plane TheZ="0" TheT="2" TheC="1" DeltaT="0.4035853" PositionX="-49883.5" PositionXUnit="µm" PositionY="6781.1" PositionYUnit="µm" PositionZ="4523.225" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionT" />
+      </Plane>
+      <Plane TheZ="0" TheT="3" TheC="1" DeltaT="0.6033943" PositionX="-49883.5" PositionXUnit="µm" PositionY="6781.1" PositionYUnit="µm" PositionZ="4523.225" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionT" />
+      </Plane>
+      <Plane TheZ="0" TheT="4" TheC="1" DeltaT="0.8012101" PositionX="-49883.5" PositionXUnit="µm" PositionY="6781.1" PositionYUnit="µm" PositionZ="4523.225" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionT" />
+      </Plane>
+      <Plane TheZ="0" TheT="5" TheC="1" DeltaT="1.00298762" PositionX="-49883.5" PositionXUnit="µm" PositionY="6781.1" PositionYUnit="µm" PositionZ="4523.25" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionT" />
+      </Plane>
+    </Pixels>
+  </Image>
+  <StructuredAnnotations>
+    <TagAnnotation ID="Annotation:DimensionT">
+      <Value>t</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:1w1">
+      <Description>Look up table type</Description>
+      <Value>4</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:3w1">
+      <Description>XOffset</Description>
+      <Value>0</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:4w1">
+      <Description>YOffset</Description>
+      <Value>0</Value>
+    </TagAnnotation>
+    <TimestampAnnotation ID="Annotation:2w1">
+      <Description>ModifyDate</Description>
+      <Value>2024-10-03T14:26:58.6307425+02:00</Value>
+    </TimestampAnnotation>
+    <TagAnnotation ID="Annotation:5w1">
+      <Description>ImageRegionX</Description>
+      <Value>0</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:6w1">
+      <Description>ImageRegionY</Description>
+      <Value>0</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:7w1">
+      <Description>ImageRegionWidth</Description>
+      <Value>512</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:8w1">
+      <Description>ImageRegionHeight</Description>
+      <Value>512</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:10w1">
+      <Description>CameraChipWidth</Description>
+      <Value>512</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:9w1">
+      <Description>CameraChipHeight</Description>
+      <Value>512</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:11w1">
+      <Description>CameraName</Description>
+      <Value>PM1394Cam02</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:12w1">
+      <Description>CameraSettingFlipX</Description>
+      <Value>True</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:13w1">
+      <Description>CameraSettingFlipY</Description>
+      <Value>True</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:14w1">
+      <Description>CameraSettingRotate</Description>
+      <Value>False</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:15w1">
+      <Description>CameraSettingModeIndex</Description>
+      <Value>0</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:16w1">
+      <Description>CameraSettingDigitizerIndex</Description>
+      <Value>1</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:17w1">
+      <Description>CameraSettingGainIndex</Description>
+      <Value>1</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:19w1">
+      <Description>ScanOverlap</Description>
+      <Value>0</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:18w1">
+      <Description>UniversalData</Description>
+      <Value />
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:21w1">
+      <Description>AcquisitionSettings</Description>
+      <Value>deleted</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:20w1">
+      <Description>DimensionType</Description>
+      <Value />
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:22w1">
+      <Description>GeneralDescription</Description>
+      <Value>Exposure: 200 ms
+Binning: 1
+Offset: 0,0
+Digitizer: 10 Mhz, 16 Bit (EM Gain)
+Gain: Gain 2
+EMCCD Gain: 1</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:23w1">
+      <Description>ScanAngle</Description>
+      <Value>0</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:24w1">
+      <Description>ScanStageDirectionXInvert</Description>
+      <Value>False</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:25w1">
+      <Description>ScanStageDirectionYInvert</Description>
+      <Value>False</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:1w2">
+      <Description>Look up table type</Description>
+      <Value>4</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:3w2">
+      <Description>XOffset</Description>
+      <Value>0</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:4w2">
+      <Description>YOffset</Description>
+      <Value>0</Value>
+    </TagAnnotation>
+    <TimestampAnnotation ID="Annotation:2w2">
+      <Description>ModifyDate</Description>
+      <Value>2024-10-03T14:26:58.6307663+02:00</Value>
+    </TimestampAnnotation>
+    <TagAnnotation ID="Annotation:5w2">
+      <Description>ImageRegionX</Description>
+      <Value>0</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:6w2">
+      <Description>ImageRegionY</Description>
+      <Value>0</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:7w2">
+      <Description>ImageRegionWidth</Description>
+      <Value>512</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:8w2">
+      <Description>ImageRegionHeight</Description>
+      <Value>512</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:10w2">
+      <Description>CameraChipWidth</Description>
+      <Value>512</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:9w2">
+      <Description>CameraChipHeight</Description>
+      <Value>512</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:11w2">
+      <Description>CameraName</Description>
+      <Value>PM1394Cam00</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:12w2">
+      <Description>CameraSettingFlipX</Description>
+      <Value>True</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:13w2">
+      <Description>CameraSettingFlipY</Description>
+      <Value>False</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:14w2">
+      <Description>CameraSettingRotate</Description>
+      <Value>False</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:15w2">
+      <Description>CameraSettingModeIndex</Description>
+      <Value>0</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:16w2">
+      <Description>CameraSettingDigitizerIndex</Description>
+      <Value>1</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:17w2">
+      <Description>CameraSettingGainIndex</Description>
+      <Value>1</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:19w2">
+      <Description>ScanOverlap</Description>
+      <Value>0</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:18w2">
+      <Description>UniversalData</Description>
+      <Value />
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:21w2">
+      <Description>AcquisitionSettings</Description>
+      <Value>deleted</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:20w2">
+      <Description>DimensionType</Description>
+      <Value />
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:22w2">
+      <Description>GeneralDescription</Description>
+      <Value>Exposure: 200 ms
+Binning: 1
+Offset: 0,0
+Digitizer: 10 Mhz, 16 Bit (EM Gain)
+Gain: Gain 2
+EMCCD Gain: 1</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:23w2">
+      <Description>ScanAngle</Description>
+      <Value>0</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:24w2">
+      <Description>ScanStageDirectionXInvert</Description>
+      <Value>False</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:25w2">
+      <Description>ScanStageDirectionYInvert</Description>
+      <Value>False</Value>
+    </TagAnnotation>
+  </StructuredAnnotations>
+</OME>
