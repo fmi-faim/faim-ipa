@@ -255,7 +255,7 @@ class QuestionaryPydanticValidator(Validator):
         except ValidationError as e:
             raise QuestionaryValidationError(
                 message=f"Invalid value for field: {e.errors()[0]['msg']}"
-            )
+            ) from e
 
 
 class PathValidator(QuestionaryPydanticValidator):
@@ -288,20 +288,27 @@ class IPAConfig(BaseModel):
         field_type = cls.__annotations__[field_name]
         if isinstance(field_type, type) and issubclass(field_type, Path):
             return resolve_with_git_root(value)
-        if hasattr(field_type, "__metadata__"):
-            if issubclass(field_type.__origin__, Path):
-                return resolve_with_git_root(Path(value))
+        if hasattr(field_type, "__metadata__") and issubclass(
+            field_type.__origin__, Path
+        ):
+            return resolve_with_git_root(Path(value))
         return value
 
     @staticmethod
     def reference_dir():
         return get_git_root()
 
-    def save(self, config_file):
+    @staticmethod
+    def config_name():
+        return "config.yml"
+
+    def save(self, config_file=None):
+        config_file = config_file or Path.cwd() / self.config_name()
         with open(config_file, "w") as f:
             yaml.safe_dump(self.model_dump(), f, sort_keys=False)
 
     @classmethod
-    def load(cls: type[T], config_file) -> T:
+    def load(cls: type[T], config_file=None) -> T:
+        config_file = config_file or Path.cwd() / cls.config_name()
         with open(config_file) as f:
             return cls(**yaml.safe_load(f))

@@ -94,8 +94,7 @@ def test_prompt_with_questionary(model, mocker, dummy_file):
             self._answerer = self._answer()
 
         def _answer(self):
-            for answer in self.answers:
-                yield answer
+            yield from self.answers
 
         def ask(self):
             return next(self._answerer)
@@ -130,7 +129,7 @@ def test_prompt_with_questionary(model, mocker, dummy_file):
     }
 
 
-def test_ipa_config(tmp_path):
+def test_ipa_config_with_path(tmp_path):
     class SomeConfig(IPAConfig):
         string: str
         integer: int
@@ -142,4 +141,17 @@ def test_ipa_config(tmp_path):
 
     loaded_config = SomeConfig.load(config_file=config_path)
 
+    assert loaded_config.model_dump() == config.model_dump()
+
+
+def test_ipa_config():
+    class SomeConfig(IPAConfig):
+        string: str
+        integer: int
+        number: float
+
+    config = SomeConfig(string="dummy", integer=42, number=-0.01)
+    config.save()
+    assert (Path.cwd() / config.config_name()).exists()
+    loaded_config = SomeConfig.load()
     assert loaded_config.model_dump() == config.model_dump()
