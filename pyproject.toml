@@ -32,6 +32,7 @@ dependencies = [
   "pandas",
   "pint",
   "pydantic>=2",
+  "questionary",
   "scikit-image",
   "tqdm",
 ]

@@ -1,7 +1,41 @@
 import os
-from os.path import basename
+from os.path import basename, relpath
+from pathlib import Path
 
-from faim_ipa.utils import create_logger, wavelength_to_rgb
+import pytest
+import questionary
+from pydantic import DirectoryPath, Field, create_model
+from questionary import ValidationError
+
+from faim_ipa.utils import (
+    IPAConfig,
+    QuestionaryPydanticValidator,
+    create_logger,
+    prompt_with_questionary,
+    wavelength_to_rgb,
+)
+
+
+@pytest.fixture
+def dummy_file(tmp_path: Path):
+    tmp_file = tmp_path / "dummy.txt"
+    with open(tmp_file, "w"):
+        pass
+    return tmp_file
+
+
+@pytest.fixture
+def model():
+    return create_model(
+        "TestModel",
+        __base__=IPAConfig,
+        path=(Path, Field(..., description="File path")),
+        directory=(DirectoryPath, Field(..., description="Folder path")),
+        string=(str, Field(..., description="Some text")),
+        ge0=(int, Field(..., ge=0)),
+        number=(float, Field(..., gt=0.0)),
+        boolean=(bool, Field(..., description="Checkbox")),
+    )
 
 
 def test_wavelength_to_rgb():
@@ -25,3 +59,99 @@ def test_create_logger(tmp_path_factory):
 
     with open(logger.handlers[0].baseFilename) as f:
         assert f.read().strip()[-11:] == "INFO - Test"
+
+
+def test_validator(dummy_file: Path, model):
+    class Document:
+        text: str
+
+        def __init__(self, text):
+            self.text = text
+
+    path_validator = QuestionaryPydanticValidator(model=model, field_name="path")
+    assert (
+        path_validator.validate(document=Document(str(dummy_file.absolute()))) is None
+    )
+
+    string_validator = QuestionaryPydanticValidator(model=model, field_name="string")
+    assert string_validator.validate(document=Document("some text")) is None
+
+    directory_validator = QuestionaryPydanticValidator(
+        model=model, field_name="directory"
+    )
+    with pytest.raises(ValidationError):
+        directory_validator.validate(document=Document(str(dummy_file.absolute())))
+
+    ge0_validator = QuestionaryPydanticValidator(model=model, field_name="ge0")
+    with pytest.raises(ValidationError):
+        ge0_validator.validate(document=Document("-1"))
+
+
+def test_prompt_with_questionary(model, mocker, dummy_file):
+    class Question:
+        def __init__(self, answers):
+            self.answers = answers
+            self._answerer = self._answer()
+
+        def _answer(self):
+            yield from self.answers
+
+        def ask(self):
+            return next(self._answerer)
+
+    text_patch = mocker.patch(
+        "questionary.text", return_value=Question(["text", "10", "0.01"])
+    )
+    path_patch = mocker.patch(
+        "questionary.path",
+        return_value=Question(
+            [str(dummy_file.absolute()), str(dummy_file.parent.absolute())]
+        ),
+    )
+    confirm_patch = mocker.patch("questionary.confirm", return_value=Question([True]))
+    mocker.patch("faim_ipa.utils.get_git_root", return_value=Path.cwd())
+    response = prompt_with_questionary(model=model)
+    questionary.text.assert_called()
+    questionary.path.assert_called()
+    assert text_patch.call_count == 3
+    assert path_patch.call_count == 2
+    assert confirm_patch.call_count == 1
+    assert Path.cwd().name == "logs0"
+    assert response.directory == dummy_file.parent
+    assert response.path == dummy_file
+    assert response.model_dump() == {
+        "boolean": True,
+        "directory": str(relpath(dummy_file.parent, Path.cwd())),
+        "ge0": 10,
+        "number": 0.01,
+        "path": str(relpath(dummy_file, Path.cwd())),
+        "string": "text",
+    }
+
+
+def test_ipa_config_with_path(tmp_path):
+    class SomeConfig(IPAConfig):
+        string: str
+        integer: int
+        number: float
+
+    config = SomeConfig(string="dummy", integer=42, number=-0.01)
+    config_path = tmp_path / "config.yml"
+    config.save(config_file=config_path)
+
+    loaded_config = SomeConfig.load(config_file=config_path)
+
+    assert loaded_config.model_dump() == config.model_dump()
+
+
+def test_ipa_config():
+    class SomeConfig(IPAConfig):
+        string: str
+        integer: int
+        number: float
+
+    config = SomeConfig(string="dummy", integer=42, number=-0.01)
+    config.save()
+    assert (Path.cwd() / config.config_name()).exists()
+    loaded_config = SomeConfig.load()
+    assert loaded_config.model_dump() == config.model_dump()
