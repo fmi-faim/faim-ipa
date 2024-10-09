@@ -111,14 +111,16 @@ def get_git_root() -> Path:
     return parent_dir
 
 
-def resolve_with_git_root(relative_path: Path) -> Path:
+def resolve(relative_path: Path, reference: Path) -> Path:
     """
-    Takes a relative path and resolves it relative to the git_root directory.
+    Takes a relative path and resolves it relative to the reference directory.
 
     Parameters
     ----------
     relative_path
-        Path relative to the git root.
+        Path relative to the reference.
+    reference
+        Reference path.
 
     Returns
     -------
@@ -127,31 +129,31 @@ def resolve_with_git_root(relative_path: Path) -> Path:
     """
     if relative_path.is_absolute():
         return relative_path
-    git_root = get_git_root()
-    return (git_root / relative_path).resolve()
+    return (reference / relative_path).resolve()
 
 
-def make_relative_to_git_root(path: Path) -> Path:
+def make_relative(path: Path, reference: Path):
     """
-    Convert an absolute path to a path relative to the git_root directory.
+    Convert an absolute path to a path relative to the reference directory.
 
     Parameters
     ----------
     path
         Absolute path to a file.
+    reference
+        Path to the reference directory.
 
     Returns
     -------
     pathlib.Path
-        Path relative to the git root.
+        Path relative to the reference.
     """
-    git_root = get_git_root()
     try:
         # requires Python >= 3.12
-        return path.relative_to(git_root, walk_up=True)
+        return path.relative_to(reference, walk_up=True)
     except (ValueError, TypeError):
         # fallback for Python < 3.12
-        return Path(os.path.relpath(path, git_root))
+        return Path(os.path.relpath(path, reference))
 
 
 def prompt_with_questionary(
@@ -169,6 +171,7 @@ def prompt_with_questionary(
 
         if field_type == "string":
             if field_info.get("format") == "path":
+                default_path = str(resolve(Path(default_value), model.reference_dir()))
                 responses[field_name] = Path(
                     questionary.path(
                         f"Enter {description} [{default_value}]",
@@ -176,10 +179,11 @@ def prompt_with_questionary(
                             model=model,
                             field_name=field_name,
                         ),
-                        default=default_value,
+                        default=default_path,
                     ).ask()
                 ).absolute()
             elif field_info.get("format") == "directory-path":
+                default_path = str(resolve(Path(default_value), model.reference_dir()))
                 responses[field_name] = Path(
                     questionary.path(
                         f"Enter {description} (directory) [{default_value}]",
@@ -187,7 +191,7 @@ def prompt_with_questionary(
                             model=model,
                             field_name=field_name,
                         ),
-                        default=default_value,
+                        default=default_path,
                     ).ask()
                 ).absolute()
             else:
@@ -276,7 +280,7 @@ class IPAConfig(BaseModel):
     def path_relative_to_git(cls, value):
         if isinstance(value, Path):
             try:
-                return str(make_relative_to_git_root(value))
+                return str(make_relative(value, cls.reference_dir()))
             except ValueError:
                 return str(value)
         return value
@@ -287,11 +291,11 @@ class IPAConfig(BaseModel):
         field_name = info.field_name
         field_type = cls.__annotations__[field_name]
         if isinstance(field_type, type) and issubclass(field_type, Path):
-            return resolve_with_git_root(value)
+            return resolve(Path(value), cls.reference_dir())
         if hasattr(field_type, "__metadata__") and issubclass(
             field_type.__origin__, Path
         ):
-            return resolve_with_git_root(Path(value))
+            return resolve(Path(value), cls.reference_dir())
         return value
 
     @staticmethod
