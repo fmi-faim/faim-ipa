@@ -1,3 +1,4 @@
+import zipfile
 from io import BytesIO
 from pathlib import Path
 
@@ -124,3 +125,44 @@ class CVSourceHDF5(CVSource):
             buffer_compressed = data[self.name][f"{file_name}.blosc2"][:].tobytes()
             buffer = blosc2.decompress2(buffer_compressed)
             return imread(BytesIO(buffer))
+
+
+class CVSourceZIP(CVSource):
+    def __init__(self, zip_file: Path | str, name: str):
+        self.zip_file = Path(zip_file)
+        self.name = name
+
+    def get_measurement_detail(self) -> BytesIO:
+        with zipfile.ZipFile(self.zip_file, "r") as zf:
+            with zf.open(f"{self.name}/MeasurementDetail.mrf") as f:
+                buffer = f.read()
+                return BytesIO(buffer)
+
+    def get_measurement_data(self) -> BytesIO:
+        with zipfile.ZipFile(self.zip_file, "r") as zf:
+            with zf.open(f"{self.name}/MeasurementData.mlf") as f:
+                buffer = f.read()
+                return BytesIO(buffer)
+
+    def get_measurement_settings(self, file_name: str) -> BytesIO:
+        with zipfile.ZipFile(self.zip_file, "r") as zf:
+            with zf.open(f"{self.name}/{file_name}") as f:
+                buffer = f.read()
+                return BytesIO(buffer)
+
+    def get_trace_logs(self) -> [str]:
+
+        with zipfile.ZipFile(self.zip_file, "r") as zf:
+            log_files = [f for f in zf.namelist() if f.startswith("jetraw/LOG/TRACE")]
+            for lf in log_files:
+                with zf.open(lf) as f:
+                    log = []
+                    for line in f:
+                        log.append(line.decode("utf-8"))
+                    yield log
+
+    def get_image(self, file_name: str) -> NDArray:
+        with zipfile.ZipFile(self.zip_file, "r") as zf:
+            with zf.open(f"{self.name}/{file_name}") as f:
+                buffer = f.read()
+                return imread(BytesIO(buffer))

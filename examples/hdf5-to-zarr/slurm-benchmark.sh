@@ -42,6 +42,8 @@ pixi run python benchmark.py
 
 pixi run python benchmark_FS.py
 
+pixi run python benchmark_ZIP.py
+
 ### END OF PUT YOUR CODE IN THIS SECTION
 
 END=$(date +%s)
