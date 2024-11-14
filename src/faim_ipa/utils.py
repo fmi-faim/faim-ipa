@@ -72,13 +72,20 @@ def rgb_to_hex(r, g, b):
 
 def create_logger(name: str, *, include_timestamp: bool = True) -> logging.Logger:
     """
-    Create logger which logs to <timestamp>-<name>.log inside the current
+    Create logger which logs to `<timestamp>-<name>.log` inside the current
     working directory.
 
     Parameters
     ----------
     name
         Name of the logger instance.
+    include_timestamp
+        Whether to include the timestamp in the log file name.
+
+    Returns
+    -------
+    logging.Logger
+        Logger instance
     """
     logger = logging.getLogger(name=name)
     now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
@@ -97,15 +104,17 @@ def create_logger(name: str, *, include_timestamp: bool = True) -> logging.Logge
 
 def get_git_root() -> Path:
     """
-    Recursively search for the directory containing the .git folder.
+    Recursively search for the directory containing the `.git` folder.
 
     Returns
     -------
     Path
-        Path to the root of the git repository.
+        Path to the root of the git repository. None if not found.
     """
-    parent_dir = Path(__file__).parent
+    parent_dir = Path.cwd()
     while not (parent_dir / ".git").exists():
+        if parent_dir == parent_dir.parent:
+            return None  # reached root directory
         parent_dir = parent_dir.parent
 
     return parent_dir
