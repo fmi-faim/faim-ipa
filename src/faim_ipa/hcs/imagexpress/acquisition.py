@@ -217,11 +217,14 @@ class ImageXpressPlateAcquisition(PlateAcquisition):
 class SinglePlaneAcquisition(ImageXpressPlateAcquisition):
     """Parse top folder (single planes) of an acquisition of a MolecularDevices ImageXpress Micro Confocal system.
 
-    Storage layout on disk for 2 wells with 2 fields and 2 channels::
+    Storage layout on disk for 2 wells with 2 fields and 2 channels:
 
-        MIP-2P-2sub --> {name} [Optional]
-        └── 2022-07-05 --> {date}
-            └── 1075 --> {acquisition id}
+    Option A (as stored by Microscope):
+
+    MIP-2P-2sub --> {name} [Optional]
+    └── 2022-07-05 --> {date} [Optional]
+        └── 1075 --> {acquisition id}
+            └── Timepoint_1 --> {t} [Optional]
                 ├── MIP-2P-2sub_C05_s1_w146C9B2CD-0BB3-4B8A-9187-2805F4C90506.tif
                 ├── MIP-2P-2sub_C05_s1_w1_thumb6EFE77C6-B96D-412A-9FD1-710DBDA32821.tif
                 ├── MIP-2P-2sub_C05_s1_w2B90625C8-6EA7-4E54-8289-C539EB75263E.tif
@@ -241,6 +244,21 @@ class SinglePlaneAcquisition(ImageXpressPlateAcquisition):
 
     Image data is stored in {name}_{well}_{field}_w{channel}{md_id}.tif.
     The *_thumb*.tif files, used by Molecular Devices as preview, are ignored.
+
+    Option B (as exported by MetaXpress):
+
+    test_Plate_3420 --> name + {acquisition id}
+    └── Timepoint_1 --> {t} [Optional]
+        ├── test_C05_s1_w1.TIF
+        ├── test_C05_s1_w2.TIF
+        ├── test_C05_s2_w1.TIF
+        ├── test_C05_s2_w2.TIF
+        ├── test_C06_s1_w1.TIF
+        ├── test_C06_s1_w2.TIF
+        ├── test_C06_s2_w1.TIF
+        └── test_C06_s2_w2.TIF
+
+    Image data is stored in {name}_{well}_{field}_w{channel}.TIF.
     """
 
     def __init__(
@@ -259,12 +277,12 @@ class SinglePlaneAcquisition(ImageXpressPlateAcquisition):
 
     def _get_root_re(self) -> re.Pattern:
         return re.compile(
-            r".*(?:[\/\\](?P<date>\d{4}-\d{2}-\d{2}))?[\/\\](?P<acq_id>\d+)(?:[\/\\]TimePoint_(?P<t>\d+))?"
+            r".*(?:[\/\\](?P<date>\d{4}-\d{2}-\d{2}))?[\/\\](?:.*_Plate_)?(?P<acq_id>\d+)(?:[\/\\]TimePoint_(?P<t>\d+))?(?:[\/\\]ZStep_0)?"
         )
 
     def _get_filename_re(self) -> re.Pattern:
         return re.compile(
-            r"(?P<name>.*)_(?P<well>[A-Z]+\d{2})_?(?P<field>s\d+)?_?(?P<channel>w[1-9]{1})?(?!_thumb)(?P<md_id>[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12})(?P<ext>.tif)"
+            r"(?P<name>.*)_(?P<well>[A-Z]+\d{2})_?(?P<field>s\d+)?_?(?P<channel>w[1-9]{1})?(?!_thumb)(?P<md_id>[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12})?(?P<ext>\.(?:tif|TIF))"
         )
 
     def _get_z_spacing(self) -> float | None:
@@ -275,26 +293,54 @@ class StackAcquisition(ImageXpressPlateAcquisition):
     """Image stack acquisition with a Molecular Devices ImageXpress Micro
     Confocal system.
 
+    Storage layout on disk for 2 wells with 2 fields, 4 channels and 9 z-steps:
+
+    OPTION A (as stored by Microscope):
+
     MIP-2P-2sub-Stack --> {name} [Optional]
-    └── 2023-02-21 --> {date}
+    └── 2023-02-21 --> {date} [Optional]
         └── 1334 --> {acquisition id}
-            ├── ZStep_1
-            │   ├── Projection-Mix_E07_s1_w1E78EB128-BD0D-4D94-A6AD-3FF28BB1B105.tif
-            │   ├── Projection-Mix_E07_s1_w1_thumb187DE64B-038A-4671-BF6B-683721723769.tif
-            │   ├── Projection-Mix_E07_s1_w2C0A49256-E289-4C0F-ADC9-F7728ABDB141.tif
-            │   ├── Projection-Mix_E07_s1_w2_thumb57D4B151-71BF-480E-8CC4-C23A2690B763.tif
-            │   ├── Projection-Mix_E07_s1_w427CCB2E4-1BF4-45E7-8BC7-264B48EF9C4A.tif
-            │   ├── Projection-Mix_E07_s1_w4_thumb555647D0-77F1-4A43-9472-AE509F95E236.tif
-            │   ├── ...
-            │   └── Projection-Mix_E08_s2_w4_thumbD2785594-4F49-464F-9F80-1B82E30A560A.tif
-            ├── ...
-            └── ZStep_9
-                ├── Projection-Mix_E07_s1_w1091EB8A5-272A-466D-B8A0-7547C6BA392B.tif
+            └── Timepoint_1 --> {t} [Optional]
+                ├── ZStep_1 --> {z}
+                │   ├── Projection-Mix_E07_s1_w1E78EB128-BD0D-4D94-A6AD-3FF28BB1B105.tif
+                │   ├── Projection-Mix_E07_s1_w1_thumb187DE64B-038A-4671-BF6B-683721723769.tif
+                │   ├── Projection-Mix_E07_s1_w2C0A49256-E289-4C0F-ADC9-F7728ABDB141.tif
+                │   ├── Projection-Mix_E07_s1_w2_thumb57D4B151-71BF-480E-8CC4-C23A2690B763.tif
+                │   ├── Projection-Mix_E07_s1_w427CCB2E4-1BF4-45E7-8BC7-264B48EF9C4A.tif
+                │   ├── Projection-Mix_E07_s1_w4_thumb555647D0-77F1-4A43-9472-AE509F95E236.tif
+                │   ├── ...
+                │   └── Projection-Mix_E08_s2_w4_thumbD2785594-4F49-464F-9F80-1B82E30A560A.tif
                 ├── ...
-                └── Projection-Mix_E08_s2_w2_thumb210C0D5D-C20E-484D-AFB2-EFE669A56B84.tif
+                └── ZStep_9
+                    ├── Projection-Mix_E07_s1_w1091EB8A5-272A-466D-B8A0-7547C6BA392B.tif
+                    ├── ...
+                    └── Projection-Mix_E08_s2_w2_thumb210C0D5D-C20E-484D-AFB2-EFE669A56B84.tif
 
     Image data is stored in {name}_{well}_{field}_w{channel}{md_id}.tif.
     The *_thumb*.tif files, used by Molecular Devices as preview, are ignored.
+
+    OPTION B (as exported by MetaXpress):
+
+    test_Plate_3433 --> name + {acquisition id}
+    └── Timepoint_1 --> {t} [Optional]
+        ├── ZStep_0 (contains MIPs)
+            └── ...
+        ├── ZStep_1 --> {z}
+        │   ├── test_E07_s1_w1.TIF
+        │   ├── test_E07_s1_w2.TIF
+        │   ├── test_E07_s1_w3.TIF
+        │   ├── test_E07_s1_w4.TIF
+        │   ├── test_E07_s2_w1.TIF
+        │   ├── ...
+        │   └── test_E08_s2_w4.TIF
+        ├── ...
+        └── ZStep_9
+            ├── test_E07_s1_w1.TIF
+            ├── ...
+            └── test_E08_s2_w4.TIF
+
+    Image data is stored in {name}_{well}_{field}_w{channel}.TIF.
+    ZStep_0 contains MIPs and is ignored.
     """
 
     _z_spacing: float = None
@@ -320,12 +366,12 @@ class StackAcquisition(ImageXpressPlateAcquisition):
 
     def _get_root_re(self) -> re.Pattern:
         return re.compile(
-            r".*(?:[\/\\](?P<date>\d{4}-\d{2}-\d{2}))?[\/\\](?P<acq_id>\d+)(?:[\/\\]TimePoint_(?P<t>\d+))?(?:[\/\\]ZStep_(?P<z>\d+))"
+            r".*(?:[\/\\](?P<date>\d{4}-\d{2}-\d{2}))?[\/\\](?:.*_Plate_)?(?P<acq_id>\d+)(?:[\/\\]TimePoint_(?P<t>\d+))?(?:[\/\\]ZStep_(?P<z>(?!0)\d+))"
         )
 
     def _get_filename_re(self) -> re.Pattern:
         return re.compile(
-            r"(?P<name>.*)_(?P<well>[A-Z]+\d{2})_?(?P<field>s\d+)?_?(?P<channel>w[1-9]{1})?(?!_thumb)(?P<md_id>[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12})(?P<ext>.tif)"
+            r"(?P<name>.*)_(?P<well>[A-Z]+\d{2})_?(?P<field>s\d+)?_?(?P<channel>w[1-9]{1})?(?!_thumb)(?P<md_id>[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12})?(?P<ext>\.(?:tif|TIF))"
         )
 
     def _get_z_spacing(self) -> float | None:
@@ -359,6 +405,8 @@ class MixedAcquisition(StackAcquisition):
     """Image stack acquisition with Projectsion acquired with a Molecular
     Devices ImageXpress Micro Confocal system.
 
+    OPTION A (as stored by Microscope):
+
     MIP-2P-2sub-Stack --> {name} [Optional]
     └── 2023-02-21 --> {date}
         └── 1334 --> {acquisition id}
@@ -384,6 +432,8 @@ class MixedAcquisition(StackAcquisition):
 
     Image data is stored in {name}_{well}_{field}_w{channel}{md_id}.tif.
     The *_thumb*.tif files, used by Molecular Devices as preview, are ignored.
+
+    OPTION B (as exported by MetaXpress) is not supported for mixed acquisitions.
     """
 
     def __init__(
