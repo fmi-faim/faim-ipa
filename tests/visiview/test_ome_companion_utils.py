@@ -5,11 +5,11 @@ from defusedxml.ElementTree import parse
 
 from faim_ipa.io.metadata import ChannelMetadata
 from faim_ipa.visiview.ome_companion_utils import (
-    get_z_spacing,
-    get_yx_spacing,
-    get_exposure_time,
     get_channels,
+    get_exposure_time,
     get_stage_positions,
+    get_yx_spacing,
+    get_z_spacing,
     parse_basic_metadata,
 )
 
@@ -32,10 +32,34 @@ def ome_companion(ome_companion_file):
     return root
 
 
+@pytest.fixture
+def ome_companion_file2():
+    return (
+        Path(__file__).parent.parent.parent
+        / "resources"
+        / "ome-tiff"
+        / "c3_z33.companion.ome"
+    )
+
+
+@pytest.fixture
+def ome_companion2(ome_companion_file2):
+    with open(ome_companion_file2, "rb") as f:
+        root = parse(f).getroot()
+
+    return root
+
+
 def test_get_z_spacing(ome_companion):
     z_spacing = get_z_spacing(ome_companion)
 
     assert z_spacing is None
+
+
+def test_get_z_spacing2(ome_companion2):
+    z_spacing = get_z_spacing(ome_companion2)
+
+    assert z_spacing == 0.5
 
 
 def test_get_yx_spacing(ome_companion):
