@@ -16,7 +16,7 @@ def gaussian_2d(
     offset: float = 0,
 ):
     """
-    Return a parametrized 3D Gaussian function.
+    Return a parameterized 3D Gaussian function.
 
     Parameters:
         height: float
