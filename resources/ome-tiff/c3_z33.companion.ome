@@ -1,0 +1,925 @@
+<?xml version="1.0" encoding="utf-8"?>
+<OME xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.openmicroscopy.org/Schemas/OME/2016-06 http://www.openmicroscopy.org/Schemas/OME/2016-06/ome.xsd" UUID="urn:uuid:09cfad2a-52df-4970-92ed-9f3886c8b6ba" xmlns="http://www.openmicroscopy.org/Schemas/OME/2016-06">
+  <Instrument ID="Instrument:0">
+    <Laser ID="LightSource:0:0" />
+    <Detector ID="Detector:0" />
+    <Objective ID="Objective:100x" LensNA="1.4" />
+  </Instrument>
+  <Image ID="Image:0" Name="c3_z33">
+    <AcquisitionDate>2024-11-04T10:38:07.9475104+01:00</AcquisitionDate>
+    <ObjectiveSettings ID="Objective:100x" RefractiveIndex="1.515" />
+    <Pixels ID="Pixels:0:0" DimensionOrder="XYZCT" Type="uint16" SizeX="2048" SizeY="2048" SizeZ="33" SizeC="3" SizeT="1" PhysicalSizeX="0.0649555549" PhysicalSizeY="0.0649555549" PhysicalSizeZ="0.5">
+      <Channel ID="Channel:0" Name="Conf640" SamplesPerPixel="1" ExcitationWavelength="640" EmissionWavelength="650">
+        <LightSourceSettings ID="LightSource:0:0" Attenuation="1" Wavelength="640" />
+        <DetectorSettings ID="Detector:0" Binning="1x1" />
+      </Channel>
+      <Channel ID="Channel:1" Name="Conf561" SamplesPerPixel="1" ExcitationWavelength="561" EmissionWavelength="580">
+        <LightSourceSettings ID="LightSource:0:0" Attenuation="1" Wavelength="561" />
+        <DetectorSettings ID="Detector:0" Binning="1x1" />
+      </Channel>
+      <Channel ID="Channel:2" Name="Conf405" SamplesPerPixel="1" ExcitationWavelength="405" EmissionWavelength="460">
+        <LightSourceSettings ID="LightSource:0:0" Attenuation="1" Wavelength="405" />
+        <DetectorSettings ID="Detector:0" Binning="1x1" />
+      </Channel>
+      <TiffData PlaneCount="1">
+        <UUID FileName="c3_z33_w1Conf640.ome.tif">urn:uuid:5d396150-6406-4938-930c-d3caedebfaf0</UUID>
+      </TiffData>
+      <TiffData FirstC="1" PlaneCount="1">
+        <UUID FileName="c3_z33_w2Conf561.ome.tif">urn:uuid:b302537f-913d-4e00-980c-c81958ae9a96</UUID>
+      </TiffData>
+      <TiffData FirstC="2" PlaneCount="1">
+        <UUID FileName="c3_z33_w3Conf405.ome.tif">urn:uuid:815c4b0a-be4d-4efb-9cfd-1272a23b79cf</UUID>
+      </TiffData>
+      <TiffData IFD="1" FirstZ="1" PlaneCount="1">
+        <UUID FileName="c3_z33_w1Conf640.ome.tif">urn:uuid:5d396150-6406-4938-930c-d3caedebfaf0</UUID>
+      </TiffData>
+      <TiffData IFD="2" FirstZ="2" PlaneCount="1">
+        <UUID FileName="c3_z33_w1Conf640.ome.tif">urn:uuid:5d396150-6406-4938-930c-d3caedebfaf0</UUID>
+      </TiffData>
+      <TiffData IFD="3" FirstZ="3" PlaneCount="1">
+        <UUID FileName="c3_z33_w1Conf640.ome.tif">urn:uuid:5d396150-6406-4938-930c-d3caedebfaf0</UUID>
+      </TiffData>
+      <TiffData IFD="4" FirstZ="4" PlaneCount="1">
+        <UUID FileName="c3_z33_w1Conf640.ome.tif">urn:uuid:5d396150-6406-4938-930c-d3caedebfaf0</UUID>
+      </TiffData>
+      <TiffData IFD="5" FirstZ="5" PlaneCount="1">
+        <UUID FileName="c3_z33_w1Conf640.ome.tif">urn:uuid:5d396150-6406-4938-930c-d3caedebfaf0</UUID>
+      </TiffData>
+      <TiffData IFD="6" FirstZ="6" PlaneCount="1">
+        <UUID FileName="c3_z33_w1Conf640.ome.tif">urn:uuid:5d396150-6406-4938-930c-d3caedebfaf0</UUID>
+      </TiffData>
+      <TiffData IFD="7" FirstZ="7" PlaneCount="1">
+        <UUID FileName="c3_z33_w1Conf640.ome.tif">urn:uuid:5d396150-6406-4938-930c-d3caedebfaf0</UUID>
+      </TiffData>
+      <TiffData IFD="8" FirstZ="8" PlaneCount="1">
+        <UUID FileName="c3_z33_w1Conf640.ome.tif">urn:uuid:5d396150-6406-4938-930c-d3caedebfaf0</UUID>
+      </TiffData>
+      <TiffData IFD="9" FirstZ="9" PlaneCount="1">
+        <UUID FileName="c3_z33_w1Conf640.ome.tif">urn:uuid:5d396150-6406-4938-930c-d3caedebfaf0</UUID>
+      </TiffData>
+      <TiffData IFD="10" FirstZ="10" PlaneCount="1">
+        <UUID FileName="c3_z33_w1Conf640.ome.tif">urn:uuid:5d396150-6406-4938-930c-d3caedebfaf0</UUID>
+      </TiffData>
+      <TiffData IFD="11" FirstZ="11" PlaneCount="1">
+        <UUID FileName="c3_z33_w1Conf640.ome.tif">urn:uuid:5d396150-6406-4938-930c-d3caedebfaf0</UUID>
+      </TiffData>
+      <TiffData IFD="12" FirstZ="12" PlaneCount="1">
+        <UUID FileName="c3_z33_w1Conf640.ome.tif">urn:uuid:5d396150-6406-4938-930c-d3caedebfaf0</UUID>
+      </TiffData>
+      <TiffData IFD="13" FirstZ="13" PlaneCount="1">
+        <UUID FileName="c3_z33_w1Conf640.ome.tif">urn:uuid:5d396150-6406-4938-930c-d3caedebfaf0</UUID>
+      </TiffData>
+      <TiffData IFD="14" FirstZ="14" PlaneCount="1">
+        <UUID FileName="c3_z33_w1Conf640.ome.tif">urn:uuid:5d396150-6406-4938-930c-d3caedebfaf0</UUID>
+      </TiffData>
+      <TiffData IFD="15" FirstZ="15" PlaneCount="1">
+        <UUID FileName="c3_z33_w1Conf640.ome.tif">urn:uuid:5d396150-6406-4938-930c-d3caedebfaf0</UUID>
+      </TiffData>
+      <TiffData IFD="16" FirstZ="16" PlaneCount="1">
+        <UUID FileName="c3_z33_w1Conf640.ome.tif">urn:uuid:5d396150-6406-4938-930c-d3caedebfaf0</UUID>
+      </TiffData>
+      <TiffData IFD="17" FirstZ="17" PlaneCount="1">
+        <UUID FileName="c3_z33_w1Conf640.ome.tif">urn:uuid:5d396150-6406-4938-930c-d3caedebfaf0</UUID>
+      </TiffData>
+      <TiffData IFD="18" FirstZ="18" PlaneCount="1">
+        <UUID FileName="c3_z33_w1Conf640.ome.tif">urn:uuid:5d396150-6406-4938-930c-d3caedebfaf0</UUID>
+      </TiffData>
+      <TiffData IFD="19" FirstZ="19" PlaneCount="1">
+        <UUID FileName="c3_z33_w1Conf640.ome.tif">urn:uuid:5d396150-6406-4938-930c-d3caedebfaf0</UUID>
+      </TiffData>
+      <TiffData IFD="20" FirstZ="20" PlaneCount="1">
+        <UUID FileName="c3_z33_w1Conf640.ome.tif">urn:uuid:5d396150-6406-4938-930c-d3caedebfaf0</UUID>
+      </TiffData>
+      <TiffData IFD="21" FirstZ="21" PlaneCount="1">
+        <UUID FileName="c3_z33_w1Conf640.ome.tif">urn:uuid:5d396150-6406-4938-930c-d3caedebfaf0</UUID>
+      </TiffData>
+      <TiffData IFD="22" FirstZ="22" PlaneCount="1">
+        <UUID FileName="c3_z33_w1Conf640.ome.tif">urn:uuid:5d396150-6406-4938-930c-d3caedebfaf0</UUID>
+      </TiffData>
+      <TiffData IFD="23" FirstZ="23" PlaneCount="1">
+        <UUID FileName="c3_z33_w1Conf640.ome.tif">urn:uuid:5d396150-6406-4938-930c-d3caedebfaf0</UUID>
+      </TiffData>
+      <TiffData IFD="24" FirstZ="24" PlaneCount="1">
+        <UUID FileName="c3_z33_w1Conf640.ome.tif">urn:uuid:5d396150-6406-4938-930c-d3caedebfaf0</UUID>
+      </TiffData>
+      <TiffData IFD="25" FirstZ="25" PlaneCount="1">
+        <UUID FileName="c3_z33_w1Conf640.ome.tif">urn:uuid:5d396150-6406-4938-930c-d3caedebfaf0</UUID>
+      </TiffData>
+      <TiffData IFD="26" FirstZ="26" PlaneCount="1">
+        <UUID FileName="c3_z33_w1Conf640.ome.tif">urn:uuid:5d396150-6406-4938-930c-d3caedebfaf0</UUID>
+      </TiffData>
+      <TiffData IFD="27" FirstZ="27" PlaneCount="1">
+        <UUID FileName="c3_z33_w1Conf640.ome.tif">urn:uuid:5d396150-6406-4938-930c-d3caedebfaf0</UUID>
+      </TiffData>
+      <TiffData IFD="28" FirstZ="28" PlaneCount="1">
+        <UUID FileName="c3_z33_w1Conf640.ome.tif">urn:uuid:5d396150-6406-4938-930c-d3caedebfaf0</UUID>
+      </TiffData>
+      <TiffData IFD="29" FirstZ="29" PlaneCount="1">
+        <UUID FileName="c3_z33_w1Conf640.ome.tif">urn:uuid:5d396150-6406-4938-930c-d3caedebfaf0</UUID>
+      </TiffData>
+      <TiffData IFD="30" FirstZ="30" PlaneCount="1">
+        <UUID FileName="c3_z33_w1Conf640.ome.tif">urn:uuid:5d396150-6406-4938-930c-d3caedebfaf0</UUID>
+      </TiffData>
+      <TiffData IFD="31" FirstZ="31" PlaneCount="1">
+        <UUID FileName="c3_z33_w1Conf640.ome.tif">urn:uuid:5d396150-6406-4938-930c-d3caedebfaf0</UUID>
+      </TiffData>
+      <TiffData IFD="32" FirstZ="32" PlaneCount="1">
+        <UUID FileName="c3_z33_w1Conf640.ome.tif">urn:uuid:5d396150-6406-4938-930c-d3caedebfaf0</UUID>
+      </TiffData>
+      <TiffData IFD="1" FirstZ="1" FirstC="1" PlaneCount="1">
+        <UUID FileName="c3_z33_w2Conf561.ome.tif">urn:uuid:b302537f-913d-4e00-980c-c81958ae9a96</UUID>
+      </TiffData>
+      <TiffData IFD="2" FirstZ="2" FirstC="1" PlaneCount="1">
+        <UUID FileName="c3_z33_w2Conf561.ome.tif">urn:uuid:b302537f-913d-4e00-980c-c81958ae9a96</UUID>
+      </TiffData>
+      <TiffData IFD="3" FirstZ="3" FirstC="1" PlaneCount="1">
+        <UUID FileName="c3_z33_w2Conf561.ome.tif">urn:uuid:b302537f-913d-4e00-980c-c81958ae9a96</UUID>
+      </TiffData>
+      <TiffData IFD="4" FirstZ="4" FirstC="1" PlaneCount="1">
+        <UUID FileName="c3_z33_w2Conf561.ome.tif">urn:uuid:b302537f-913d-4e00-980c-c81958ae9a96</UUID>
+      </TiffData>
+      <TiffData IFD="5" FirstZ="5" FirstC="1" PlaneCount="1">
+        <UUID FileName="c3_z33_w2Conf561.ome.tif">urn:uuid:b302537f-913d-4e00-980c-c81958ae9a96</UUID>
+      </TiffData>
+      <TiffData IFD="6" FirstZ="6" FirstC="1" PlaneCount="1">
+        <UUID FileName="c3_z33_w2Conf561.ome.tif">urn:uuid:b302537f-913d-4e00-980c-c81958ae9a96</UUID>
+      </TiffData>
+      <TiffData IFD="7" FirstZ="7" FirstC="1" PlaneCount="1">
+        <UUID FileName="c3_z33_w2Conf561.ome.tif">urn:uuid:b302537f-913d-4e00-980c-c81958ae9a96</UUID>
+      </TiffData>
+      <TiffData IFD="8" FirstZ="8" FirstC="1" PlaneCount="1">
+        <UUID FileName="c3_z33_w2Conf561.ome.tif">urn:uuid:b302537f-913d-4e00-980c-c81958ae9a96</UUID>
+      </TiffData>
+      <TiffData IFD="9" FirstZ="9" FirstC="1" PlaneCount="1">
+        <UUID FileName="c3_z33_w2Conf561.ome.tif">urn:uuid:b302537f-913d-4e00-980c-c81958ae9a96</UUID>
+      </TiffData>
+      <TiffData IFD="10" FirstZ="10" FirstC="1" PlaneCount="1">
+        <UUID FileName="c3_z33_w2Conf561.ome.tif">urn:uuid:b302537f-913d-4e00-980c-c81958ae9a96</UUID>
+      </TiffData>
+      <TiffData IFD="11" FirstZ="11" FirstC="1" PlaneCount="1">
+        <UUID FileName="c3_z33_w2Conf561.ome.tif">urn:uuid:b302537f-913d-4e00-980c-c81958ae9a96</UUID>
+      </TiffData>
+      <TiffData IFD="12" FirstZ="12" FirstC="1" PlaneCount="1">
+        <UUID FileName="c3_z33_w2Conf561.ome.tif">urn:uuid:b302537f-913d-4e00-980c-c81958ae9a96</UUID>
+      </TiffData>
+      <TiffData IFD="13" FirstZ="13" FirstC="1" PlaneCount="1">
+        <UUID FileName="c3_z33_w2Conf561.ome.tif">urn:uuid:b302537f-913d-4e00-980c-c81958ae9a96</UUID>
+      </TiffData>
+      <TiffData IFD="14" FirstZ="14" FirstC="1" PlaneCount="1">
+        <UUID FileName="c3_z33_w2Conf561.ome.tif">urn:uuid:b302537f-913d-4e00-980c-c81958ae9a96</UUID>
+      </TiffData>
+      <TiffData IFD="15" FirstZ="15" FirstC="1" PlaneCount="1">
+        <UUID FileName="c3_z33_w2Conf561.ome.tif">urn:uuid:b302537f-913d-4e00-980c-c81958ae9a96</UUID>
+      </TiffData>
+      <TiffData IFD="16" FirstZ="16" FirstC="1" PlaneCount="1">
+        <UUID FileName="c3_z33_w2Conf561.ome.tif">urn:uuid:b302537f-913d-4e00-980c-c81958ae9a96</UUID>
+      </TiffData>
+      <TiffData IFD="17" FirstZ="17" FirstC="1" PlaneCount="1">
+        <UUID FileName="c3_z33_w2Conf561.ome.tif">urn:uuid:b302537f-913d-4e00-980c-c81958ae9a96</UUID>
+      </TiffData>
+      <TiffData IFD="18" FirstZ="18" FirstC="1" PlaneCount="1">
+        <UUID FileName="c3_z33_w2Conf561.ome.tif">urn:uuid:b302537f-913d-4e00-980c-c81958ae9a96</UUID>
+      </TiffData>
+      <TiffData IFD="19" FirstZ="19" FirstC="1" PlaneCount="1">
+        <UUID FileName="c3_z33_w2Conf561.ome.tif">urn:uuid:b302537f-913d-4e00-980c-c81958ae9a96</UUID>
+      </TiffData>
+      <TiffData IFD="20" FirstZ="20" FirstC="1" PlaneCount="1">
+        <UUID FileName="c3_z33_w2Conf561.ome.tif">urn:uuid:b302537f-913d-4e00-980c-c81958ae9a96</UUID>
+      </TiffData>
+      <TiffData IFD="21" FirstZ="21" FirstC="1" PlaneCount="1">
+        <UUID FileName="c3_z33_w2Conf561.ome.tif">urn:uuid:b302537f-913d-4e00-980c-c81958ae9a96</UUID>
+      </TiffData>
+      <TiffData IFD="22" FirstZ="22" FirstC="1" PlaneCount="1">
+        <UUID FileName="c3_z33_w2Conf561.ome.tif">urn:uuid:b302537f-913d-4e00-980c-c81958ae9a96</UUID>
+      </TiffData>
+      <TiffData IFD="23" FirstZ="23" FirstC="1" PlaneCount="1">
+        <UUID FileName="c3_z33_w2Conf561.ome.tif">urn:uuid:b302537f-913d-4e00-980c-c81958ae9a96</UUID>
+      </TiffData>
+      <TiffData IFD="24" FirstZ="24" FirstC="1" PlaneCount="1">
+        <UUID FileName="c3_z33_w2Conf561.ome.tif">urn:uuid:b302537f-913d-4e00-980c-c81958ae9a96</UUID>
+      </TiffData>
+      <TiffData IFD="25" FirstZ="25" FirstC="1" PlaneCount="1">
+        <UUID FileName="c3_z33_w2Conf561.ome.tif">urn:uuid:b302537f-913d-4e00-980c-c81958ae9a96</UUID>
+      </TiffData>
+      <TiffData IFD="26" FirstZ="26" FirstC="1" PlaneCount="1">
+        <UUID FileName="c3_z33_w2Conf561.ome.tif">urn:uuid:b302537f-913d-4e00-980c-c81958ae9a96</UUID>
+      </TiffData>
+      <TiffData IFD="27" FirstZ="27" FirstC="1" PlaneCount="1">
+        <UUID FileName="c3_z33_w2Conf561.ome.tif">urn:uuid:b302537f-913d-4e00-980c-c81958ae9a96</UUID>
+      </TiffData>
+      <TiffData IFD="28" FirstZ="28" FirstC="1" PlaneCount="1">
+        <UUID FileName="c3_z33_w2Conf561.ome.tif">urn:uuid:b302537f-913d-4e00-980c-c81958ae9a96</UUID>
+      </TiffData>
+      <TiffData IFD="29" FirstZ="29" FirstC="1" PlaneCount="1">
+        <UUID FileName="c3_z33_w2Conf561.ome.tif">urn:uuid:b302537f-913d-4e00-980c-c81958ae9a96</UUID>
+      </TiffData>
+      <TiffData IFD="30" FirstZ="30" FirstC="1" PlaneCount="1">
+        <UUID FileName="c3_z33_w2Conf561.ome.tif">urn:uuid:b302537f-913d-4e00-980c-c81958ae9a96</UUID>
+      </TiffData>
+      <TiffData IFD="31" FirstZ="31" FirstC="1" PlaneCount="1">
+        <UUID FileName="c3_z33_w2Conf561.ome.tif">urn:uuid:b302537f-913d-4e00-980c-c81958ae9a96</UUID>
+      </TiffData>
+      <TiffData IFD="32" FirstZ="32" FirstC="1" PlaneCount="1">
+        <UUID FileName="c3_z33_w2Conf561.ome.tif">urn:uuid:b302537f-913d-4e00-980c-c81958ae9a96</UUID>
+      </TiffData>
+      <TiffData IFD="1" FirstZ="1" FirstC="2" PlaneCount="1">
+        <UUID FileName="c3_z33_w3Conf405.ome.tif">urn:uuid:815c4b0a-be4d-4efb-9cfd-1272a23b79cf</UUID>
+      </TiffData>
+      <TiffData IFD="2" FirstZ="2" FirstC="2" PlaneCount="1">
+        <UUID FileName="c3_z33_w3Conf405.ome.tif">urn:uuid:815c4b0a-be4d-4efb-9cfd-1272a23b79cf</UUID>
+      </TiffData>
+      <TiffData IFD="3" FirstZ="3" FirstC="2" PlaneCount="1">
+        <UUID FileName="c3_z33_w3Conf405.ome.tif">urn:uuid:815c4b0a-be4d-4efb-9cfd-1272a23b79cf</UUID>
+      </TiffData>
+      <TiffData IFD="4" FirstZ="4" FirstC="2" PlaneCount="1">
+        <UUID FileName="c3_z33_w3Conf405.ome.tif">urn:uuid:815c4b0a-be4d-4efb-9cfd-1272a23b79cf</UUID>
+      </TiffData>
+      <TiffData IFD="5" FirstZ="5" FirstC="2" PlaneCount="1">
+        <UUID FileName="c3_z33_w3Conf405.ome.tif">urn:uuid:815c4b0a-be4d-4efb-9cfd-1272a23b79cf</UUID>
+      </TiffData>
+      <TiffData IFD="6" FirstZ="6" FirstC="2" PlaneCount="1">
+        <UUID FileName="c3_z33_w3Conf405.ome.tif">urn:uuid:815c4b0a-be4d-4efb-9cfd-1272a23b79cf</UUID>
+      </TiffData>
+      <TiffData IFD="7" FirstZ="7" FirstC="2" PlaneCount="1">
+        <UUID FileName="c3_z33_w3Conf405.ome.tif">urn:uuid:815c4b0a-be4d-4efb-9cfd-1272a23b79cf</UUID>
+      </TiffData>
+      <TiffData IFD="8" FirstZ="8" FirstC="2" PlaneCount="1">
+        <UUID FileName="c3_z33_w3Conf405.ome.tif">urn:uuid:815c4b0a-be4d-4efb-9cfd-1272a23b79cf</UUID>
+      </TiffData>
+      <TiffData IFD="9" FirstZ="9" FirstC="2" PlaneCount="1">
+        <UUID FileName="c3_z33_w3Conf405.ome.tif">urn:uuid:815c4b0a-be4d-4efb-9cfd-1272a23b79cf</UUID>
+      </TiffData>
+      <TiffData IFD="10" FirstZ="10" FirstC="2" PlaneCount="1">
+        <UUID FileName="c3_z33_w3Conf405.ome.tif">urn:uuid:815c4b0a-be4d-4efb-9cfd-1272a23b79cf</UUID>
+      </TiffData>
+      <TiffData IFD="11" FirstZ="11" FirstC="2" PlaneCount="1">
+        <UUID FileName="c3_z33_w3Conf405.ome.tif">urn:uuid:815c4b0a-be4d-4efb-9cfd-1272a23b79cf</UUID>
+      </TiffData>
+      <TiffData IFD="12" FirstZ="12" FirstC="2" PlaneCount="1">
+        <UUID FileName="c3_z33_w3Conf405.ome.tif">urn:uuid:815c4b0a-be4d-4efb-9cfd-1272a23b79cf</UUID>
+      </TiffData>
+      <TiffData IFD="13" FirstZ="13" FirstC="2" PlaneCount="1">
+        <UUID FileName="c3_z33_w3Conf405.ome.tif">urn:uuid:815c4b0a-be4d-4efb-9cfd-1272a23b79cf</UUID>
+      </TiffData>
+      <TiffData IFD="14" FirstZ="14" FirstC="2" PlaneCount="1">
+        <UUID FileName="c3_z33_w3Conf405.ome.tif">urn:uuid:815c4b0a-be4d-4efb-9cfd-1272a23b79cf</UUID>
+      </TiffData>
+      <TiffData IFD="15" FirstZ="15" FirstC="2" PlaneCount="1">
+        <UUID FileName="c3_z33_w3Conf405.ome.tif">urn:uuid:815c4b0a-be4d-4efb-9cfd-1272a23b79cf</UUID>
+      </TiffData>
+      <TiffData IFD="16" FirstZ="16" FirstC="2" PlaneCount="1">
+        <UUID FileName="c3_z33_w3Conf405.ome.tif">urn:uuid:815c4b0a-be4d-4efb-9cfd-1272a23b79cf</UUID>
+      </TiffData>
+      <TiffData IFD="17" FirstZ="17" FirstC="2" PlaneCount="1">
+        <UUID FileName="c3_z33_w3Conf405.ome.tif">urn:uuid:815c4b0a-be4d-4efb-9cfd-1272a23b79cf</UUID>
+      </TiffData>
+      <TiffData IFD="18" FirstZ="18" FirstC="2" PlaneCount="1">
+        <UUID FileName="c3_z33_w3Conf405.ome.tif">urn:uuid:815c4b0a-be4d-4efb-9cfd-1272a23b79cf</UUID>
+      </TiffData>
+      <TiffData IFD="19" FirstZ="19" FirstC="2" PlaneCount="1">
+        <UUID FileName="c3_z33_w3Conf405.ome.tif">urn:uuid:815c4b0a-be4d-4efb-9cfd-1272a23b79cf</UUID>
+      </TiffData>
+      <TiffData IFD="20" FirstZ="20" FirstC="2" PlaneCount="1">
+        <UUID FileName="c3_z33_w3Conf405.ome.tif">urn:uuid:815c4b0a-be4d-4efb-9cfd-1272a23b79cf</UUID>
+      </TiffData>
+      <TiffData IFD="21" FirstZ="21" FirstC="2" PlaneCount="1">
+        <UUID FileName="c3_z33_w3Conf405.ome.tif">urn:uuid:815c4b0a-be4d-4efb-9cfd-1272a23b79cf</UUID>
+      </TiffData>
+      <TiffData IFD="22" FirstZ="22" FirstC="2" PlaneCount="1">
+        <UUID FileName="c3_z33_w3Conf405.ome.tif">urn:uuid:815c4b0a-be4d-4efb-9cfd-1272a23b79cf</UUID>
+      </TiffData>
+      <TiffData IFD="23" FirstZ="23" FirstC="2" PlaneCount="1">
+        <UUID FileName="c3_z33_w3Conf405.ome.tif">urn:uuid:815c4b0a-be4d-4efb-9cfd-1272a23b79cf</UUID>
+      </TiffData>
+      <TiffData IFD="24" FirstZ="24" FirstC="2" PlaneCount="1">
+        <UUID FileName="c3_z33_w3Conf405.ome.tif">urn:uuid:815c4b0a-be4d-4efb-9cfd-1272a23b79cf</UUID>
+      </TiffData>
+      <TiffData IFD="25" FirstZ="25" FirstC="2" PlaneCount="1">
+        <UUID FileName="c3_z33_w3Conf405.ome.tif">urn:uuid:815c4b0a-be4d-4efb-9cfd-1272a23b79cf</UUID>
+      </TiffData>
+      <TiffData IFD="26" FirstZ="26" FirstC="2" PlaneCount="1">
+        <UUID FileName="c3_z33_w3Conf405.ome.tif">urn:uuid:815c4b0a-be4d-4efb-9cfd-1272a23b79cf</UUID>
+      </TiffData>
+      <TiffData IFD="27" FirstZ="27" FirstC="2" PlaneCount="1">
+        <UUID FileName="c3_z33_w3Conf405.ome.tif">urn:uuid:815c4b0a-be4d-4efb-9cfd-1272a23b79cf</UUID>
+      </TiffData>
+      <TiffData IFD="28" FirstZ="28" FirstC="2" PlaneCount="1">
+        <UUID FileName="c3_z33_w3Conf405.ome.tif">urn:uuid:815c4b0a-be4d-4efb-9cfd-1272a23b79cf</UUID>
+      </TiffData>
+      <TiffData IFD="29" FirstZ="29" FirstC="2" PlaneCount="1">
+        <UUID FileName="c3_z33_w3Conf405.ome.tif">urn:uuid:815c4b0a-be4d-4efb-9cfd-1272a23b79cf</UUID>
+      </TiffData>
+      <TiffData IFD="30" FirstZ="30" FirstC="2" PlaneCount="1">
+        <UUID FileName="c3_z33_w3Conf405.ome.tif">urn:uuid:815c4b0a-be4d-4efb-9cfd-1272a23b79cf</UUID>
+      </TiffData>
+      <TiffData IFD="31" FirstZ="31" FirstC="2" PlaneCount="1">
+        <UUID FileName="c3_z33_w3Conf405.ome.tif">urn:uuid:815c4b0a-be4d-4efb-9cfd-1272a23b79cf</UUID>
+      </TiffData>
+      <TiffData IFD="32" FirstZ="32" FirstC="2" PlaneCount="1">
+        <UUID FileName="c3_z33_w3Conf405.ome.tif">urn:uuid:815c4b0a-be4d-4efb-9cfd-1272a23b79cf</UUID>
+      </TiffData>
+      <Plane TheZ="0" TheT="0" TheC="0" DeltaT="0" PositionX="-46038.9" PositionXUnit="µm" PositionY="4781.1" PositionYUnit="µm" PositionZ="67" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionZ" />
+      </Plane>
+      <Plane TheZ="0" TheT="0" TheC="1" DeltaT="8.891493" PositionX="-46038.9" PositionXUnit="µm" PositionY="4781.1" PositionYUnit="µm" PositionZ="67" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionZ" />
+      </Plane>
+      <Plane TheZ="0" TheT="0" TheC="2" DeltaT="15.8317614" PositionX="-46038.9" PositionXUnit="µm" PositionY="4781.1" PositionYUnit="µm" PositionZ="67" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionZ" />
+      </Plane>
+      <Plane TheZ="1" TheT="0" TheC="0" DeltaT="0.2730088" PositionX="-46038.9" PositionXUnit="µm" PositionY="4781.1" PositionYUnit="µm" PositionZ="67.5" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionZ" />
+      </Plane>
+      <Plane TheZ="2" TheT="0" TheC="0" DeltaT="0.5454233" PositionX="-46038.9" PositionXUnit="µm" PositionY="4781.1" PositionYUnit="µm" PositionZ="68" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionZ" />
+      </Plane>
+      <Plane TheZ="3" TheT="0" TheC="0" DeltaT="0.817366" PositionX="-46038.9" PositionXUnit="µm" PositionY="4781.1" PositionYUnit="µm" PositionZ="68.5" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionZ" />
+      </Plane>
+      <Plane TheZ="4" TheT="0" TheC="0" DeltaT="1.0869503" PositionX="-46038.9" PositionXUnit="µm" PositionY="4781.1" PositionYUnit="µm" PositionZ="69" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionZ" />
+      </Plane>
+      <Plane TheZ="5" TheT="0" TheC="0" DeltaT="1.35511065" PositionX="-46038.9" PositionXUnit="µm" PositionY="4781.1" PositionYUnit="µm" PositionZ="69.5" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionZ" />
+      </Plane>
+      <Plane TheZ="6" TheT="0" TheC="0" DeltaT="1.62316346" PositionX="-46038.9" PositionXUnit="µm" PositionY="4781.1" PositionYUnit="µm" PositionZ="70" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionZ" />
+      </Plane>
+      <Plane TheZ="7" TheT="0" TheC="0" DeltaT="1.89118993" PositionX="-46038.9" PositionXUnit="µm" PositionY="4781.1" PositionYUnit="µm" PositionZ="70.5" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionZ" />
+      </Plane>
+      <Plane TheZ="8" TheT="0" TheC="0" DeltaT="2.15841341" PositionX="-46038.9" PositionXUnit="µm" PositionY="4781.1" PositionYUnit="µm" PositionZ="71" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionZ" />
+      </Plane>
+      <Plane TheZ="9" TheT="0" TheC="0" DeltaT="2.42513943" PositionX="-46038.9" PositionXUnit="µm" PositionY="4781.1" PositionYUnit="µm" PositionZ="71.5" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionZ" />
+      </Plane>
+      <Plane TheZ="10" TheT="0" TheC="0" DeltaT="2.696482" PositionX="-46038.9" PositionXUnit="µm" PositionY="4781.1" PositionYUnit="µm" PositionZ="72" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionZ" />
+      </Plane>
+      <Plane TheZ="11" TheT="0" TheC="0" DeltaT="2.96510983" PositionX="-46038.9" PositionXUnit="µm" PositionY="4781.1" PositionYUnit="µm" PositionZ="72.5" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionZ" />
+      </Plane>
+      <Plane TheZ="12" TheT="0" TheC="0" DeltaT="3.23309755" PositionX="-46038.9" PositionXUnit="µm" PositionY="4781.1" PositionYUnit="µm" PositionZ="73" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionZ" />
+      </Plane>
+      <Plane TheZ="13" TheT="0" TheC="0" DeltaT="3.50122118" PositionX="-46038.9" PositionXUnit="µm" PositionY="4781.1" PositionYUnit="µm" PositionZ="73.5" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionZ" />
+      </Plane>
+      <Plane TheZ="14" TheT="0" TheC="0" DeltaT="3.76929116" PositionX="-46038.9" PositionXUnit="µm" PositionY="4781.1" PositionYUnit="µm" PositionZ="74" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionZ" />
+      </Plane>
+      <Plane TheZ="15" TheT="0" TheC="0" DeltaT="4.03730869" PositionX="-46038.9" PositionXUnit="µm" PositionY="4781.1" PositionYUnit="µm" PositionZ="74.5" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionZ" />
+      </Plane>
+      <Plane TheZ="16" TheT="0" TheC="0" DeltaT="4.304771" PositionX="-46038.9" PositionXUnit="µm" PositionY="4781.1" PositionYUnit="µm" PositionZ="75" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionZ" />
+      </Plane>
+      <Plane TheZ="17" TheT="0" TheC="0" DeltaT="4.57325" PositionX="-46038.9" PositionXUnit="µm" PositionY="4781.1" PositionYUnit="µm" PositionZ="75.5" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionZ" />
+      </Plane>
+      <Plane TheZ="18" TheT="0" TheC="0" DeltaT="4.8410306" PositionX="-46038.9" PositionXUnit="µm" PositionY="4781.1" PositionYUnit="µm" PositionZ="76" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionZ" />
+      </Plane>
+      <Plane TheZ="19" TheT="0" TheC="0" DeltaT="5.10925055" PositionX="-46038.9" PositionXUnit="µm" PositionY="4781.1" PositionYUnit="µm" PositionZ="76.5" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionZ" />
+      </Plane>
+      <Plane TheZ="20" TheT="0" TheC="0" DeltaT="5.378203" PositionX="-46038.9" PositionXUnit="µm" PositionY="4781.1" PositionYUnit="µm" PositionZ="77" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionZ" />
+      </Plane>
+      <Plane TheZ="21" TheT="0" TheC="0" DeltaT="5.64525032" PositionX="-46038.9" PositionXUnit="µm" PositionY="4781.1" PositionYUnit="µm" PositionZ="77.5" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionZ" />
+      </Plane>
+      <Plane TheZ="22" TheT="0" TheC="0" DeltaT="5.91333771" PositionX="-46038.9" PositionXUnit="µm" PositionY="4781.1" PositionYUnit="µm" PositionZ="78" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionZ" />
+      </Plane>
+      <Plane TheZ="23" TheT="0" TheC="0" DeltaT="6.18125153" PositionX="-46038.9" PositionXUnit="µm" PositionY="4781.1" PositionYUnit="µm" PositionZ="78.5" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionZ" />
+      </Plane>
+      <Plane TheZ="24" TheT="0" TheC="0" DeltaT="6.449359" PositionX="-46038.9" PositionXUnit="µm" PositionY="4781.1" PositionYUnit="µm" PositionZ="79" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionZ" />
+      </Plane>
+      <Plane TheZ="25" TheT="0" TheC="0" DeltaT="6.717255" PositionX="-46038.9" PositionXUnit="µm" PositionY="4781.1" PositionYUnit="µm" PositionZ="79.5" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionZ" />
+      </Plane>
+      <Plane TheZ="26" TheT="0" TheC="0" DeltaT="6.984157" PositionX="-46038.9" PositionXUnit="µm" PositionY="4781.1" PositionYUnit="µm" PositionZ="80" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionZ" />
+      </Plane>
+      <Plane TheZ="27" TheT="0" TheC="0" DeltaT="7.25149345" PositionX="-46038.9" PositionXUnit="µm" PositionY="4781.1" PositionYUnit="µm" PositionZ="80.5" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionZ" />
+      </Plane>
+      <Plane TheZ="28" TheT="0" TheC="0" DeltaT="7.519426" PositionX="-46038.9" PositionXUnit="µm" PositionY="4781.1" PositionYUnit="µm" PositionZ="81" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionZ" />
+      </Plane>
+      <Plane TheZ="29" TheT="0" TheC="0" DeltaT="7.78706455" PositionX="-46038.9" PositionXUnit="µm" PositionY="4781.1" PositionYUnit="µm" PositionZ="81.5" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionZ" />
+      </Plane>
+      <Plane TheZ="30" TheT="0" TheC="0" DeltaT="8.055384" PositionX="-46038.9" PositionXUnit="µm" PositionY="4781.1" PositionYUnit="µm" PositionZ="82" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionZ" />
+      </Plane>
+      <Plane TheZ="31" TheT="0" TheC="0" DeltaT="8.322074" PositionX="-46038.9" PositionXUnit="µm" PositionY="4781.1" PositionYUnit="µm" PositionZ="82.5" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionZ" />
+      </Plane>
+      <Plane TheZ="32" TheT="0" TheC="0" DeltaT="8.58906" PositionX="-46038.9" PositionXUnit="µm" PositionY="4781.1" PositionYUnit="µm" PositionZ="83" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionZ" />
+      </Plane>
+      <Plane TheZ="1" TheT="0" TheC="1" DeltaT="9.099374" PositionX="-46038.9" PositionXUnit="µm" PositionY="4781.1" PositionYUnit="µm" PositionZ="67.5" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionZ" />
+      </Plane>
+      <Plane TheZ="2" TheT="0" TheC="1" DeltaT="9.307303" PositionX="-46038.9" PositionXUnit="µm" PositionY="4781.1" PositionYUnit="µm" PositionZ="68" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionZ" />
+      </Plane>
+      <Plane TheZ="3" TheT="0" TheC="1" DeltaT="9.515482" PositionX="-46038.9" PositionXUnit="µm" PositionY="4781.1" PositionYUnit="µm" PositionZ="68.5" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionZ" />
+      </Plane>
+      <Plane TheZ="4" TheT="0" TheC="1" DeltaT="9.724365" PositionX="-46038.9" PositionXUnit="µm" PositionY="4781.1" PositionYUnit="µm" PositionZ="69" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionZ" />
+      </Plane>
+      <Plane TheZ="5" TheT="0" TheC="1" DeltaT="9.932236" PositionX="-46038.9" PositionXUnit="µm" PositionY="4781.1" PositionYUnit="µm" PositionZ="69.5" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionZ" />
+      </Plane>
+      <Plane TheZ="6" TheT="0" TheC="1" DeltaT="10.1403227" PositionX="-46038.9" PositionXUnit="µm" PositionY="4781.1" PositionYUnit="µm" PositionZ="70" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionZ" />
+      </Plane>
+      <Plane TheZ="7" TheT="0" TheC="1" DeltaT="10.3484268" PositionX="-46038.9" PositionXUnit="µm" PositionY="4781.1" PositionYUnit="µm" PositionZ="70.5" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionZ" />
+      </Plane>
+      <Plane TheZ="8" TheT="0" TheC="1" DeltaT="10.5558367" PositionX="-46038.9" PositionXUnit="µm" PositionY="4781.1" PositionYUnit="µm" PositionZ="71" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionZ" />
+      </Plane>
+      <Plane TheZ="9" TheT="0" TheC="1" DeltaT="10.7643843" PositionX="-46038.9" PositionXUnit="µm" PositionY="4781.1" PositionYUnit="µm" PositionZ="71.5" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionZ" />
+      </Plane>
+      <Plane TheZ="10" TheT="0" TheC="1" DeltaT="10.972477" PositionX="-46038.9" PositionXUnit="µm" PositionY="4781.1" PositionYUnit="µm" PositionZ="72" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionZ" />
+      </Plane>
+      <Plane TheZ="11" TheT="0" TheC="1" DeltaT="11.1808014" PositionX="-46038.9" PositionXUnit="µm" PositionY="4781.1" PositionYUnit="µm" PositionZ="72.5" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionZ" />
+      </Plane>
+      <Plane TheZ="12" TheT="0" TheC="1" DeltaT="11.3884449" PositionX="-46038.9" PositionXUnit="µm" PositionY="4781.1" PositionYUnit="µm" PositionZ="73" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionZ" />
+      </Plane>
+      <Plane TheZ="13" TheT="0" TheC="1" DeltaT="11.59648" PositionX="-46038.9" PositionXUnit="µm" PositionY="4781.1" PositionYUnit="µm" PositionZ="73.5" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionZ" />
+      </Plane>
+      <Plane TheZ="14" TheT="0" TheC="1" DeltaT="11.8044024" PositionX="-46038.9" PositionXUnit="µm" PositionY="4781.1" PositionYUnit="µm" PositionZ="74" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionZ" />
+      </Plane>
+      <Plane TheZ="15" TheT="0" TheC="1" DeltaT="12.0121727" PositionX="-46038.9" PositionXUnit="µm" PositionY="4781.1" PositionYUnit="µm" PositionZ="74.5" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionZ" />
+      </Plane>
+      <Plane TheZ="16" TheT="0" TheC="1" DeltaT="12.220459" PositionX="-46038.9" PositionXUnit="µm" PositionY="4781.1" PositionYUnit="µm" PositionZ="75" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionZ" />
+      </Plane>
+      <Plane TheZ="17" TheT="0" TheC="1" DeltaT="12.42848" PositionX="-46038.9" PositionXUnit="µm" PositionY="4781.1" PositionYUnit="µm" PositionZ="75.5" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionZ" />
+      </Plane>
+      <Plane TheZ="18" TheT="0" TheC="1" DeltaT="12.6365671" PositionX="-46038.9" PositionXUnit="µm" PositionY="4781.1" PositionYUnit="µm" PositionZ="76" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionZ" />
+      </Plane>
+      <Plane TheZ="19" TheT="0" TheC="1" DeltaT="12.84451" PositionX="-46038.9" PositionXUnit="µm" PositionY="4781.1" PositionYUnit="µm" PositionZ="76.5" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionZ" />
+      </Plane>
+      <Plane TheZ="20" TheT="0" TheC="1" DeltaT="13.0525026" PositionX="-46038.9" PositionXUnit="µm" PositionY="4781.1" PositionYUnit="µm" PositionZ="77" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionZ" />
+      </Plane>
+      <Plane TheZ="21" TheT="0" TheC="1" DeltaT="13.26049" PositionX="-46038.9" PositionXUnit="µm" PositionY="4781.1" PositionYUnit="µm" PositionZ="77.5" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionZ" />
+      </Plane>
+      <Plane TheZ="22" TheT="0" TheC="1" DeltaT="13.4687567" PositionX="-46038.9" PositionXUnit="µm" PositionY="4781.1" PositionYUnit="µm" PositionZ="78" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionZ" />
+      </Plane>
+      <Plane TheZ="23" TheT="0" TheC="1" DeltaT="13.6765985" PositionX="-46038.9" PositionXUnit="µm" PositionY="4781.1" PositionYUnit="µm" PositionZ="78.5" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionZ" />
+      </Plane>
+      <Plane TheZ="24" TheT="0" TheC="1" DeltaT="13.8845091" PositionX="-46038.9" PositionXUnit="µm" PositionY="4781.1" PositionYUnit="µm" PositionZ="79" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionZ" />
+      </Plane>
+      <Plane TheZ="25" TheT="0" TheC="1" DeltaT="14.0920982" PositionX="-46038.9" PositionXUnit="µm" PositionY="4781.1" PositionYUnit="µm" PositionZ="79.5" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionZ" />
+      </Plane>
+      <Plane TheZ="26" TheT="0" TheC="1" DeltaT="14.3005075" PositionX="-46038.9" PositionXUnit="µm" PositionY="4781.1" PositionYUnit="µm" PositionZ="80" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionZ" />
+      </Plane>
+      <Plane TheZ="27" TheT="0" TheC="1" DeltaT="14.50852" PositionX="-46038.9" PositionXUnit="µm" PositionY="4781.1" PositionYUnit="µm" PositionZ="80.5" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionZ" />
+      </Plane>
+      <Plane TheZ="28" TheT="0" TheC="1" DeltaT="14.7166357" PositionX="-46038.9" PositionXUnit="µm" PositionY="4781.1" PositionYUnit="µm" PositionZ="81" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionZ" />
+      </Plane>
+      <Plane TheZ="29" TheT="0" TheC="1" DeltaT="14.9245749" PositionX="-46038.9" PositionXUnit="µm" PositionY="4781.1" PositionYUnit="µm" PositionZ="81.5" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionZ" />
+      </Plane>
+      <Plane TheZ="30" TheT="0" TheC="1" DeltaT="15.1325874" PositionX="-46038.9" PositionXUnit="µm" PositionY="4781.1" PositionYUnit="µm" PositionZ="82" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionZ" />
+      </Plane>
+      <Plane TheZ="31" TheT="0" TheC="1" DeltaT="15.3465872" PositionX="-46038.9" PositionXUnit="µm" PositionY="4781.1" PositionYUnit="µm" PositionZ="82.5" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionZ" />
+      </Plane>
+      <Plane TheZ="32" TheT="0" TheC="1" DeltaT="15.5546227" PositionX="-46038.9" PositionXUnit="µm" PositionY="4781.1" PositionYUnit="µm" PositionZ="83" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionZ" />
+      </Plane>
+      <Plane TheZ="1" TheT="0" TheC="2" DeltaT="15.9575834" PositionX="-46038.9" PositionXUnit="µm" PositionY="4781.1" PositionYUnit="µm" PositionZ="67.5" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionZ" />
+      </Plane>
+      <Plane TheZ="2" TheT="0" TheC="2" DeltaT="16.0835857" PositionX="-46038.9" PositionXUnit="µm" PositionY="4781.1" PositionYUnit="µm" PositionZ="68" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionZ" />
+      </Plane>
+      <Plane TheZ="3" TheT="0" TheC="2" DeltaT="16.20968" PositionX="-46038.9" PositionXUnit="µm" PositionY="4781.1" PositionYUnit="µm" PositionZ="68.5" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionZ" />
+      </Plane>
+      <Plane TheZ="4" TheT="0" TheC="2" DeltaT="16.3358421" PositionX="-46038.9" PositionXUnit="µm" PositionY="4781.1" PositionYUnit="µm" PositionZ="69" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionZ" />
+      </Plane>
+      <Plane TheZ="5" TheT="0" TheC="2" DeltaT="16.4616318" PositionX="-46038.9" PositionXUnit="µm" PositionY="4781.1" PositionYUnit="µm" PositionZ="69.5" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionZ" />
+      </Plane>
+      <Plane TheZ="6" TheT="0" TheC="2" DeltaT="16.5878658" PositionX="-46038.9" PositionXUnit="µm" PositionY="4781.1" PositionYUnit="µm" PositionZ="70" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionZ" />
+      </Plane>
+      <Plane TheZ="7" TheT="0" TheC="2" DeltaT="16.7152729" PositionX="-46038.9" PositionXUnit="µm" PositionY="4781.1" PositionYUnit="µm" PositionZ="70.5" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionZ" />
+      </Plane>
+      <Plane TheZ="8" TheT="0" TheC="2" DeltaT="16.84193" PositionX="-46038.9" PositionXUnit="µm" PositionY="4781.1" PositionYUnit="µm" PositionZ="71" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionZ" />
+      </Plane>
+      <Plane TheZ="9" TheT="0" TheC="2" DeltaT="16.9678726" PositionX="-46038.9" PositionXUnit="µm" PositionY="4781.1" PositionYUnit="µm" PositionZ="71.5" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionZ" />
+      </Plane>
+      <Plane TheZ="10" TheT="0" TheC="2" DeltaT="17.0938663" PositionX="-46038.9" PositionXUnit="µm" PositionY="4781.1" PositionYUnit="µm" PositionZ="72" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionZ" />
+      </Plane>
+      <Plane TheZ="11" TheT="0" TheC="2" DeltaT="17.22024" PositionX="-46038.9" PositionXUnit="µm" PositionY="4781.1" PositionYUnit="µm" PositionZ="72.5" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionZ" />
+      </Plane>
+      <Plane TheZ="12" TheT="0" TheC="2" DeltaT="17.34587" PositionX="-46038.9" PositionXUnit="µm" PositionY="4781.1" PositionYUnit="µm" PositionZ="73" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionZ" />
+      </Plane>
+      <Plane TheZ="13" TheT="0" TheC="2" DeltaT="17.472126" PositionX="-46038.9" PositionXUnit="µm" PositionY="4781.1" PositionYUnit="µm" PositionZ="73.5" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionZ" />
+      </Plane>
+      <Plane TheZ="14" TheT="0" TheC="2" DeltaT="17.598135" PositionX="-46038.9" PositionXUnit="µm" PositionY="4781.1" PositionYUnit="µm" PositionZ="74" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionZ" />
+      </Plane>
+      <Plane TheZ="15" TheT="0" TheC="2" DeltaT="17.7237053" PositionX="-46038.9" PositionXUnit="µm" PositionY="4781.1" PositionYUnit="µm" PositionZ="74.5" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionZ" />
+      </Plane>
+      <Plane TheZ="16" TheT="0" TheC="2" DeltaT="17.8497868" PositionX="-46038.9" PositionXUnit="µm" PositionY="4781.1" PositionYUnit="µm" PositionZ="75" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionZ" />
+      </Plane>
+      <Plane TheZ="17" TheT="0" TheC="2" DeltaT="17.9756184" PositionX="-46038.9" PositionXUnit="µm" PositionY="4781.1" PositionYUnit="µm" PositionZ="75.5" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionZ" />
+      </Plane>
+      <Plane TheZ="18" TheT="0" TheC="2" DeltaT="18.10214" PositionX="-46038.9" PositionXUnit="µm" PositionY="4781.1" PositionYUnit="µm" PositionZ="76" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionZ" />
+      </Plane>
+      <Plane TheZ="19" TheT="0" TheC="2" DeltaT="18.227808" PositionX="-46038.9" PositionXUnit="µm" PositionY="4781.1" PositionYUnit="µm" PositionZ="76.5" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionZ" />
+      </Plane>
+      <Plane TheZ="20" TheT="0" TheC="2" DeltaT="18.3560219" PositionX="-46038.9" PositionXUnit="µm" PositionY="4781.1" PositionYUnit="µm" PositionZ="77" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionZ" />
+      </Plane>
+      <Plane TheZ="21" TheT="0" TheC="2" DeltaT="18.481926" PositionX="-46038.9" PositionXUnit="µm" PositionY="4781.1" PositionYUnit="µm" PositionZ="77.5" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionZ" />
+      </Plane>
+      <Plane TheZ="22" TheT="0" TheC="2" DeltaT="18.6077061" PositionX="-46038.9" PositionXUnit="µm" PositionY="4781.1" PositionYUnit="µm" PositionZ="78" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionZ" />
+      </Plane>
+      <Plane TheZ="23" TheT="0" TheC="2" DeltaT="18.7338428" PositionX="-46038.9" PositionXUnit="µm" PositionY="4781.1" PositionYUnit="µm" PositionZ="78.5" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionZ" />
+      </Plane>
+      <Plane TheZ="24" TheT="0" TheC="2" DeltaT="18.85985" PositionX="-46038.9" PositionXUnit="µm" PositionY="4781.1" PositionYUnit="µm" PositionZ="79" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionZ" />
+      </Plane>
+      <Plane TheZ="25" TheT="0" TheC="2" DeltaT="18.9878063" PositionX="-46038.9" PositionXUnit="µm" PositionY="4781.1" PositionYUnit="µm" PositionZ="79.5" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionZ" />
+      </Plane>
+      <Plane TheZ="26" TheT="0" TheC="2" DeltaT="19.114048" PositionX="-46038.9" PositionXUnit="µm" PositionY="4781.1" PositionYUnit="µm" PositionZ="80" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionZ" />
+      </Plane>
+      <Plane TheZ="27" TheT="0" TheC="2" DeltaT="19.23974" PositionX="-46038.9" PositionXUnit="µm" PositionY="4781.1" PositionYUnit="µm" PositionZ="80.5" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionZ" />
+      </Plane>
+      <Plane TheZ="28" TheT="0" TheC="2" DeltaT="19.3658524" PositionX="-46038.9" PositionXUnit="µm" PositionY="4781.1" PositionYUnit="µm" PositionZ="81" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionZ" />
+      </Plane>
+      <Plane TheZ="29" TheT="0" TheC="2" DeltaT="19.4919472" PositionX="-46038.9" PositionXUnit="µm" PositionY="4781.1" PositionYUnit="µm" PositionZ="81.5" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionZ" />
+      </Plane>
+      <Plane TheZ="30" TheT="0" TheC="2" DeltaT="19.6179123" PositionX="-46038.9" PositionXUnit="µm" PositionY="4781.1" PositionYUnit="µm" PositionZ="82" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionZ" />
+      </Plane>
+      <Plane TheZ="31" TheT="0" TheC="2" DeltaT="19.7438717" PositionX="-46038.9" PositionXUnit="µm" PositionY="4781.1" PositionYUnit="µm" PositionZ="82.5" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionZ" />
+      </Plane>
+      <Plane TheZ="32" TheT="0" TheC="2" DeltaT="19.8700466" PositionX="-46038.9" PositionXUnit="µm" PositionY="4781.1" PositionYUnit="µm" PositionZ="83" PositionZUnit="µm">
+        <AnnotationRef ID="Annotation:DimensionZ" />
+      </Plane>
+    </Pixels>
+  </Image>
+  <StructuredAnnotations>
+    <TagAnnotation ID="Annotation:DimensionZ">
+      <Value>z</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:1w1">
+      <Description>Look up table type</Description>
+      <Value>4</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:3w1">
+      <Description>XOffset</Description>
+      <Value>0</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:4w1">
+      <Description>YOffset</Description>
+      <Value>0</Value>
+    </TagAnnotation>
+    <TimestampAnnotation ID="Annotation:2w1">
+      <Description>ModifyDate</Description>
+      <Value>2024-11-04T10:38:16.5365703+01:00</Value>
+    </TimestampAnnotation>
+    <TagAnnotation ID="Annotation:5w1">
+      <Description>ImageRegionX</Description>
+      <Value>0</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:6w1">
+      <Description>ImageRegionY</Description>
+      <Value>0</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:7w1">
+      <Description>ImageRegionWidth</Description>
+      <Value>2048</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:8w1">
+      <Description>ImageRegionHeight</Description>
+      <Value>2048</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:10w1">
+      <Description>CameraChipWidth</Description>
+      <Value>2048</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:9w1">
+      <Description>CameraChipHeight</Description>
+      <Value>2048</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:11w1">
+      <Description>CameraName</Description>
+      <Value>Cam1</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:12w1">
+      <Description>CameraSettingFlipX</Description>
+      <Value>False</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:13w1">
+      <Description>CameraSettingFlipY</Description>
+      <Value>False</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:14w1">
+      <Description>CameraSettingRotate</Description>
+      <Value>False</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:15w1">
+      <Description>CameraSettingModeIndex</Description>
+      <Value>-1</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:16w1">
+      <Description>CameraSettingDigitizerIndex</Description>
+      <Value>1</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:17w1">
+      <Description>CameraSettingGainIndex</Description>
+      <Value>0</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:19w1">
+      <Description>ScanOverlap</Description>
+      <Value>0</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:18w1">
+      <Description>UniversalData</Description>
+      <Value />
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:20w1">
+      <Description>DimensionType</Description>
+      <Value>z</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:22w1">
+      <Description>GeneralDescription</Description>
+      <Value>Exposure: 240 ms
+Binning: 1
+Offset: 0,0
+Digitizer: not implemented
+Gain: 0</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:23w1">
+      <Description>ScanAngle</Description>
+      <Value>0</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:24w1">
+      <Description>ScanStageDirectionXInvert</Description>
+      <Value>False</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:25w1">
+      <Description>ScanStageDirectionYInvert</Description>
+      <Value>False</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:1w2">
+      <Description>Look up table type</Description>
+      <Value>4</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:3w2">
+      <Description>XOffset</Description>
+      <Value>0</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:4w2">
+      <Description>YOffset</Description>
+      <Value>0</Value>
+    </TagAnnotation>
+    <TimestampAnnotation ID="Annotation:2w2">
+      <Description>ModifyDate</Description>
+      <Value>2024-11-04T10:38:23.5021327+01:00</Value>
+    </TimestampAnnotation>
+    <TagAnnotation ID="Annotation:5w2">
+      <Description>ImageRegionX</Description>
+      <Value>0</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:6w2">
+      <Description>ImageRegionY</Description>
+      <Value>0</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:7w2">
+      <Description>ImageRegionWidth</Description>
+      <Value>2048</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:8w2">
+      <Description>ImageRegionHeight</Description>
+      <Value>2048</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:10w2">
+      <Description>CameraChipWidth</Description>
+      <Value>2048</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:9w2">
+      <Description>CameraChipHeight</Description>
+      <Value>2048</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:11w2">
+      <Description>CameraName</Description>
+      <Value>Cam1</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:12w2">
+      <Description>CameraSettingFlipX</Description>
+      <Value>False</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:13w2">
+      <Description>CameraSettingFlipY</Description>
+      <Value>False</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:14w2">
+      <Description>CameraSettingRotate</Description>
+      <Value>False</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:15w2">
+      <Description>CameraSettingModeIndex</Description>
+      <Value>-1</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:16w2">
+      <Description>CameraSettingDigitizerIndex</Description>
+      <Value>1</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:17w2">
+      <Description>CameraSettingGainIndex</Description>
+      <Value>0</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:19w2">
+      <Description>ScanOverlap</Description>
+      <Value>0</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:18w2">
+      <Description>UniversalData</Description>
+      <Value />
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:20w2">
+      <Description>DimensionType</Description>
+      <Value>z</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:22w2">
+      <Description>GeneralDescription</Description>
+      <Value>Exposure: 180 ms
+Binning: 1
+Offset: 0,0
+Digitizer: not implemented
+Gain: 0</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:23w2">
+      <Description>ScanAngle</Description>
+      <Value>0</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:24w2">
+      <Description>ScanStageDirectionXInvert</Description>
+      <Value>False</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:25w2">
+      <Description>ScanStageDirectionYInvert</Description>
+      <Value>False</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:1w3">
+      <Description>Look up table type</Description>
+      <Value>4</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:3w3">
+      <Description>XOffset</Description>
+      <Value>0</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:4w3">
+      <Description>YOffset</Description>
+      <Value>0</Value>
+    </TagAnnotation>
+    <TimestampAnnotation ID="Annotation:2w3">
+      <Description>ModifyDate</Description>
+      <Value>2024-11-04T10:38:27.817557+01:00</Value>
+    </TimestampAnnotation>
+    <TagAnnotation ID="Annotation:5w3">
+      <Description>ImageRegionX</Description>
+      <Value>0</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:6w3">
+      <Description>ImageRegionY</Description>
+      <Value>0</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:7w3">
+      <Description>ImageRegionWidth</Description>
+      <Value>2048</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:8w3">
+      <Description>ImageRegionHeight</Description>
+      <Value>2048</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:10w3">
+      <Description>CameraChipWidth</Description>
+      <Value>2048</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:9w3">
+      <Description>CameraChipHeight</Description>
+      <Value>2048</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:11w3">
+      <Description>CameraName</Description>
+      <Value>Cam1</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:12w3">
+      <Description>CameraSettingFlipX</Description>
+      <Value>False</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:13w3">
+      <Description>CameraSettingFlipY</Description>
+      <Value>False</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:14w3">
+      <Description>CameraSettingRotate</Description>
+      <Value>False</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:15w3">
+      <Description>CameraSettingModeIndex</Description>
+      <Value>-1</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:16w3">
+      <Description>CameraSettingDigitizerIndex</Description>
+      <Value>1</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:17w3">
+      <Description>CameraSettingGainIndex</Description>
+      <Value>0</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:19w3">
+      <Description>ScanOverlap</Description>
+      <Value>0</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:18w3">
+      <Description>UniversalData</Description>
+      <Value />
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:20w3">
+      <Description>DimensionType</Description>
+      <Value>z</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:22w3">
+      <Description>GeneralDescription</Description>
+      <Value>Exposure: 100 ms
+Binning: 1
+Offset: 0,0
+Digitizer: not implemented
+Gain: 0</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:23w3">
+      <Description>ScanAngle</Description>
+      <Value>0</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:24w3">
+      <Description>ScanStageDirectionXInvert</Description>
+      <Value>False</Value>
+    </TagAnnotation>
+    <TagAnnotation ID="Annotation:25w3">
+      <Description>ScanStageDirectionYInvert</Description>
+      <Value>False</Value>
+    </TagAnnotation>
+  </StructuredAnnotations>
+</OME>
