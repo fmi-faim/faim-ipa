@@ -126,13 +126,36 @@ class ImageXpressPlateAcquisition(PlateAcquisition):
         DataFrame
             Table of all files in the acquisition.
         """
-        return pd.DataFrame(
+        files = pd.DataFrame(
             ImageXpressPlateAcquisition._list_and_match_files(
                 root_dir=self._acquisition_dir,
                 root_re=self._get_root_re(),
                 filename_re=self._get_filename_re(),
             )
         )
+
+        # handle MetaXpress exported files:
+        if ("z" in files.columns) and (files.plate_name.iloc[0] is not None):
+            # single planes are unnecessarily duplicated -> remove duplicates
+            for c in files.channel.unique():
+                file = files[
+                    (files.channel == c) & (files.z != "0") & (files.z != "1")
+                ].iloc[0]
+                metadata = load_metaseries_tiff_metadata(file.path)
+                # projections have no "Z Step" attribute
+                # single-planes have always metadata["Z Step"] == 1, for each duplicate
+                if "Z Step" in metadata.keys():
+                    if metadata["Z Step"] == 1:
+                        files = files[~((files["channel"] == c) & (files["z"] != "1"))]
+                else:
+                    files = files[~((files["channel"] == c) & (files["z"] != "0"))]
+
+            # MIPs are stored in ZStep_0 -> change 0 to None
+            files.loc[files.z == "0", "z"] = None
+
+        # TODO: handle mixed time-lapses
+
+        return files
 
     @staticmethod
     def _list_and_match_files(
@@ -277,7 +300,7 @@ class SinglePlaneAcquisition(ImageXpressPlateAcquisition):
 
     def _get_root_re(self) -> re.Pattern:
         return re.compile(
-            r".*(?:[\/\\](?P<date>\d{4}-\d{2}-\d{2}))?[\/\\](?:.*_Plate_)?(?P<acq_id>\d+)(?:[\/\\]TimePoint_(?P<t>\d+))?(?:[\/\\]ZStep_0)?"
+            r".*(?:[\/\\](?P<date>\d{4}-\d{2}-\d{2}))?[\/\\](?:(?P<plate_name>.*)_Plate_)?(?P<acq_id>\d+)(?:[\/\\]TimePoint_(?P<t>\d+))?(?:[\/\\]ZStep_0)?"
         )
 
     def _get_filename_re(self) -> re.Pattern:
@@ -366,7 +389,7 @@ class StackAcquisition(ImageXpressPlateAcquisition):
 
     def _get_root_re(self) -> re.Pattern:
         return re.compile(
-            r".*(?:[\/\\](?P<date>\d{4}-\d{2}-\d{2}))?[\/\\](?:.*_Plate_)?(?P<acq_id>\d+)(?:[\/\\]TimePoint_(?P<t>\d+))?(?:[\/\\]ZStep_(?P<z>(?!0)\d+))"
+            r".*(?:[\/\\](?P<date>\d{4}-\d{2}-\d{2}))?[\/\\](?:(?P<plate_name>.*)_Plate_)?(?P<acq_id>\d+)(?:[\/\\]TimePoint_(?P<t>\d+))?(?:[\/\\]ZStep_(?P<z>(?!0)\d+))"
         )
 
     def _get_filename_re(self) -> re.Pattern:
@@ -472,10 +495,10 @@ class MixedAcquisition(StackAcquisition):
 
     def _get_root_re(self) -> re.Pattern:
         return re.compile(
-            r".*(?:[\/\\](?P<date>\d{4}-\d{2}-\d{2}))?[\/\\](?P<acq_id>\d+)(?:[\/\\]TimePoint_(?P<t>\d+))?(?:[\/\\]ZStep_(?P<z>\d+))?.*"
+            r".*(?:[\/\\](?P<date>\d{4}-\d{2}-\d{2}))?[\/\\](?:(?P<plate_name>.*)_Plate_)?(?P<acq_id>\d+)(?:[\/\\]TimePoint_(?P<t>\d+))?(?:[\/\\]ZStep_(?P<z>\d+))?.*"
         )
 
     def _get_filename_re(self) -> re.Pattern:
         return re.compile(
-            r"(?P<name>.*)_(?P<well>[A-Z]+\d{2})_?(?P<field>s\d+)?_?(?P<channel>w[1-9]{1})?(?!_thumb)(?P<md_id>[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12})(?P<ext>.tif)"
+            r"(?P<name>.*)_(?P<well>[A-Z]+\d{2})_?(?P<field>s\d+)?_?(?P<channel>w[1-9]{1})?(?!_thumb)(?P<md_id>[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12})?(?P<ext>\.(?:tif|TIF))"
         )
