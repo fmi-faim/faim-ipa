@@ -135,25 +135,9 @@ class ImageXpressPlateAcquisition(PlateAcquisition):
         )
 
         # handle MetaXpress exported files:
-        if ("z" in files.columns) and (files.plate_name.iloc[0] is not None):
-            # single planes are unnecessarily duplicated -> remove duplicates
-            for c in files.channel.unique():
-                file = files[
-                    (files.channel == c) & (files.z != "0") & (files.z != "1")
-                ].iloc[0]
-                metadata = load_metaseries_tiff_metadata(file.path)
-                # projections have no "Z Step" attribute
-                # single-planes have always metadata["Z Step"] == 1, for each duplicate
-                if "Z Step" in metadata.keys():
-                    if metadata["Z Step"] == 1:
-                        files = files[~((files["channel"] == c) & (files["z"] != "1"))]
-                else:
-                    files = files[~((files["channel"] == c) & (files["z"] != "0"))]
-
-            # MIPs are stored in ZStep_0 -> change 0 to None
+        # MIPs are stored in ZStep_0 -> change 0 to None
+        if "z" in files.columns:
             files.loc[files.z == "0", "z"] = None
-
-        # TODO: handle mixed time-lapses
 
         return files
 
@@ -402,7 +386,22 @@ class StackAcquisition(ImageXpressPlateAcquisition):
 
     def _compute_z_spacing(self, files: pd.DataFrame) -> float | None:
         assert "z" in files.columns, "No z column in files DataFrame."
-        channel_with_stack = np.sort(files[files["z"] == "2"]["channel"].unique())[0]
+        # check if files were exported via MetaXpress
+        if files.plate_name.iloc[0] is not None:
+            # single planes and MIPs are duplicated to the entire stack
+            # -> need to check in metadata, if the channel contains a stack or not
+            for c in np.sort(files.channel.unique()):
+                file = files[(files.channel == c) & (files.z == "2")].iloc[0]
+                metadata = load_metaseries_tiff_metadata(file.path)
+                # projections have no "Z Step" attribute
+                if "Z Step" in metadata.keys():
+                    # single-planes have metadata["Z Step"] == 1, for each duplicate
+                    if metadata["Z Step"] == 2:
+                        channel_with_stack = c
+        else:
+            channel_with_stack = np.sort(files[files["z"] == "2"]["channel"].unique())[
+                0
+            ]
         subset = files[files["channel"] == channel_with_stack]
         subset = subset[subset["well"] == np.sort(subset["well"].unique())[0]]
         first_field = np.sort(subset["field"].unique())[0]
@@ -475,6 +474,11 @@ class MixedAcquisition(StackAcquisition):
 
     def _parse_files(self) -> pd.DataFrame:
         files = self._filter_mips(super()._parse_files())
+        if files.plate_name.iloc[0] is not None:
+            raise ValueError(
+                "MixedAcquisition is not supported for MetaXpress exports. "
+                "Use StackAcquisition instead."
+            )
         self._z_spacing = self._compute_z_spacing(files)
         return files
 

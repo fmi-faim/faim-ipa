@@ -119,87 +119,14 @@ def test_stack_acquisition(stack_acquisition: PlateAcquisition):
     assert wells is not None
     assert len(wells) == 2
     # Full Stacks: 2 wells * 2 fields * 1 channels * 3 planes = 12 files
-    # Single plane in stack: 2 wells * 2 fields * 2 channels * 1 plane = 8 files
-    # Total of 20 files.
-    # There are additionally 8 MIP files in the directory, but these are
+    # Single plane stacks: 2 wells * 2 fields * 2 channels * 3 plane = 24 files
+    # MIP stacks: 2 wells * 2 fields * 1 channels * 3 plane = 12 files
+    # Total of 48 files.
+    # There are additionally 16 MIP files in the z=0 directory, but these are
     # ignored in this setup.
-    assert len(wells[0]._files) + len(wells[1]._files) == 20
+    assert len(wells[0]._files) + len(wells[1]._files) == 48
 
     channels = stack_acquisition.get_channel_metadata()
-    assert len(channels) == 3
-    ch = channels[0]
-    assert ch.channel_index == 0
-    assert ch.channel_name == "DAPI"
-    assert ch.display_color == "0051ff"
-    assert ch.exposure_time == 100.0
-    assert ch.exposure_time_unit == "ms"
-    assert ch.objective == "40X Plan Apo Lambda"
-    assert ch.spatial_calibration_units == "um"
-    assert ch.spatial_calibration_x == 1.3672
-    assert ch.spatial_calibration_y == 1.3672
-    assert ch.wavelength == 452
-    assert_almost_equal(ch.z_spacing, 2.99, decimal=4)
-
-    ch = channels[2]
-    assert ch.channel_index == 2
-    assert ch.channel_name == "Texas Red"
-    assert ch.display_color == "ff6700"
-    assert ch.exposure_time == 100.0
-    assert ch.exposure_time_unit == "ms"
-    assert ch.objective == "40X Plan Apo Lambda"
-    assert ch.spatial_calibration_units == "um"
-    assert ch.spatial_calibration_x == 1.3672
-    assert ch.spatial_calibration_y == 1.3672
-    assert ch.wavelength == 624
-    assert_almost_equal(ch.z_spacing, 2.99, decimal=4)
-
-    ch = channels[3]
-    assert ch.channel_index == 3
-    assert ch.channel_name == "Cy5"
-    assert ch.display_color == "bc0000"
-    assert ch.exposure_time == 100.0
-    assert ch.exposure_time_unit == "ms"
-    assert ch.objective == "40X Plan Apo Lambda"
-    assert ch.spatial_calibration_units == "um"
-    assert ch.spatial_calibration_x == 1.3672
-    assert ch.spatial_calibration_y == 1.3672
-    assert ch.wavelength == 692
-    assert_almost_equal(ch.z_spacing, 2.99, decimal=4)
-
-    for well in stack_acquisition.get_well_acquisitions():
-        assert isinstance(well, WellAcquisition)
-        assert len(well.get_tiles()) == 10
-        for tile in well.get_tiles():
-            assert tile.position.time == 0
-            assert tile.position.channel in [0, 2, 3]
-            assert tile.position.channel not in [4]
-            assert tile.position.z in [0, 1, 2]
-            assert tile.position.y in [0]
-            assert tile.position.x in [0, 256]
-            assert tile.shape == (256, 256)
-
-
-@pytest.fixture
-def mixed_acquisition(acquisition_dir):
-    return MixedAcquisition(
-        acquisition_dir,
-        alignment=TileAlignmentOptions.GRID,
-    )
-
-
-def test_mixed_acquisition(mixed_acquisition: PlateAcquisition):
-    wells = mixed_acquisition.get_well_acquisitions()
-
-    assert wells is not None
-    assert len(wells) == 2
-    # Stacks: 2 wells * 2 fields * 1 channels * 3 z-steps = 12 files
-    # Single Plane: 2 wells * 2 fields * 2 channel = 8 files
-    # MIP: 2 wells * 2 fields * 1 channel = 4 files
-    # There are additionally 4 files for the MIPs of the stacks
-    # (2 wells * 2 fields * 1 channels). But these are ignored.
-    assert len(wells[0]._files) + len(wells[1]._files) == 12 + 8 + 4
-
-    channels = mixed_acquisition.get_channel_metadata()
     assert len(channels) == 4
     ch = channels[0]
     assert ch.channel_index == 0
@@ -253,16 +180,25 @@ def test_mixed_acquisition(mixed_acquisition: PlateAcquisition):
     assert ch.wavelength == 692
     assert_almost_equal(ch.z_spacing, 2.99, decimal=4)
 
-    for well in mixed_acquisition.get_well_acquisitions():
+    for well in stack_acquisition.get_well_acquisitions():
         assert isinstance(well, WellAcquisition)
-        assert len(well.get_tiles()) == 12
+        assert len(well.get_tiles()) == 24
         for tile in well.get_tiles():
             assert tile.position.time == 0
             assert tile.position.channel in [0, 1, 2, 3]
+            assert tile.position.channel not in [4]
             assert tile.position.z in [0, 1, 2]
             assert tile.position.y in [0]
             assert tile.position.x in [0, 256]
             assert tile.shape == (256, 256)
+
+
+def test_mixed_acquisition(acquisition_dir: Path):
+    with pytest.raises(ValueError):
+        MixedAcquisition(
+            acquisition_dir,
+            alignment=TileAlignmentOptions.GRID,
+        )
 
 
 @pytest.fixture
