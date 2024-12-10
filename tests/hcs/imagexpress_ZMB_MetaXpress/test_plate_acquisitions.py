@@ -38,6 +38,16 @@ def test_single_plane_acquisition(single_plane_acquisition: PlateAcquisition):
 
     assert wells is not None
     assert len(wells) == 2
+    # The folder *3434* contains data with:
+    #     1 timepoint
+    #     3 z-steps
+    #     2 wells
+    #     2 sites
+    #     4 channels:
+    #         w1: all z-planes
+    #         w2: only projection
+    #         w3: only 1 plane (0um offset)
+    #         w4: only 1 plane (10um offset)
     # MIPs: 1 well has 2 fields * 2 channels = 4 files
     # single planes: 1 well has 2 fields * 2 channels = 4 files
     assert len(wells[0]._files) == 8
@@ -118,6 +128,16 @@ def test_stack_acquisition(stack_acquisition: PlateAcquisition):
 
     assert wells is not None
     assert len(wells) == 2
+    # The folder *3434* contains data with:
+    #     1 timepoint
+    #     3 z-steps
+    #     2 wells
+    #     2 sites
+    #     4 channels:
+    #         w1: all z-planes
+    #         w2: only projection
+    #         w3: only 1 plane (0um offset)
+    #         w4: only 1 plane (10um offset)
     # Full Stacks: 2 wells * 2 fields * 1 channels * 3 planes = 12 files
     # Single plane stacks: 2 wells * 2 fields * 2 channels * 3 plane = 24 files
     # MIP stacks: 2 wells * 2 fields * 1 channels * 3 plane = 12 files
@@ -246,6 +266,12 @@ def test_single_channel_acquisition(single_channel_acquisition: PlateAcquisition
 
     assert wells is not None
     assert len(wells) == 1
+    # The folder *3420* contains data with:
+    #     1 timepoint
+    #     1 z-step
+    #     1 well
+    #     1 site
+    #     1 channel
     # MIPs: 1 well has 1 fields * 1 channels = 1 files
     assert len(wells[0]._files) == 1
 
@@ -276,7 +302,47 @@ def test_single_channel_acquisition(single_channel_acquisition: PlateAcquisition
             assert tile.shape == (256, 256)
 
 
-# TODO: add test for time-lapse
+@pytest.fixture
+def acquisition_dir_time_lapse():
+    return (
+        Path(__file__).parent.parent.parent.parent
+        / "resources"
+        / "ImageXpress_ZMB"
+        / "MetaXpress"
+        / "9987_Plate_3435"
+    )
+
+
+@pytest.fixture
+def time_lapse_acquisition(acquisition_dir_time_lapse):
+    return SinglePlaneAcquisition(
+        acquisition_dir_time_lapse, alignment=TileAlignmentOptions.GRID
+    )
+
+
+def test_time_lapse_acquisition(time_lapse_acquisition: PlateAcquisition):
+    wells = time_lapse_acquisition.get_well_acquisitions()
+    # The folder *3435* contains data with:
+    #     6 timepoints
+    #     1 z-steps
+    #     2 wells
+    #     2 sites
+    #     4 channels:
+    #         w1: all timepoints
+    #         w2: at first timepoint
+    #         w3: at first and last timepoint
+    #         w4: at every 3rd timepoint
+    # 1w * 2s * 4c * 6t = 48 files per well
+    for well in wells:
+        assert isinstance(well, WellAcquisition)
+        assert len(well.get_tiles()) == 48
+        for tile in well.get_tiles():
+            assert tile.position.time in [0, 1, 2, 3, 4, 5]
+            assert tile.position.channel in [0, 1, 2, 3]
+            assert tile.position.z == 0
+            assert tile.position.y in [0]
+            assert tile.position.x in [0, 256]
+            assert tile.shape == (256, 256)
 
 
 def test_single_field_stack_acquisition(stack_acquisition: PlateAcquisition):
