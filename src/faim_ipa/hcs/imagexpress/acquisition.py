@@ -373,7 +373,7 @@ class StackAcquisition(ImageXpressPlateAcquisition):
 
     def _get_root_re(self) -> re.Pattern:
         return re.compile(
-            r".*(?:[\/\\](?P<date>\d{4}-\d{2}-\d{2}))?[\/\\](?:(?P<plate_name>.*)_Plate_)?(?P<acq_id>\d+)(?:[\/\\]TimePoint_(?P<t>\d+))?(?:[\/\\]ZStep_(?P<z>[1-9]\d+))"
+            r".*(?:[\/\\](?P<date>\d{4}-\d{2}-\d{2}))?[\/\\](?:(?P<plate_name>.*)_Plate_)?(?P<acq_id>\d+)(?:[\/\\]TimePoint_(?P<t>\d+))?(?:[\/\\]ZStep_(?P<z>[1-9]\d*))"
         )
 
     def _get_filename_re(self) -> re.Pattern:
@@ -478,8 +478,9 @@ class MixedAcquisition(StackAcquisition):
         files = self._filter_mips(super()._parse_files())
         if files.plate_name.iloc[0] is not None:
             raise ValueError(
-                "Data was exported via software. MixedAcquisition is not applicable in "
-                "this case. Use StackAcquisition instead."
+                "Data was exported via software. "
+                "MixedAcquisition is not applicable in this case. "
+                "Use StackAcquisition instead."
             )
         self._z_spacing = self._compute_z_spacing(files)
         return files
@@ -501,7 +502,7 @@ class MixedAcquisition(StackAcquisition):
 
     def _get_root_re(self) -> re.Pattern:
         return re.compile(
-            r".*(?:[\/\\](?P<date>\d{4}-\d{2}-\d{2}))?[\/\\](?:(?P<plate_name>.*)_Plate_)?(?P<acq_id>\d+)(?:[\/\\]TimePoint_(?P<t>\d+))?(?:[\/\\]ZStep_(?P<z>[1-9]\d+))?.*"
+            r".*(?:[\/\\](?P<date>\d{4}-\d{2}-\d{2}))?[\/\\](?:(?P<plate_name>.*)_Plate_)?(?P<acq_id>\d+)(?:[\/\\]TimePoint_(?P<t>\d+))?(?:[\/\\]ZStep_(?P<z>[1-9]\d*))?.*"
         )
 
     def _get_filename_re(self) -> re.Pattern:
