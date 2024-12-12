@@ -134,7 +134,7 @@ class ImageXpressPlateAcquisition(PlateAcquisition):
             )
         )
 
-        # handle MetaXpress exported files:
+        # handle ImageXpress exported files:
         # MIPs are stored in ZStep_0 -> change 0 to None
         if "z" in files.columns:
             files.loc[files.z == "0", "z"] = None
@@ -252,9 +252,9 @@ class SinglePlaneAcquisition(ImageXpressPlateAcquisition):
     Image data is stored in {name}_{well}_{field}_w{channel}{md_id}.tif.
     The *_thumb*.tif files, used by Molecular Devices as preview, are ignored.
 
-    Option B (as exported by MetaXpress):
+    Option B (as exported via software):
 
-    test_Plate_3420 --> name + {acquisition id}
+    test_Plate_3420 --> {name}_Plate_{acquisition id}
     └── Timepoint_1 --> {t} [Optional]
         ├── test_C05_s1_w1.TIF
         ├── test_C05_s1_w2.TIF
@@ -289,7 +289,7 @@ class SinglePlaneAcquisition(ImageXpressPlateAcquisition):
 
     def _get_filename_re(self) -> re.Pattern:
         return re.compile(
-            r"(?P<name>.*)_(?P<well>[A-Z]+\d{2})_?(?P<field>s\d+)?_?(?P<channel>w[1-9]{1})?(?!_thumb)(?P<md_id>[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12})?(?P<ext>\.(?:tif|TIF))"
+            r"(?P<name>.*)_(?P<well>[A-Z]+\d{2})_?(?P<field>s\d+)?_?(?P<channel>w[1-9]{1})?(?!_thumb)(?P<md_id>[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12})?(?P<ext>\.(?i:tif))"
         )
 
     def _get_z_spacing(self) -> float | None:
@@ -326,9 +326,9 @@ class StackAcquisition(ImageXpressPlateAcquisition):
     Image data is stored in {name}_{well}_{field}_w{channel}{md_id}.tif.
     The *_thumb*.tif files, used by Molecular Devices as preview, are ignored.
 
-    OPTION B (as exported by MetaXpress):
+    OPTION B (as exported via software):
 
-    test_Plate_3433 --> name + {acquisition id}
+    test_Plate_3433 --> {name}_Plate_{acquisition id}
     └── Timepoint_1 --> {t} [Optional]
         ├── ZStep_0 (contains MIPs)
             └── ...
@@ -373,12 +373,12 @@ class StackAcquisition(ImageXpressPlateAcquisition):
 
     def _get_root_re(self) -> re.Pattern:
         return re.compile(
-            r".*(?:[\/\\](?P<date>\d{4}-\d{2}-\d{2}))?[\/\\](?:(?P<plate_name>.*)_Plate_)?(?P<acq_id>\d+)(?:[\/\\]TimePoint_(?P<t>\d+))?(?:[\/\\]ZStep_(?P<z>(?!0)\d+))"
+            r".*(?:[\/\\](?P<date>\d{4}-\d{2}-\d{2}))?[\/\\](?:(?P<plate_name>.*)_Plate_)?(?P<acq_id>\d+)(?:[\/\\]TimePoint_(?P<t>\d+))?(?:[\/\\]ZStep_(?P<z>[1-9]\d+))"
         )
 
     def _get_filename_re(self) -> re.Pattern:
         return re.compile(
-            r"(?P<name>.*)_(?P<well>[A-Z]+\d{2})_?(?P<field>s\d+)?_?(?P<channel>w[1-9]{1})?(?!_thumb)(?P<md_id>[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12})?(?P<ext>\.(?:tif|TIF))"
+            r"(?P<name>.*)_(?P<well>[A-Z]+\d{2})_?(?P<field>s\d+)?_?(?P<channel>w[1-9]{1})?(?!_thumb)(?P<md_id>[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12})?(?P<ext>\.(?i:tif))"
         )
 
     def _get_z_spacing(self) -> float | None:
@@ -386,7 +386,7 @@ class StackAcquisition(ImageXpressPlateAcquisition):
 
     def _compute_z_spacing(self, files: pd.DataFrame) -> float | None:
         assert "z" in files.columns, "No z column in files DataFrame."
-        # check if files were exported via MetaXpress
+        # check if files were exported via software
         if files.plate_name.iloc[0] is not None:
             # single planes and MIPs are duplicated to the entire stack
             # -> need to check in metadata, if the channel contains a stack or not
@@ -455,7 +455,8 @@ class MixedAcquisition(StackAcquisition):
     Image data is stored in {name}_{well}_{field}_w{channel}{md_id}.tif.
     The *_thumb*.tif files, used by Molecular Devices as preview, are ignored.
 
-    OPTION B (as exported by MetaXpress) is not supported for mixed acquisitions.
+    OPTION B (as exported via software) will always export mixed acquisitions
+    as stacks. -> Use StackAcquisition instead.
     """
 
     def __init__(
@@ -476,7 +477,7 @@ class MixedAcquisition(StackAcquisition):
         files = self._filter_mips(super()._parse_files())
         if files.plate_name.iloc[0] is not None:
             raise ValueError(
-                "MixedAcquisition is not supported for MetaXpress exports. "
+                "MixedAcquisition is not supported for data exported via software. "
                 "Use StackAcquisition instead."
             )
         self._z_spacing = self._compute_z_spacing(files)
@@ -499,10 +500,10 @@ class MixedAcquisition(StackAcquisition):
 
     def _get_root_re(self) -> re.Pattern:
         return re.compile(
-            r".*(?:[\/\\](?P<date>\d{4}-\d{2}-\d{2}))?[\/\\](?:(?P<plate_name>.*)_Plate_)?(?P<acq_id>\d+)(?:[\/\\]TimePoint_(?P<t>\d+))?(?:[\/\\]ZStep_(?P<z>\d+))?.*"
+            r".*(?:[\/\\](?P<date>\d{4}-\d{2}-\d{2}))?[\/\\](?:(?P<plate_name>.*)_Plate_)?(?P<acq_id>\d+)(?:[\/\\]TimePoint_(?P<t>\d+))?(?:[\/\\]ZStep_(?P<z>[1-9]\d+))?.*"
         )
 
     def _get_filename_re(self) -> re.Pattern:
         return re.compile(
-            r"(?P<name>.*)_(?P<well>[A-Z]+\d{2})_?(?P<field>s\d+)?_?(?P<channel>w[1-9]{1})?(?!_thumb)(?P<md_id>[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12})?(?P<ext>\.(?:tif|TIF))"
+            r"(?P<name>.*)_(?P<well>[A-Z]+\d{2})_?(?P<field>s\d+)?_?(?P<channel>w[1-9]{1})?(?!_thumb)(?P<md_id>[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12})?(?P<ext>\.(?i:tif))"
         )
