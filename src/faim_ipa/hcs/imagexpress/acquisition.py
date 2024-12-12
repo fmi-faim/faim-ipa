@@ -398,6 +398,7 @@ class StackAcquisition(ImageXpressPlateAcquisition):
                     # single-planes have metadata["Z Step"] == 1, for each duplicate
                     if metadata["Z Step"] == 2:
                         channel_with_stack = c
+                        break
         else:
             channel_with_stack = np.sort(files[files["z"] == "2"]["channel"].unique())[
                 0
