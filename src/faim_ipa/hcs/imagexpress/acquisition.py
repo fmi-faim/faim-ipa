@@ -478,8 +478,8 @@ class MixedAcquisition(StackAcquisition):
         files = self._filter_mips(super()._parse_files())
         if files.plate_name.iloc[0] is not None:
             raise ValueError(
-                "MixedAcquisition is not supported for data exported via software. "
-                "Use StackAcquisition instead."
+                "Data was exported via software. MixedAcquisition is not applicable in "
+                "this case. Use StackAcquisition instead."
             )
         self._z_spacing = self._compute_z_spacing(files)
         return files
