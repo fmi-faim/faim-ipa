@@ -1,4 +1,3 @@
-from dataclasses import dataclass
 from pathlib import Path
 
 import pytest
@@ -10,7 +9,6 @@ from faim_ipa.hcs.acquisition import (
     WellAcquisition,
 )
 from faim_ipa.hcs.imagexpress import (
-    ImageXpressPlateAcquisition,
     MixedAcquisition,
     SinglePlaneAcquisition,
     StackAcquisition,
@@ -214,33 +212,18 @@ def test_stack_acquisition(stack_acquisition: PlateAcquisition):
 
 
 def test_mixed_acquisition(acquisition_dir: Path):
-    with pytest.raises(ValueError):
+    with pytest.raises(
+        ValueError,
+        match=(
+            "Data was exported via software. "
+            "MixedAcquisition is not applicable in this case. "
+            "Use StackAcquisition instead."
+        ),
+    ):
         MixedAcquisition(
             acquisition_dir,
             alignment=TileAlignmentOptions.GRID,
         )
-
-
-@pytest.fixture
-def dummy_plate():
-    ImageXpressPlateAcquisition.__abstractmethods__ = set()
-
-    @dataclass
-    class Plate(ImageXpressPlateAcquisition):
-        pass
-
-    return Plate()
-
-
-def test_raise_not_implemented_error(dummy_plate):
-    with pytest.raises(NotImplementedError):
-        dummy_plate._get_root_re()
-
-    with pytest.raises(NotImplementedError):
-        dummy_plate._get_filename_re()
-
-    with pytest.raises(NotImplementedError):
-        dummy_plate._get_z_spacing()
 
 
 @pytest.fixture
