@@ -328,7 +328,7 @@ class ZAdjustedStackAcquisition(StackAcquisition):
 
     def _parse_files(self) -> pd.DataFrame:
         files = super()._parse_files()
-        z_mapping = self._create_z_mapping()
+        z_mapping = self.create_z_mapping(self._trace_log_files, self._acquisition_dir)
         # merge files left with mapping on path
         merged = files.merge(z_mapping, how="left", left_on=["path"], right_on=["path"])
         if np.any(merged["z_pos"].isna()):
@@ -358,12 +358,15 @@ class ZAdjustedStackAcquisition(StackAcquisition):
         merged["Z"] = merged["z_pos"]
         return merged
 
-    def _create_z_mapping(self) -> pd.DataFrame:
+    @staticmethod
+    def create_z_mapping(
+        trace_log_files: list[str | Path], acquisition_dir: Path | str | None = None
+    ) -> pd.DataFrame:
         z_pos = []
         filenames = []
         missing = []
         value = None
-        for trace_file in self._trace_log_files:
+        for trace_file in trace_log_files:
             with open(trace_file) as log:
                 for line in log:
                     tokens = line.split(",")
@@ -387,9 +390,17 @@ class ZAdjustedStackAcquisition(StackAcquisition):
                     ):
                         filename = tokens[8]
                         if value is None:
-                            missing.append(join(self._acquisition_dir, filename))
+                            missing.append(
+                                join(acquisition_dir, filename)
+                                if acquisition_dir
+                                else filename
+                            )
                         else:
-                            filenames.append(join(self._acquisition_dir, filename))
+                            filenames.append(
+                                join(acquisition_dir, filename)
+                                if acquisition_dir
+                                else filename
+                            )
                             z_pos.append(value)
                     elif (
                         (len(tokens) > 7)

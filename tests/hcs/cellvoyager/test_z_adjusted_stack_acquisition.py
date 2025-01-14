@@ -133,6 +133,15 @@ def test_get_well_acquisitions(cv_acquisition, trace_log_file):
             assert tile.position.z in [0, 1, 2, 3, 4, 5]
 
 
+def test_create_z_mapping(trace_log_file):
+    with pytest.warns():
+        mapping = ZAdjustedStackAcquisition.create_z_mapping(
+            trace_log_files=[trace_log_file]
+        )
+    assert len(mapping) == 96
+    assert set(mapping["z_pos"]) == {0, 1, 3, 4, 6, 7, 9, 10, 12, 15}
+
+
 def test_incomplete_tracelog(cv_acquisition, incomplete_trace_log_file):
     with pytest.raises(ValueError, match="At least one invalid z position"):
         ZAdjustedStackAcquisition(
