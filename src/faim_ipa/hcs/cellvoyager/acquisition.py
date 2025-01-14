@@ -358,9 +358,8 @@ class ZAdjustedStackAcquisition(StackAcquisition):
         merged["Z"] = merged["z_pos"]
         return merged
 
-    @staticmethod
     def create_z_mapping(
-        trace_log_files: list[str | Path], acquisition_dir: Path | str | None = None
+        self,
     ) -> pd.DataFrame:
         z_pos = []
         filenames = []
