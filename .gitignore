@@ -92,3 +92,7 @@ mobie-example-project/
 # scratchpad
 scratchpad/
 .pixi
+
+# pixi environments
+.pixi
+*.egg-info

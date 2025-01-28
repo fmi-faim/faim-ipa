@@ -24,8 +24,10 @@ classifiers = [
   "Programming Language :: Python :: Implementation :: PyPy",
 ]
 dependencies = [
+  "blosc2",
   "defusedxml",
   "distributed",
+  "h5py",
   "matplotlib",
   "numpy<2",
   "ome-zarr",
@@ -144,3 +146,15 @@ extend-ignore-words-re = [
 
 [tool.typos.default.extend-words]
 ome = "ome"
+
+[tool.pixi.project]
+channels = ["conda-forge"]
+platforms = ["linux-64", "win-64", "osx-64", "osx-arm64"]
+
+[tool.pixi.dependencies]
+python = ">=3.10,<3.13"
+
+[tool.pixi.pypi-dependencies]
+faim-ipa = { path = ".", editable = true }
+
+[tool.pixi.tasks]
