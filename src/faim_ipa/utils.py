@@ -138,7 +138,7 @@ def resolve(relative_path: Path, reference: Path) -> Path:
     """
     if relative_path.is_absolute():
         return relative_path
-    return (reference / relative_path).resolve()
+    return (reference / relative_path).absolute()
 
 
 def make_relative(path: Path, reference: Path):
