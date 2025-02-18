@@ -57,11 +57,11 @@ def detect_spots(
         -gaussian_laplace(image, sigma=(axial_sigma, lateral_sigma, lateral_sigma))
         * rescale_factor
     )
-    if mask is not None:
-        log_img = log_img * mask
 
     h_ = img_as_float32(np.array(h, dtype=img.dtype))
     h_detections = h_maxima(log_img, h=h_, footprint=ball(1))
+    if mask is not None:
+        h_detections = h_detections * mask
     return np.array(np.where(h_detections)).T
 
 
@@ -106,9 +106,9 @@ def detect_spots_2d(
     log_img = (
         -gaussian_laplace(image, sigma=(lateral_sigma, lateral_sigma)) * rescale_factor
     )
-    if mask is not None:
-        log_img = log_img * mask
 
     h_ = img_as_float32(np.array(h, dtype=img.dtype))
     h_detections = h_maxima(log_img, h=h_, footprint=disk(1))
+    if mask is not None:
+        h_detections = h_detections * mask
     return np.array(np.where(h_detections)).T

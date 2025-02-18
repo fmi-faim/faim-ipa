@@ -76,9 +76,10 @@ def detect_blobs(
             * rescale_factor
             * (np.mean(sigma) / scale_norm) ** 2
         )
+        h_detections = h_maxima(log_img, h=h_, footprint=ball(1))
         if mask is not None:
-            log_img = log_img * mask
-        scale_cube[..., i] = h_maxima(log_img, h=h_, footprint=ball(1))
+            h_detections = h_detections * mask
+        scale_cube[..., i] = h_detections
 
     maxima = peak_local_max(
         scale_cube,
