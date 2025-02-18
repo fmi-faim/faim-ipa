@@ -116,6 +116,17 @@ def test_detect_spots():
         ),
     )
 
+    # Filter spots with fg-mask.
+    spots = detect_spots(
+        img=img_final,
+        background_img=estimated_bg,
+        axial_sigma=2.07,
+        lateral_sigma=0.75,
+        h=290,
+        mask=np.zeros_like(img_final, dtype=bool),
+    )
+    assert spots.shape[0] == 0
+
 
 def test_detect_spots_2d():
     np.random.seed(0)
@@ -223,3 +234,13 @@ def test_detect_spots_2d():
             ]
         ),
     )
+
+    # Filter spots with mask
+    spots = detect_spots_2d(
+        img=img_final,
+        background_img=estimated_bg,
+        lateral_sigma=0.75,
+        h=290,
+        mask=np.zeros_like(img_final, dtype=bool),
+    )
+    assert spots.shape[0] == 0

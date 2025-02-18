@@ -16,6 +16,7 @@ def detect_spots(
     lateral_sigma: float,
     h: int,
     background_img: np.ndarray | None = None,
+    mask: np.ndarray | None = None,
 ) -> np.ndarray:
     """Detect diffraction limited spots.
 
@@ -36,6 +37,8 @@ def detect_spots(
     background_img :
         Estimated background image. This is subtracted before the
         spot detection.
+    mask :
+     Foreground mask to restrict the spot detection.
 
     Returns
     -------
@@ -54,6 +57,8 @@ def detect_spots(
         -gaussian_laplace(image, sigma=(axial_sigma, lateral_sigma, lateral_sigma))
         * rescale_factor
     )
+    if mask is not None:
+        log_img = log_img * mask
 
     h_ = img_as_float32(np.array(h, dtype=img.dtype))
     h_detections = h_maxima(log_img, h=h_, footprint=ball(1))
@@ -65,6 +70,7 @@ def detect_spots_2d(
     lateral_sigma: float,
     h: int,
     background_img: np.ndarray | None = None,
+    mask: np.ndarray | None = None,
 ) -> np.ndarray:
     """Detect diffraction limited spots.
 
@@ -83,6 +89,8 @@ def detect_spots_2d(
     background_img :
         Estimated background image. This is subtracted before the
         spot detection.
+    mask :
+        Foreground mask to restrict the spot detection.
 
     Returns
     -------
@@ -98,6 +106,8 @@ def detect_spots_2d(
     log_img = (
         -gaussian_laplace(image, sigma=(lateral_sigma, lateral_sigma)) * rescale_factor
     )
+    if mask is not None:
+        log_img = log_img * mask
 
     h_ = img_as_float32(np.array(h, dtype=img.dtype))
     h_detections = h_maxima(log_img, h=h_, footprint=disk(1))

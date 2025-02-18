@@ -84,3 +84,16 @@ def test_detect_blobs():
             ]
         ),
     )
+
+    # Detect spots with estimated background and fg-mask
+    blobs = detect_blobs(
+        img=img_final,
+        axial_sigma=2.07,
+        lateral_sigma=0.75,
+        h=200,
+        scale_factors=[1, 2],
+        overlap=0.875,
+        background_img=estimated_bg,
+        mask=np.zeros_like(img_final, dtype=bool),
+    )
+    assert blobs.shape[0] == 0
