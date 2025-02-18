@@ -18,6 +18,7 @@ def detect_blobs(
     scale_factors: list[int],
     overlap: float,
     background_img: np.ndarray | None = None,
+    mask: np.ndarray | None = None,
 ) -> np.ndarray:
     """Detect blobs of different sizes.
 
@@ -44,6 +45,8 @@ def detect_blobs(
     background_img :
         Estimated background image. This is subtracted before the
         blob detection.
+    mask :
+        Foreground mask to restrict the blob detection.
 
     Returns
     -------
@@ -73,6 +76,8 @@ def detect_blobs(
             * rescale_factor
             * (np.mean(sigma) / scale_norm) ** 2
         )
+        if mask is not None:
+            log_img = log_img * mask
         scale_cube[..., i] = h_maxima(log_img, h=h_, footprint=ball(1))
 
     maxima = peak_local_max(
@@ -94,4 +99,7 @@ def detect_blobs(
 
     sigma_dim = sigmas_of_peaks.shape[1]
 
-    return _prune_blobs(np.array(lm), overlap=overlap, sigma_dim=sigma_dim)
+    if len(lm) == 0:
+        return np.empty((0, 6))
+    else:
+        return _prune_blobs(np.array(lm), overlap=overlap, sigma_dim=sigma_dim)
