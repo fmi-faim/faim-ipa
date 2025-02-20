@@ -27,7 +27,7 @@ dependencies = [
   "defusedxml",
   "distributed",
   "matplotlib",
-  "numpy<2",
+  "numpy",
   "ome-zarr",
   "pandas",
   "pint",
