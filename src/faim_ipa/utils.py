@@ -289,7 +289,7 @@ class IPAConfig(BaseModel):
     def path_relative_to_git(cls, value):
         if isinstance(value, Path):
             try:
-                return str(make_relative(value, cls.reference_dir()))
+                return make_relative(value, cls.reference_dir()).as_posix()
             except ValueError:
                 return str(value)
         return value
