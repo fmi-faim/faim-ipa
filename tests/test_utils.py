@@ -121,10 +121,10 @@ def test_prompt_with_questionary(model, mocker, dummy_file):
     assert response.path == dummy_file
     assert response.model_dump() == {
         "boolean": True,
-        "directory": str(relpath(dummy_file.parent, Path.cwd())),
+        "directory": Path(relpath(dummy_file.parent, Path.cwd())).as_posix(),
         "ge0": 10,
         "number": 0.01,
-        "path": str(relpath(dummy_file, Path.cwd())),
+        "path": Path(relpath(dummy_file, Path.cwd())).as_posix(),
         "string": "text",
     }
 
