@@ -86,8 +86,16 @@ class CVSourceFS(CVSource):
 
 
 class CVSourceHDF5(CVSource):
-    def __init__(self, hdf5: Path | str, name: str):
-        self.hdf5_path = Path(hdf5)
+    def __init__(self, hdf5: Path | str | list, name: str):
+        # hdf5 is either the name of an HDF5 archive or a list of file (multi-part HDF5 archive)
+        if isinstance(hdf5, (Path, str)):
+            self.hdf5_path = Path(hdf5)
+            self.multipart = False
+
+            # verify the single file given is not a multi-part file
+        else:
+            raise NotImplementedError('multi-part HDF5 archives are not yet implemented')
+            
         self.name = name
 
     def get_measurement_detail(self) -> BytesIO:
