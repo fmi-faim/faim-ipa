@@ -175,18 +175,21 @@ class CVSourceHDF5(CVSource):
     def get_trace_logs(self) -> [str]:
         logdir = "LOG"
 
-        archives_w_logs = set()
+        if not self.multipart:
+            archives_w_logs = set(self.hdf5_path)
+        else:
+            archives_w_logs = set()
 
-        for key in self.filelist.keys():
-            path = Path(key)
-            if path.parts[0] == logdir:
-                an=self.filelist[key]
-                archives_w_logs.add(self.hdf5_path[an])
+            for key in self.filelist.keys():
+                path = Path(key)
+                if path.parts[0] == logdir:
+                    an=self.filelist[key]
+                    archives_w_logs.add(self.hdf5_path[an])
         
         for archive_name in archives_w_logs:
             with h5py.File(archive_name, "r") as data:
-                for k in data["LOG"].keys():
-                    buffer_compressed = data["LOG"][k][:].tobytes()
+                for k in data[logdir].keys():
+                    buffer_compressed = data[logdir][k][:].tobytes()
                     buffer = blosc2.decompress2(buffer_compressed)
                     log = []
                     for line in BytesIO(buffer):
