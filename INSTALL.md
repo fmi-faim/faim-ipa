@@ -1,4 +1,4 @@
-# INSTALLATATION
+# INSTALLATION
 
 The hdf5-to-zarr branch can be installed directly using [Pixi](https://pixi.sh/latest/):
 
