@@ -7,3 +7,6 @@
 
 # FAIM-IPA
 A collection of __I__mage __P__rocessing and __A__nalysis (IPA) functions we use at the Facility for Advanced Imaging and Microscopy (FAIM) at the Friedrich Miescher Institute for Biomedical Research (FMI).
+
+## hdf5_to_zarr
+This branch includes the code changes to create an OME-Zarr file directly from one or multiple HDF5 archives.
