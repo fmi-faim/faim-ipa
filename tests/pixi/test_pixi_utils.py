@@ -13,12 +13,10 @@ from faim_ipa.pixi.src_status import git_status_clean
 
 def test_src_status_fail(mocker):
     mock_result = mocker.Mock()
-    mock_result.stdout = cleandoc(
-        """
+    mock_result.stdout = cleandoc("""
         A some/file
         M some/other/file
-        """
-    )
+        """)
     mock_result.returncode = 1
 
     mocker.patch("faim_ipa.pixi.src_status.subprocess.run", return_value=mock_result)

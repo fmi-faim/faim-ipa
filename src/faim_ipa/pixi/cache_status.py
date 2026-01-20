@@ -18,15 +18,13 @@ def min_cache_size_gb(gb: int = 2):
 
     if shutil.disk_usage(cache_dir).free < gb * GB:
         sys.tracebacklimit = 0
-        message = cleandoc(
-            f"""
+        message = cleandoc(f"""
         Disk space in cache directory is below {gb} GB.
 
         PIXI_CACHE_DIR: {cache_dir}
 
         Did you initialize your session correctly ('source ./init.sh') ?
-        """
-        )
+        """)
         raise RuntimeError(message)
     sys.exit(0)
 

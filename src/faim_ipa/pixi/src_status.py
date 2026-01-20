@@ -10,13 +10,11 @@ def git_status_clean(src_dir: str = "src"):
 
     if changes > 0:
         sys.tracebacklimit = 0
-        message = cleandoc(
-            f"""
+        message = cleandoc(f"""
         There are {changes} untracked changes in {src_dir}.
 
         Please commit or stash before proceeding.
-        """
-        )
+        """)
         raise RuntimeError(message)
     sys.exit(0)
 
