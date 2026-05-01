@@ -68,7 +68,7 @@ jobs:
           name: python-artifacts
           path: dist
       - name: Add assets to release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           files: dist/*
       - name: Publish package distributions to PyPI
