@@ -9,7 +9,7 @@ GB = 1024 * 1024 * 1024
 
 def min_cache_size_gb(gb: int = 2):
     info = subprocess.run(
-        ["pixi", "info", "--json"],  # noqa: S607
+        ["pixi", "info", "--json"],
         capture_output=True,
         text=True,
         check=False,
