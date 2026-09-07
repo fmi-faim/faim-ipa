@@ -122,9 +122,7 @@ def fuse_mean(warped_tiles: NDArray, warped_distance_masks: NDArray) -> NDArray:
     )
 
 
-def fuse_sum(
-    warped_tiles: NDArray, warped_distance_masks: NDArray  # noqa: ARG001
-) -> NDArray:
+def fuse_sum(warped_tiles: NDArray, warped_distance_masks: NDArray) -> NDArray:
     """
     Fuse transformed tiles and compute the sum of the overlapping pixels.
 

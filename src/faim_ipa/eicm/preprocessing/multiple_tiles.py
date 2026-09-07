@@ -1,6 +1,5 @@
 import logging
 from pathlib import Path
-from typing import List
 
 import numpy as np
 from tifffile import imread
@@ -8,7 +7,7 @@ from tqdm import tqdm
 
 
 def average_of_mips(
-    image_files: List[Path],
+    image_files: list[Path],
     logger=logging,
 ):
     """
@@ -29,7 +28,7 @@ def average_of_mips(
 
 
 def average_of_thresholded_mips(
-    image_files: List[Path],
+    image_files: list[Path],
     lower_threshold: int = 0,
     upper_threshold: int = 65535,
     logger=logging,
