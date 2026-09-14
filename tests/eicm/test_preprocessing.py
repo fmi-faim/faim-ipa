@@ -3,11 +3,11 @@ from unittest import TestCase
 
 import numpy as np
 
+from faim_ipa.eicm.preprocessing.cellvoyager import get_metadata, parse_filename
 from faim_ipa.eicm.preprocessing.multiple_tiles import (
     average_of_mips,
     average_of_thresholded_mips,
 )
-from faim_ipa.eicm.preprocessing.cellvoyager import get_metadata, parse_filename
 
 RESOURCE_DIR = Path(__file__).parent.parent.parent / "resources" / "eicm"
 
