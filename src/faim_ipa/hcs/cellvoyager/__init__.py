@@ -8,6 +8,6 @@ from faim_ipa.hcs.cellvoyager.tile import StackedTile
 __all__ = [
     "CellVoyagerWellAcquisition",
     "StackAcquisition",
-    "ZAdjustedStackAcquisition",
     "StackedTile",
+    "ZAdjustedStackAcquisition",
 ]
