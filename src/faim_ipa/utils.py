@@ -15,6 +15,7 @@ from pydantic import (
 )
 from questionary import ValidationError as QuestionaryValidationError
 from questionary import Validator
+from typing_extensions import Self
 
 
 def wavelength_to_rgb(wavelength, gamma=0.8):
@@ -29,28 +30,28 @@ def wavelength_to_rgb(wavelength, gamma=0.8):
     """
 
     wavelength = float(wavelength)
-    if 380 <= wavelength <= 440:  # noqa: PLR2004
+    if 380 <= wavelength <= 440:
         attenuation = 0.3 + 0.7 * (wavelength - 380) / (440 - 380)
         r = ((-(wavelength - 440) / (440 - 380)) * attenuation) ** gamma
         g = 0.0
         b = (1.0 * attenuation) ** gamma
-    elif 440 <= wavelength <= 490:  # noqa: PLR2004
+    elif 440 <= wavelength <= 490:
         r = 0.0
         g = ((wavelength - 440) / (490 - 440)) ** gamma
         b = 1.0
-    elif 490 <= wavelength <= 510:  # noqa: PLR2004
+    elif 490 <= wavelength <= 510:
         r = 0.0
         g = 1.0
         b = (-(wavelength - 510) / (510 - 490)) ** gamma
-    elif 510 <= wavelength <= 580:  # noqa: PLR2004
+    elif 510 <= wavelength <= 580:
         r = ((wavelength - 510) / (580 - 510)) ** gamma
         g = 1.0
         b = 0.0
-    elif 580 <= wavelength <= 645:  # noqa: PLR2004
+    elif 580 <= wavelength <= 645:
         r = 1.0
         g = (-(wavelength - 645) / (645 - 580)) ** gamma
         b = 0.0
-    elif 645 <= wavelength <= 750:  # noqa: PLR2004
+    elif 645 <= wavelength <= 750:
         attenuation = 0.3 + 0.7 * (750 - wavelength) / (750 - 645)
         r = (1.0 * attenuation) ** gamma
         g = 0.0
@@ -321,7 +322,7 @@ class IPAConfig(BaseModel):
             yaml.safe_dump(self.model_dump(), f, sort_keys=False)
 
     @classmethod
-    def load(cls: type[T], config_file=None) -> T:
+    def load(cls, config_file=None) -> Self:
         config_file = config_file or Path.cwd() / cls.config_name()
         with open(config_file) as f:
             return cls(**yaml.safe_load(f))
