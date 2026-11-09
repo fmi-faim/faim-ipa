@@ -2,7 +2,6 @@ import re
 import xml.etree.ElementTree as ET
 from glob import glob
 from os.path import basename, join
-from typing import Dict, List
 
 import numpy as np
 import pandas as pd
@@ -83,7 +82,7 @@ def parse_filename(file_name: str, plate_name: str):
     return plate_name, well, time_point, int(field), line, action, int(z), channel
 
 
-def create_table(files: List[str], plate_name: str) -> pd.DataFrame:
+def create_table(files: list[str], plate_name: str) -> pd.DataFrame:
     """
     Create table of file-names with columns for plate, well, time-point,
     field, L, action, Z and channel.
@@ -128,7 +127,7 @@ def create_table(files: List[str], plate_name: str) -> pd.DataFrame:
     )
 
 
-def build_field_stacks_for_channels(table: pd.DataFrame, z_plane: int) -> Dict:
+def build_field_stacks_for_channels(table: pd.DataFrame, z_plane: int) -> dict:
     """
     Stack all fields of a given z-plane for every channel and return them.
 
@@ -152,7 +151,7 @@ def build_field_stacks_for_channels(table: pd.DataFrame, z_plane: int) -> Dict:
     return stacks
 
 
-def subtract_dark_images(stacks: Dict, channel_metadata: Dict, input_dir: str) -> Dict:
+def subtract_dark_images(stacks: dict, channel_metadata: dict, input_dir: str) -> dict:
     """
     Subtract camera dark images from channels.
 
@@ -172,7 +171,7 @@ def subtract_dark_images(stacks: Dict, channel_metadata: Dict, input_dir: str) -
     return dark_img_subtracted
 
 
-def compute_median_projection(stacks: Dict) -> Dict:
+def compute_median_projection(stacks: dict) -> dict:
     """
     Compute median projection of the fields for each channel.
 
@@ -186,7 +185,7 @@ def compute_median_projection(stacks: Dict) -> Dict:
     return projections
 
 
-def get_output_name(acquisition_date: str, channel: Dict) -> str:
+def get_output_name(acquisition_date: str, channel: dict) -> str:
     """
     Create output name for reference images.
 

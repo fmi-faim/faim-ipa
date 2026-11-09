@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import numpy as np
 from scipy.ndimage import gaussian_laplace
-from skimage.morphology import ball, h_maxima, disk
+from skimage.morphology import ball, disk, h_maxima
 from skimage.util import img_as_float32
 
 from faim_ipa.detection.utils import (
