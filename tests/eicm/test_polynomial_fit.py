@@ -3,8 +3,8 @@ from unittest import TestCase
 import numpy as np
 from numpy.testing import assert_array_almost_equal
 
-from faim_ipa.eicm.estimator.utils import normalize_matrix
 from faim_ipa.eicm.estimator.polynomial_fit import polynomial_fit
+from faim_ipa.eicm.estimator.utils import normalize_matrix
 
 
 def gaussian_2d(
